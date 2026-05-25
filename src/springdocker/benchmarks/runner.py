@@ -104,7 +104,7 @@ def _wait_readiness(base_url: str, timeout_seconds: float = 40.0) -> int:
             with urllib.request.urlopen(base_url, timeout=2.0) as response:
                 if response.status < 400:
                     return int((time.time() - start) * 1000)
-        except (TimeoutError, urllib.error.URLError):
+        except (TimeoutError, urllib.error.URLError, ConnectionResetError, ConnectionError):
             pass
         time.sleep(0.25)
     return -1

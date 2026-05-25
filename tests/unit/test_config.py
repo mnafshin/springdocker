@@ -103,6 +103,23 @@ class ConfigTests(unittest.TestCase):
         self.assertTrue(dockerfile.use_legacy_scripts)
         self.assertEqual(bench_generate.java_version, 21)
         self.assertTrue(bench_generate.use_legacy_scripts)
+        self.assertEqual(
+            bench_generate.base_image_variants,
+            ("alpine", "debian-slim", "ubuntu", "distroless", "temurin"),
+        )
+
+    def test_resolve_base_image_variants_from_config(self) -> None:
+        loaded = {
+            "benchmark": {
+                "generate": {
+                    "base_image_choice": {
+                        "variants": ["debian-slim", "distroless"],
+                    }
+                }
+            }
+        }
+        resolved = resolve_benchmark_generate_config(None, None, None, loaded)
+        self.assertEqual(resolved.base_image_variants, ("debian-slim", "distroless"))
 
     def test_strict_unknown_key_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as td:

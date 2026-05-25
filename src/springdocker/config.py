@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from springdocker.runtime_images import parse_base_image_variants
+
 try:
     import tomllib  # Python 3.11+
 except ModuleNotFoundError:  # pragma: no cover - exercised on Python < 3.11
@@ -31,6 +33,7 @@ class BenchmarkGenerateConfig:
     build_tool: str | None
     java_version: int
     use_legacy_scripts: bool
+    base_image_variants: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -67,6 +70,8 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         "[benchmark.generate]\n"
         "java_version = 25\n"
         "legacy_scripts = false\n\n"
+        "[benchmark.generate.base_image_choice]\n"
+        "variants = [\"alpine\", \"debian-slim\", \"ubuntu\", \"distroless\", \"temurin\"]\n\n"
         "[benchmark.run]\n"
         f'profile = "{profile}"\n'
         "runner_args = [\"--skip-native\"]\n"
@@ -156,7 +161,7 @@ def _validate_schema(data: dict[str, Any]) -> None:
             benchmark_run,
             {"profile", "runner_args", "cpuset_cpus", "memory_limit", "warmup_runs", "max_workers", "normalized_runtime", "legacy_scripts"},
         ),
-        ("benchmark.generate", benchmark_generate, {"java_version", "legacy_scripts"}),
+        ("benchmark.generate", benchmark_generate, {"java_version", "legacy_scripts", "base_image_choice"}),
     ]:
         unknown = sorted(set(section.keys()) - allowed_keys)
         if unknown:
@@ -180,6 +185,16 @@ def _validate_schema(data: dict[str, Any]) -> None:
     _expect_optional_bool(benchmark_run.get("legacy_scripts"), "benchmark.run.legacy_scripts")
     _expect_optional_int(benchmark_generate.get("java_version"), "benchmark.generate.java_version")
     _expect_optional_bool(benchmark_generate.get("legacy_scripts"), "benchmark.generate.legacy_scripts")
+    base_image_choice = benchmark_generate.get("base_image_choice")
+    if base_image_choice is not None:
+        if not isinstance(base_image_choice, dict):
+            raise ValueError("Config section 'benchmark.generate.base_image_choice' must be a TOML table")
+        unknown_base = sorted(set(base_image_choice.keys()) - {"variants"})
+        if unknown_base:
+            raise ValueError(
+                "Unknown config key(s) in [benchmark.generate.base_image_choice]: " + ", ".join(unknown_base)
+            )
+        _expect_optional_str_list(base_image_choice.get("variants"), "benchmark.generate.base_image_choice.variants")
 
     # Backward compatible legacy keys under [benchmark].
     _expect_optional_str(benchmark.get("profile"), "benchmark.profile")
@@ -274,7 +289,23 @@ def resolve_benchmark_generate_config(
         use_legacy = cli_use_legacy_scripts
     else:
         use_legacy = _expect_optional_bool(generate.get("legacy_scripts"), "benchmark.generate.legacy_scripts") or False
-    return BenchmarkGenerateConfig(build_tool=build_tool, java_version=java_version, use_legacy_scripts=use_legacy)
+
+    base_image_choice = generate.get("base_image_choice", {})
+    if base_image_choice and not isinstance(base_image_choice, dict):
+        raise ValueError("Config section 'benchmark.generate.base_image_choice' must be a TOML table")
+    configured_variants = (
+        _expect_optional_str_list(base_image_choice.get("variants"), "benchmark.generate.base_image_choice.variants")
+        if isinstance(base_image_choice, dict)
+        else None
+    )
+    base_image_variants = parse_base_image_variants(configured_variants)
+
+    return BenchmarkGenerateConfig(
+        build_tool=build_tool,
+        java_version=java_version,
+        use_legacy_scripts=use_legacy,
+        base_image_variants=base_image_variants,
+    )
 
 
 def resolve_benchmark_run_config(

@@ -38,8 +38,36 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
                 "include_reproducible_controls",
                 "use_layered_jar",
                 "enable_appcds",
+                "enable_jep483_aot_cache",
             },
         )
+
+    def test_debian_slim_runtime_renders_with_jlink(self) -> None:
+        rendered = build_dockerfile(
+            DockerfileOptions(
+                build_tool="maven",
+                java_version=25,
+                runtime_image="debian-slim",
+                enable_appcds=False,
+            )
+        )
+        self.assertIn("debian:bookworm-slim", rendered)
+        self.assertIn("COPY --from=jre-builder /jre/out /opt/java", rendered)
+        self.assertNotIn("ArchiveClassesAtExit", rendered)
+
+    def test_jep483_aot_cache_stage_renders(self) -> None:
+        rendered = build_dockerfile(
+            DockerfileOptions(
+                build_tool="maven",
+                java_version=25,
+                enable_jep483_aot_cache=True,
+                enable_appcds=False,
+            )
+        )
+        self.assertIn("AS aot-trainer", rendered)
+        self.assertIn("-XX:AOTCacheOutput=/app/app.aot", rendered)
+        self.assertIn("-XX:AOTCache=/app/app.aot", rendered)
+        self.assertNotIn("ArchiveClassesAtExit", rendered)
 
     def test_toggle_markers_render_as_expected(self) -> None:
         rendered = build_dockerfile(

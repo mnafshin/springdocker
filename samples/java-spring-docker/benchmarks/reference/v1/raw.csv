@@ -1,3 +1,0 @@
-date,scenario,variant,run,build_ms,image_bytes,startup_ms,status,notes,host,docker_version,run_profile,gc_pause_ms,alloc_mb,startup_phase_boot_ms,startup_phase_context_ms,startup_phase_web_server_ms
-2026-05-19,06-base-image-choice,temurin-jre,1,12000,301989888,1600,ok,reference-baseline,reference-host,26.1.1,quick,,,,,
-2026-05-19,06-base-image-choice,distroless-nonroot,1,11800,215040000,1400,ok,reference-baseline,reference-host,26.1.1,quick,,,,,

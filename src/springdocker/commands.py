@@ -306,6 +306,8 @@ def cmd_benchmark_generate(
     build_tool: str | None,
     java_version: int,
     use_legacy_scripts: bool,
+    must_have_modules: tuple[str, ...] = (),
+    base_image_variants: tuple[str, ...] | None = None,
 ) -> int:
     try:
         benchmark_service.require_benchmark_dependencies()
@@ -332,7 +334,13 @@ def cmd_benchmark_generate(
             project_root,
         )
 
-    generate_benchmark_assets(project_root=project_root, build_tool=info.build_tool, java_version=java_version)
+    generate_benchmark_assets(
+        project_root=project_root,
+        build_tool=info.build_tool,
+        java_version=java_version,
+        must_have_modules=must_have_modules,
+        base_image_variants=base_image_variants,
+    )
     print("generated benchmark scenarios")
     return EXIT_OK
 

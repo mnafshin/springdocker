@@ -27,6 +27,13 @@
 
 ## Current scope
 
-The CLI does not yet model GC tuning, CDS toggles, or AOT-specific runtime switches as first-class options.
-The benchmark analyzer can still surface optional GC/allocation/startup-phase profiling columns when they
-are present in `raw.csv`.
+`DockerfileOptions` exposes `enable_appcds` (AppCDS archive training) and `enable_jep483_aot_cache`
+(JEP 483 ahead-of-time class-loading cache). The two options are mutually exclusive.
+
+Benchmark scenarios isolate each optimization:
+
+- `04-jep483-aot-cache`: toggles JEP 483 AOT cache only
+- `08-appcds`: toggles AppCDS only
+
+GC tuning is not yet a first-class option. The benchmark analyzer can still surface optional
+GC/allocation/startup-phase profiling columns when they are present in `raw.csv`.

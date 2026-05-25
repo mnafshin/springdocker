@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
 from springdocker.dockerfile import DockerfileOptions, build_dockerfile
+from springdocker.runtime_images import DEFAULT_BASE_IMAGE_VARIANTS, variant_slug
 
 EXPECTED_CSV_HEADER = (
     "date,scenario,variant,run,build_ms,image_bytes,startup_ms,status,notes,host,docker_version,run_profile,"
@@ -31,69 +33,168 @@ class NativeScenarioDefinition(ScenarioDefinition):
     pass
 
 
-def default_scenarios(build_tool: str, java_version: int) -> list[ScenarioDefinition]:
-    base = DockerfileOptions(build_tool=build_tool, java_version=java_version)
+def _base_image_variant_options(
+    build_tool: str,
+    java_version: int,
+    must_have_modules: tuple[str, ...],
+    runtime_image: str,
+) -> DockerfileOptions:
+    use_jlink = runtime_image in {"debian-slim", "ubuntu", "alpine"}
+    return DockerfileOptions(
+        build_tool=build_tool,
+        java_version=java_version,
+        must_have_modules=must_have_modules,
+        use_jlink=use_jlink,
+        use_layered_jar=True,
+        tuned_jvm_flags=True,
+        runtime_image=runtime_image,
+        enable_appcds=False,
+        enable_jep483_aot_cache=False,
+    )
+
+
+def default_scenarios(
+    build_tool: str,
+    java_version: int,
+    must_have_modules: tuple[str, ...] = (),
+    base_image_variants: tuple[str, ...] | None = None,
+) -> list[ScenarioDefinition]:
+    runtime_bases = base_image_variants if base_image_variants is not None else DEFAULT_BASE_IMAGE_VARIANTS
+    base = DockerfileOptions(
+        build_tool=build_tool,
+        java_version=java_version,
+        must_have_modules=must_have_modules,
+        enable_appcds=False,
+        enable_jep483_aot_cache=False,
+    )
     return [
         StandardScenarioDefinition(
             id="01-multi-stage-build-structure",
             variants=(
                 ("specialized-multi-stage", base),
-                ("simple-two-stage", DockerfileOptions(build_tool=build_tool, java_version=java_version, use_buildkit_cache=False)),
+                (
+                    "simple-two-stage",
+                    DockerfileOptions(
+                        build_tool=build_tool,
+                        java_version=java_version,
+                        must_have_modules=must_have_modules,
+                        use_jlink=False,
+                        use_layered_jar=False,
+                        enable_appcds=False,
+                        enable_jep483_aot_cache=False,
+                    ),
+                ),
             ),
         ),
         StandardScenarioDefinition(
             id="02-buildkit-gradle-cache",
             variants=(
                 ("with-buildkit-cache", base),
-                ("without-buildkit-cache", DockerfileOptions(build_tool=build_tool, java_version=java_version, use_buildkit_cache=False)),
+                ("without-buildkit-cache", DockerfileOptions(build_tool=build_tool, java_version=java_version, use_buildkit_cache=False, enable_appcds=False, enable_jep483_aot_cache=False)),
             ),
         ),
         StandardScenarioDefinition(
             id="03-custom-jre-jlink",
             variants=(
                 ("with-jlink-runtime", base),
-                ("without-jlink-runtime", DockerfileOptions(build_tool=build_tool, java_version=java_version, use_jlink=False)),
+                ("without-jlink-runtime", DockerfileOptions(build_tool=build_tool, java_version=java_version, use_jlink=False, enable_appcds=False, enable_jep483_aot_cache=False)),
             ),
         ),
         StandardScenarioDefinition(
             id="04-jep483-aot-cache",
             variants=(
-                ("with-aot-cache", base),
-                ("without-aot-cache", DockerfileOptions(build_tool=build_tool, java_version=java_version, tuned_jvm_flags=False)),
+                (
+                    "with-aot-cache",
+                    DockerfileOptions(
+                        build_tool=build_tool,
+                        java_version=java_version,
+                        must_have_modules=must_have_modules,
+                        enable_jep483_aot_cache=True,
+                        enable_appcds=False,
+                    ),
+                ),
+                ("without-aot-cache", base),
             ),
             run_overrides={"quick": 8, "full": 15},
         ),
         StandardScenarioDefinition(
             id="05-jvm-container-flags",
             variants=(
-                ("tuned-flags", base),
-                ("defaults-like", DockerfileOptions(build_tool=build_tool, java_version=java_version, tuned_jvm_flags=False)),
+                (
+                    "tuned-flags",
+                    DockerfileOptions(
+                        build_tool=build_tool,
+                        java_version=java_version,
+                        must_have_modules=must_have_modules,
+                        tuned_jvm_flags=True,
+                        enable_appcds=False,
+                        enable_jep483_aot_cache=False,
+                    ),
+                ),
+                (
+                    "defaults-like",
+                    DockerfileOptions(
+                        build_tool=build_tool,
+                        java_version=java_version,
+                        must_have_modules=must_have_modules,
+                        tuned_jvm_flags=False,
+                        enable_appcds=False,
+                        enable_jep483_aot_cache=False,
+                    ),
+                ),
             ),
         ),
         StandardScenarioDefinition(
             id="06-base-image-choice",
-            variants=(
-                ("temurin-jre", DockerfileOptions(build_tool=build_tool, java_version=java_version, use_jlink=False)),
+            variants=tuple(
                 (
-                    "distroless-nonroot",
+                    variant_slug(runtime_image),
+                    _base_image_variant_options(
+                        build_tool=build_tool,
+                        java_version=java_version,
+                        must_have_modules=must_have_modules,
+                        runtime_image=runtime_image,
+                    ),
+                )
+                for runtime_image in runtime_bases
+            ),
+        ),
+        StandardScenarioDefinition(
+            id="08-appcds",
+            variants=(
+                (
+                    "with-appcds",
                     DockerfileOptions(
                         build_tool=build_tool,
                         java_version=java_version,
-                        use_jlink=False,
-                        runtime_image="distroless",
+                        must_have_modules=must_have_modules,
+                        enable_appcds=True,
+                        enable_jep483_aot_cache=False,
                     ),
                 ),
+                ("without-appcds", base),
             ),
         ),
         NativeScenarioDefinition(id="07-native-vs-jvm"),
     ]
 
 
-def generate_benchmark_assets(project_root: Path, build_tool: str, java_version: int) -> None:
+def generate_benchmark_assets(
+    project_root: Path,
+    build_tool: str,
+    java_version: int,
+    must_have_modules: tuple[str, ...] = (),
+    base_image_variants: tuple[str, ...] | None = None,
+) -> None:
     bench_root = project_root / "benchmarks"
     bench_root.mkdir(parents=True, exist_ok=True)
 
-    for scenario in default_scenarios(build_tool=build_tool, java_version=java_version):
+    for scenario in default_scenarios(
+        build_tool=build_tool,
+        java_version=java_version,
+        must_have_modules=must_have_modules,
+        base_image_variants=base_image_variants,
+    ):
         scenario_dir = bench_root / scenario.id
         variants_dir = scenario_dir / "variants"
         results_dir = scenario_dir / "results"
@@ -102,6 +203,10 @@ def generate_benchmark_assets(project_root: Path, build_tool: str, java_version:
         results_dir.mkdir(parents=True, exist_ok=True)
 
         if isinstance(scenario, StandardScenarioDefinition):
+            expected_variants = {name for name, _ in scenario.variants}
+            for existing in variants_dir.iterdir():
+                if existing.is_dir() and existing.name not in expected_variants:
+                    shutil.rmtree(existing)
             for name, opts in scenario.variants:
                 variant_dir = variants_dir / name
                 variant_dir.mkdir(parents=True, exist_ok=True)

@@ -25,6 +25,7 @@ from .config import (
 )
 from .errors import print_warning
 from .plugins import register_command_plugins
+from .services import dockerfile_service
 
 # Type alias for dispatch handlers: each receives parsed args and resolved project root.
 _Handler = Callable[[argparse.Namespace, Path], int]
@@ -265,11 +266,26 @@ def _handle_benchmark_generate(args: argparse.Namespace, project_root: Path) -> 
         cli_use_legacy_scripts=args.use_legacy_scripts,
         loaded_config=loaded,
     )
+    dockerfile_resolved = resolve_dockerfile_generate_config(
+        cli_build_tool=None,
+        cli_output=None,
+        cli_java_version=None,
+        cli_recipe=None,
+        cli_wizard_args=None,
+        cli_use_legacy_scripts=None,
+        loaded_config=loaded,
+    )
+    must_have_modules = dockerfile_service.parse_must_have_modules(
+        project_root,
+        dockerfile_resolved.must_have_modules_file,
+    )
     return cmd_benchmark_generate(
         project_root=project_root,
         build_tool=resolved.build_tool,
         java_version=resolved.java_version,
         use_legacy_scripts=resolved.use_legacy_scripts,
+        must_have_modules=must_have_modules,
+        base_image_variants=resolved.base_image_variants,
     )
 
 

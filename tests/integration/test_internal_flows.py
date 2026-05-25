@@ -125,7 +125,7 @@ class InternalFlowTests(unittest.TestCase):
         dockerfile = build_dockerfile(
             DockerfileOptions(build_tool="maven", runtime_image="distroless", use_jlink=False)
         )
-        self.assertIn("gcr.io/distroless/java25-debian12:nonroot", dockerfile)
+        self.assertIn("gcr.io/distroless/java25-debian13:nonroot", dockerfile)
         self.assertNotIn("RUN groupadd", dockerfile)
         self.assertNotIn("RUN install -d -m 755 /app", dockerfile)
 

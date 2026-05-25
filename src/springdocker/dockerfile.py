@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 from jinja2 import Environment, PackageLoader, StrictUndefined
 
+from springdocker.runtime_images import SUPPORTED_RUNTIME_IMAGES
+
 TEMURIN_JDK_DIGESTS = {
     17: "sha256:b04a8c5d46e210873ffd1af6ad5f4d62c69ed3a6736993556eae60bba1373a23",
     21: "sha256:b9142586f9712700c6c9e07adcedfb18608b1a3a056e4001423a3354adfa9d80",
@@ -19,7 +21,28 @@ DISTROLESS_JAVA_DIGESTS = {
     17: "sha256:06484c2a9dcc9070aeafbc0fe752cb9f73bc0cea5c311f6a516e9010061998ad",
     21: "sha256:7e37784d94dccbf5ccb195c73b295f5ad00cd266512dfbac12eb9c3c28f8077d",
 }
-DISTROLESS_BASE_DIGEST = "sha256:7a75a36f4bec82a7542c64195e402907486f9a4dd2f8797a976aa0cf31cfb470"
+DISTROLESS_BASE_DIGESTS = {
+    12: "sha256:7a75a36f4bec82a7542c64195e402907486f9a4dd2f8797a976aa0cf31cfb470",
+}
+DEBIAN_BOOKWORM_SLIM_DIGEST = "sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c"
+OS_RUNTIME_IMAGES: dict[str, tuple[str, str | None]] = {
+    "debian-slim": ("debian:bookworm-slim", DEBIAN_BOOKWORM_SLIM_DIGEST),
+    "ubuntu": ("ubuntu:24.04", None),
+    "alpine": ("alpine:3.21", None),
+}
+
+
+def _distroless_debian_release(java_version: int) -> str:
+    return "debian13" if java_version >= 25 else "debian12"
+
+
+def _distroless_java_image(java_version: int) -> str:
+    return f"gcr.io/distroless/java{java_version}-{_distroless_debian_release(java_version)}:nonroot"
+
+
+def _distroless_base_image(java_version: int) -> str:
+    release = _distroless_debian_release(java_version)
+    return f"gcr.io/distroless/base-{release}:nonroot"
 
 
 @dataclass(frozen=True)
@@ -41,6 +64,7 @@ class DockerfileOptions:
     include_reproducible_controls: bool = True
     use_layered_jar: bool = True
     enable_appcds: bool = True
+    enable_jep483_aot_cache: bool = False
 
     def to_spec(self) -> DockerfileSpec:
         return DockerfileSpec(
@@ -52,6 +76,7 @@ class DockerfileOptions:
                 use_jlink=self.use_jlink,
                 use_layered_jar=self.use_layered_jar,
                 enable_appcds=self.enable_appcds,
+                enable_jep483_aot_cache=self.enable_jep483_aot_cache,
                 must_have_modules=self.must_have_modules,
             ),
             runtime=RuntimeConfig(
@@ -77,6 +102,7 @@ class BuildConfig:
     use_jlink: bool
     use_layered_jar: bool
     enable_appcds: bool
+    enable_jep483_aot_cache: bool
     must_have_modules: tuple[str, ...]
 
 
@@ -174,16 +200,90 @@ def _validate_options(options: DockerfileOptions) -> None:
         raise ValueError("build tool must be 'maven' or 'gradle'")
     if options.java_version < 17:
         raise ValueError("java version must be >= 17")
-    if options.runtime_image not in {"temurin", "distroless"}:
-        raise ValueError("runtime_image must be 'temurin' or 'distroless'")
+    if options.runtime_image not in SUPPORTED_RUNTIME_IMAGES:
+        supported = ", ".join(sorted(SUPPORTED_RUNTIME_IMAGES))
+        raise ValueError(f"runtime_image must be one of: {supported}")
+    if options.runtime_image in {"debian-slim", "ubuntu", "alpine"} and not options.use_jlink:
+        raise ValueError(f"runtime_image '{options.runtime_image}' requires use_jlink=True")
     if options.recipe not in {"jvm-balanced", "spring-aot", "native-aot"}:
         raise ValueError("recipe must be one of: jvm-balanced, spring-aot, native-aot")
+    if options.enable_jep483_aot_cache and options.java_version < 24:
+        raise ValueError("JEP 483 AOT cache requires Java 24 or newer")
+    if options.enable_jep483_aot_cache and not options.use_jlink:
+        raise ValueError("JEP 483 AOT cache requires use_jlink=True")
+    if options.enable_jep483_aot_cache and options.enable_appcds:
+        raise ValueError("enable_jep483_aot_cache and enable_appcds are mutually exclusive")
 
 
 def _pin_image(tag: str, digest: str | None) -> str:
     if digest is None:
         return tag
     return f"{tag}@{digest}"
+
+
+def _os_runtime_user_setup(runtime_image: str) -> list[str]:
+    if runtime_image == "alpine":
+        return [
+            "RUN apk add --no-cache shadow",
+            "RUN addgroup -S -g 1001 javauser && adduser -S -u 1001 -G javauser -H -D javauser",
+            "RUN install -d -o 1001 -g 1001 -m 755 /app && install -d -o 1001 -g 1001 -m 1777 /tmp",
+        ]
+    return [
+        "RUN apt-get update && apt-get install -y --no-install-recommends passwd && rm -rf /var/lib/apt/lists/*",
+        "RUN groupadd --system --gid 1001 javauser && useradd --system --uid 1001 --gid 1001 --no-create-home --shell /usr/sbin/nologin javauser",
+        "RUN install -d -o 1001 -g 1001 -m 755 /app && install -d -o 1001 -g 1001 -m 1777 /tmp",
+    ]
+
+
+def _compose_os_runtime_section(
+    spec: DockerfileSpec,
+    jar_path: str,
+    runtime_base: str,
+) -> DockerfileSection:
+    chown_flag = "--chown=1001:1001 " if spec.runtime.non_root else ""
+    lines = [
+        f"FROM --platform=$TARGETPLATFORM {runtime_base}",
+        *_os_runtime_user_setup(spec.runtime.runtime_image),
+        "WORKDIR /app",
+        "VOLUME /tmp",
+        "EXPOSE 8080",
+        "EXPOSE 8081",
+    ]
+    if spec.build.use_layered_jar:
+        lines.extend(
+            [
+                f"COPY --from=build {chown_flag}/layers/dependencies/ ./",
+                f"COPY --from=build {chown_flag}/layers/spring-boot-loader/ ./",
+                f"COPY --from=build {chown_flag}/layers/snapshot-dependencies/ ./",
+                f"COPY --from=build {chown_flag}/layers/application/ ./",
+            ]
+        )
+        if spec.build.enable_appcds:
+            lines.append(f"COPY --from=build {chown_flag}/layers/app.jsa /app/app.jsa")
+        if spec.build.enable_jep483_aot_cache:
+            lines.append(f"COPY --from=aot-trainer {chown_flag}/app/app.aot /app/app.aot")
+    else:
+        lines.append(f"COPY --from=build {chown_flag}/app/{jar_path} app.jar")
+    if spec.supply_chain.include_oci_labels:
+        lines.extend(
+            [
+                'LABEL org.opencontainers.image.source="${OCI_SOURCE}" \\',
+                '      org.opencontainers.image.revision="${OCI_REVISION}" \\',
+                '      org.opencontainers.image.created="${OCI_CREATED}"',
+            ]
+        )
+    if spec.runtime.healthcheck_path:
+        lines.append(
+            'HEALTHCHECK --interval=15s --timeout=3s --start-period=20s --retries=3 CMD wget -qO- "http://localhost:8080'
+            + spec.runtime.healthcheck_path
+            + '" >/dev/null || exit 1'
+        )
+    if spec.supply_chain.include_embedded_sbom:
+        lines.append("COPY --from=build /tmp/sbom/spdx.json /usr/share/sbom/spdx.json")
+    if spec.supply_chain.include_reproducible_controls:
+        lines.append('ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"')
+    lines.append("")
+    return _section(*lines)
 
 
 def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
@@ -290,17 +390,46 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
                 "RUN set -eux; \\",
                 "    MODULES=$( (tr ',' '\\n' < modules.txt; printf '%s\\n' \"$MUSTHAVE_MODULES\" | tr ',' '\\n') \\",
                 "      | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | sort -u | paste -sd, -); \\",
-                "    jlink --add-modules \"$MODULES\" --strip-debug --no-man-pages --no-header-files --compress=2 --output /opt/java",
+                "    jlink --add-modules \"$MODULES\" --strip-debug --no-man-pages --no-header-files --compress=2 --output /jre/out",
+                "",
+            )
+        )
+
+    runtime_base = _pin_image(
+        f"eclipse-temurin:{spec.java_version}-jre",
+        TEMURIN_JRE_DIGESTS.get(spec.java_version),
+    )
+    if spec.build.use_jlink and spec.build.enable_jep483_aot_cache:
+        sections.append(
+            _section(
+                f"FROM --platform=$TARGETPLATFORM {runtime_base} AS aot-trainer",
+                "COPY --from=jre-builder /jre/out /opt/java",
+                "ENV JAVA_HOME=/opt/java",
+                'ENV PATH="${JAVA_HOME}/bin:${PATH}"',
+                "WORKDIR /app",
+                "COPY --from=build /layers/dependencies/ ./",
+                "COPY --from=build /layers/spring-boot-loader/ ./",
+                "COPY --from=build /layers/snapshot-dependencies/ ./",
+                "COPY --from=build /layers/application/ ./",
+                (
+                    "RUN java -XX:AOTCacheOutput=/app/app.aot -Dspring.context.exit=onRefresh "
+                    "org.springframework.boot.loader.launch.JarLauncher; \\"
+                ),
+                "    test -f /app/app.aot",
                 "",
             )
         )
 
     if spec.runtime.runtime_image == "distroless":
+        debian_release = _distroless_debian_release(spec.java_version)
         runtime_base = (
-            _pin_image("gcr.io/distroless/base-debian12:nonroot", DISTROLESS_BASE_DIGEST)
+            _pin_image(
+                _distroless_base_image(spec.java_version),
+                DISTROLESS_BASE_DIGESTS.get(12 if debian_release == "debian12" else None),
+            )
             if spec.build.use_jlink
             else _pin_image(
-                f"gcr.io/distroless/java{spec.java_version}-debian12:nonroot",
+                _distroless_java_image(spec.java_version),
                 DISTROLESS_JAVA_DIGESTS.get(spec.java_version),
             )
         )
@@ -335,7 +464,7 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         if spec.build.use_jlink:
             distroless_lines.extend(
                 [
-                    "COPY --from=jre-builder /opt/java /opt/java",
+                    "COPY --from=jre-builder /jre/out /opt/java",
                     "ENV JAVA_HOME=/opt/java",
                     'ENV PATH="${JAVA_HOME}/bin:${PATH}"',
                 ]
@@ -347,11 +476,10 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         if spec.supply_chain.include_reproducible_controls:
             distroless_lines.append('ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"')
         sections.append(_section(*distroless_lines))
+    elif spec.runtime.runtime_image in OS_RUNTIME_IMAGES:
+        tag, digest = OS_RUNTIME_IMAGES[spec.runtime.runtime_image]
+        sections.append(_compose_os_runtime_section(spec, jar_path, _pin_image(tag, digest)))
     else:
-        runtime_base = _pin_image(
-            f"eclipse-temurin:{spec.java_version}-jre",
-            TEMURIN_JRE_DIGESTS.get(spec.java_version),
-        )
         temurin_lines = [f"FROM --platform=$TARGETPLATFORM {runtime_base}"]
         if spec.runtime.non_root:
             temurin_lines.extend(
@@ -383,6 +511,8 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
             )
             if spec.build.enable_appcds:
                 temurin_lines.append(f"COPY --from=build {chown_flag}/layers/app.jsa /app/app.jsa")
+            if spec.build.enable_jep483_aot_cache:
+                temurin_lines.append(f"COPY --from=aot-trainer {chown_flag}/app/app.aot /app/app.aot")
         else:
             temurin_lines.append(f"COPY --from=build {'--chown=1001:1001 ' if spec.runtime.non_root else ''}/app/{jar_path} app.jar")
         if spec.supply_chain.include_oci_labels:
@@ -408,7 +538,7 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
     if spec.build.use_jlink and spec.runtime.runtime_image != "distroless":
         sections.append(
             _section(
-                "COPY --from=jre-builder /opt/java /opt/java",
+                "COPY --from=jre-builder /jre/out /opt/java",
                 "ENV JAVA_HOME=/opt/java",
                 'ENV PATH="${JAVA_HOME}/bin:${PATH}"',
             )
@@ -416,6 +546,8 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
 
     if spec.build.use_layered_jar and spec.build.enable_appcds:
         jvm_args.append("-XX:SharedArchiveFile=/app/app.jsa")
+    if spec.build.enable_jep483_aot_cache:
+        jvm_args.append("-XX:AOTCache=/app/app.aot")
     entrypoint = (
         ["java", *jvm_args, "org.springframework.boot.loader.launch.JarLauncher"]
         if spec.build.use_layered_jar
@@ -495,6 +627,30 @@ def explain_dockerfile_text(text: str) -> dict[str, object]:
                 "name": "distroless runtime",
                 "enabled": True,
                 "reason": "Uses a minimal distroless runtime image.",
+            }
+        )
+    if "debian:bookworm-slim" in text:
+        features.append(
+            {
+                "name": "debian-slim runtime",
+                "enabled": True,
+                "reason": "Uses a Debian bookworm-slim runtime base image.",
+            }
+        )
+    if re.search(r"(?m)^FROM\s+ubuntu:", text):
+        features.append(
+            {
+                "name": "ubuntu runtime",
+                "enabled": True,
+                "reason": "Uses an Ubuntu runtime base image.",
+            }
+        )
+    if re.search(r"(?m)^FROM\s+alpine:", text):
+        features.append(
+            {
+                "name": "alpine runtime",
+                "enabled": True,
+                "reason": "Uses an Alpine runtime base image.",
             }
         )
     if "VOLUME /tmp" in text:
@@ -616,6 +772,14 @@ def explain_dockerfile_text(text: str) -> dict[str, object]:
                 "name": "AppCDS training run",
                 "enabled": True,
                 "reason": "Builds and uses a CDS archive for faster startup.",
+            }
+        )
+    if "AOTCacheOutput" in text or "AOTCache=" in text:
+        features.append(
+            {
+                "name": "JEP 483 AOT cache",
+                "enabled": True,
+                "reason": "Trains and loads a JEP 483 ahead-of-time class-loading cache.",
             }
         )
     if "native-image-community" in text or "nativeCompile" in text or "native:compile" in text:

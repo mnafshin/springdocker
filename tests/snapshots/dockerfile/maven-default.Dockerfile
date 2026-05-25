@@ -30,7 +30,7 @@ ARG MUSTHAVE_MODULES=""
 RUN set -eux; \
     MODULES=$( (tr ',' '\n' < modules.txt; printf '%s\n' "$MUSTHAVE_MODULES" | tr ',' '\n') \
       | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | sort -u | paste -sd, -); \
-    jlink --add-modules "$MODULES" --strip-debug --no-man-pages --no-header-files --compress=2 --output /opt/java
+    jlink --add-modules "$MODULES" --strip-debug --no-man-pages --no-header-files --compress=2 --output /jre/out
 
 FROM --platform=$TARGETPLATFORM eclipse-temurin:25-jre@sha256:04262e8782d6b034ee5d7c1c5d4e8938fcf2063a76b4bfcd84e5d994d09c27bc
 RUN groupadd --system --gid 1001 javauser && useradd --system --uid 1001 --gid 1001 --no-create-home --shell /usr/sbin/nologin javauser
@@ -49,7 +49,7 @@ LABEL org.opencontainers.image.source="${OCI_SOURCE}" \
       org.opencontainers.image.created="${OCI_CREATED}"
 COPY --from=build /tmp/sbom/spdx.json /usr/share/sbom/spdx.json
 ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"
-COPY --from=jre-builder /opt/java /opt/java
+COPY --from=jre-builder /jre/out /opt/java
 ENV JAVA_HOME=/opt/java
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 USER 1001

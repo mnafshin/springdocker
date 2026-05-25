@@ -91,8 +91,9 @@ For the current checked-in reference snapshot, the high-level decision matrix is
 | 03 JLink + JDeps | with-jlink | smaller runtime image with similar startup |
 | 04 JEP 483 AOT cache | with-aot-cache | better startup and tail latency |
 | 05 JVM flags | workload-dependent | host sensitivity makes the winner variable |
-| 06 Base image choice | debian-bookworm-slim | best size/startup balance in sample runs |
+| 06 Base image choice | workload-dependent | compare configured runtime bases (default: alpine, debian-slim, ubuntu, distroless, temurin) |
 | 07 Native vs JVM | workload-dependent | cold-start vs throughput tradeoff |
+| 08 AppCDS | with-appcds | faster startup from shared class archive |
 
 Reference evidence files are versioned under:
 
@@ -118,6 +119,19 @@ When a metric is missing, the analyzer leaves the field empty instead of failing
 - Each scenario is stored in a stable directory name.
 - Scenario variants are generated from the same `DockerfileOptions` inputs.
 - The CSV schema is fixed and validated by the analyzer before aggregation.
+
+### Configuring base-image variants (scenario 06)
+
+Set runtime bases under `[benchmark.generate.base_image_choice]` in `.springdocker.toml`:
+
+```toml
+[benchmark.generate.base_image_choice]
+variants = ["alpine", "debian-slim", "ubuntu", "distroless", "temurin"]
+```
+
+Aliases such as `debian-bookworm-slim`, `ubuntu-noble`, and `eclipse-temurin-jre` are accepted.
+Slim OS images (`alpine`, `debian-slim`, `ubuntu`) bundle a jlink-built JVM; `temurin` and `distroless`
+use pre-built Java runtime images for a closer “stock image” comparison.
 
 ## Current limitations
 

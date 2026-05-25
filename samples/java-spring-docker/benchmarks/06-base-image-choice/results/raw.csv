@@ -1,7 +1,0 @@
-date,scenario,variant,run,build_ms,image_bytes,startup_ms,status,notes,host,docker_version,run_profile
-2026-05-15,06-base-image-choice,distroless-nonroot,1,890,141360063,1150,ok,,Mac.fritz.box,055a478,quick
-2026-05-15,06-base-image-choice,distroless-nonroot,2,1038,141360063,1160,ok,,Mac.fritz.box,055a478,quick
-2026-05-15,06-base-image-choice,distroless-nonroot,3,822,141360063,1448,ok,,Mac.fritz.box,055a478,quick
-2026-05-15,06-base-image-choice,temurin-jre,1,797,141360216,1165,ok,,Mac.fritz.box,055a478,quick
-2026-05-15,06-base-image-choice,temurin-jre,2,782,141360216,1153,ok,,Mac.fritz.box,055a478,quick
-2026-05-15,06-base-image-choice,temurin-jre,3,840,141360216,1158,ok,,Mac.fritz.box,055a478,quick
