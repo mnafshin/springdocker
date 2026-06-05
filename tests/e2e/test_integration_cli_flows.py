@@ -16,6 +16,7 @@ add_src_to_path()
 from springdocker.cli import main
 
 FIXTURES = ROOT / "tests" / "fixtures"
+EXAMPLES = ROOT / "examples"
 
 
 class _FakeCompleted:
@@ -30,6 +31,25 @@ class CliIntegrationTests(unittest.TestCase):
         root = Path(td.name) / "project"
         copytree(FIXTURES / name, root)
         return td, root
+
+    def _workspace_from_example(self, name: str) -> tuple[tempfile.TemporaryDirectory[str], Path]:
+        td = tempfile.TemporaryDirectory()
+        root = Path(td.name) / "project"
+        copytree(EXAMPLES / name, root)
+        return td, root
+
+    def test_examples_maven_walkthrough_generates_dockerfile(self) -> None:
+        td, project = self._workspace_from_example("spring-boot-maven")
+        self.addCleanup(td.cleanup)
+
+        self.assertEqual(main(["doctor", "--project-root", str(project)]), 0)
+        self.assertEqual(
+            main(["dockerfile", "generate", "--project-root", str(project), "--output", "Dockerfile.generated"]),
+            0,
+        )
+        generated = (project / "Dockerfile.generated").read_text(encoding="utf-8")
+        self.assertIn("# Java 25 | build-tool: maven", generated)
+        self.assertIn("ENTRYPOINT [\"java\"", generated)
 
     def test_doctor_detects_maven_fixture(self) -> None:
         td, project = self._workspace_from_fixture("maven-only")

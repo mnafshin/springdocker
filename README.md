@@ -32,12 +32,12 @@ flowchart LR
 
 See `docs/architecture.md` for the detailed module map and command lifecycle.
 
-The repo is split into three main surfaces:
+The repo is split into these main surfaces:
 
 - `src/springdocker/` - installable CLI package and core implementation.
-- `examples/spring-boot-maven/` and `examples/spring-boot-gradle/` - isolated sample projects per build tool.
-- `samples/java-spring-docker/` - legacy mixed sample retained for benchmark assets.
 - `cli/README.md` - command reference and configuration details.
+
+See [Sample project map](#sample-project-map) for which Spring Boot path to use.
 
 ## What it does
 
@@ -50,6 +50,17 @@ The repo is split into three main surfaces:
 
 Digest update automation template: `.github/renovate.json`
 
+## Sample project map
+
+| Path | Role | Use when |
+|---|---|---|
+| `examples/spring-boot-maven/` | Human walkthrough (Maven) | Learning the CLI or trying Dockerfile generation |
+| `examples/spring-boot-gradle/` | Human walkthrough (Gradle) | Same, for Gradle projects |
+| `tests/fixtures/{maven-only,gradle-only}/` | CI golden samples | Running or extending automated tests ([`docs/golden-samples.md`](docs/golden-samples.md)) |
+| `samples/java-spring-docker/` | Benchmark harness + evidence | Running benchmark scenarios and comparing `raw.csv` results |
+
+Gradle walkthroughs use `examples/spring-boot-gradle/` with the same commands below.
+
 ## Quick start
 
 ```bash
@@ -59,15 +70,18 @@ python3 -m venv .venv
 python3 -m pip install -e .
 python3 -m pip install -e '.[benchmark]'
 
-springdocker doctor --project-root samples/java-spring-docker
-springdocker inspect --project-root samples/java-spring-docker --format json
-springdocker explain --project-root samples/java-spring-docker Dockerfile.generated --format json
-springdocker benchmark compare --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/03-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime
-springdocker init --project-root samples/java-spring-docker --build-tool maven
-springdocker dockerfile generate --project-root samples/java-spring-docker --output Dockerfile.generated --recipe jvm-balanced
+# Dockerfile workflow — start with examples/
+springdocker doctor --project-root examples/spring-boot-maven
+springdocker init --project-root examples/spring-boot-maven --build-tool maven
+springdocker inspect --project-root examples/spring-boot-maven --format json
+springdocker dockerfile generate --project-root examples/spring-boot-maven --output Dockerfile.generated --recipe jvm-balanced
+springdocker explain --project-root examples/spring-boot-maven Dockerfile.generated --format json
+
+# Benchmark workflow — use the full sample app under samples/
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 springdocker benchmark run --project-root samples/java-spring-docker --profile quick
 springdocker benchmark analyze --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/04-custom-jre-jlink/results/raw.csv
+springdocker benchmark compare --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/03-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime
 ```
 
 ## CLI workflow
@@ -150,7 +164,9 @@ This repository currently targets:
 
 ## Sample project docs
 
-- `samples/java-spring-docker/README.md`
+- `examples/README.md` - walkthrough projects by build tool
+- `docs/golden-samples.md` - CI fixtures and variant coverage
+- `samples/java-spring-docker/README.md` - full benchmark sample app
 - `samples/java-spring-docker/HELP.md`
 - `samples/java-spring-docker/k8s/kustomization.yaml`
 - `samples/java-spring-docker/tools/README.md`
