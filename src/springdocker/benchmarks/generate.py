@@ -175,7 +175,7 @@ def default_scenarios(
                 ("without-appcds", base),
             ),
         ),
-        NativeScenarioDefinition(id="07-native-vs-jvm"),
+        NativeScenarioDefinition(id="07-native-benchmark"),
     ]
 
 
@@ -196,13 +196,13 @@ def generate_benchmark_assets(
         base_image_variants=base_image_variants,
     ):
         scenario_dir = bench_root / scenario.id
-        variants_dir = scenario_dir / "variants"
         results_dir = scenario_dir / "results"
         scenario_dir.mkdir(parents=True, exist_ok=True)
-        variants_dir.mkdir(parents=True, exist_ok=True)
         results_dir.mkdir(parents=True, exist_ok=True)
 
         if isinstance(scenario, StandardScenarioDefinition):
+            variants_dir = scenario_dir / "variants"
+            variants_dir.mkdir(parents=True, exist_ok=True)
             expected_variants = {name for name, _ in scenario.variants}
             for existing in variants_dir.iterdir():
                 if existing.is_dir() and existing.name not in expected_variants:
@@ -212,7 +212,17 @@ def generate_benchmark_assets(
                 variant_dir.mkdir(parents=True, exist_ok=True)
                 (variant_dir / "Dockerfile").write_text(build_dockerfile(opts), encoding="utf-8")
         elif isinstance(scenario, NativeScenarioDefinition):
-            pass
+            # For the native-vs-jvm scenario, generate a single Dockerfile at the scenario root
+            native_dockerfile = scenario_dir / "Dockerfile"
+            native_opts = DockerfileOptions(
+                build_tool=build_tool,
+                recipe="native-aot",
+                java_version=java_version,
+                must_have_modules=must_have_modules,
+                enable_appcds=False,
+                enable_jep483_aot_cache=False,
+            )
+            native_dockerfile.write_text(build_dockerfile(native_opts), encoding="utf-8")
         else:  # pragma: no cover - defensive guard for future extensions
             raise TypeError(f"unsupported scenario definition: {type(scenario)}")
 

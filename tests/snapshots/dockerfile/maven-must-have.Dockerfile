@@ -26,7 +26,7 @@ FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk@sha256:c2b7ea21649875fb905
 WORKDIR /jre
 COPY --from=build /app/target/*.jar app.jar
 RUN jdeps --ignore-missing-deps --recursive --multi-release 25 --print-module-deps app.jar > modules.txt
-ARG MUSTHAVE_MODULES="jakarta.persistence,org.slf4j"
+ARG MUSTHAVE_MODULES="jakarta.persistence,org.slf4j,java.desktop,java.logging,java.naming"
 RUN set -eux; \
     MODULES=$( (tr ',' '\n' < modules.txt; printf '%s\n' "$MUSTHAVE_MODULES" | tr ',' '\n') \
       | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | sort -u | paste -sd, -); \

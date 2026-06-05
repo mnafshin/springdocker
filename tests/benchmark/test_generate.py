@@ -19,7 +19,7 @@ from springdocker.benchmarks.generate import (
 class GenerateScenarioTests(unittest.TestCase):
     def test_default_scenarios_use_explicit_native_type(self) -> None:
         scenarios = default_scenarios(build_tool="maven", java_version=21)
-        native = next(item for item in scenarios if item.id == "07-native-vs-jvm")
+        native = next(item for item in scenarios if item.id == "07-native-benchmark")
         self.assertIsInstance(native, NativeScenarioDefinition)
 
     def test_standard_scenario_rejects_empty_variants(self) -> None:
@@ -32,8 +32,10 @@ class GenerateScenarioTests(unittest.TestCase):
             generate_benchmark_assets(project_root=root, build_tool="maven", java_version=25)
             standard_variant = root / "benchmarks" / "01-multi-stage-build-structure" / "variants" / "specialized-multi-stage" / "Dockerfile"
             self.assertTrue(standard_variant.exists())
-            native_dir = root / "benchmarks" / "07-native-vs-jvm" / "variants"
-            self.assertTrue(native_dir.exists())
+            native_dockerfile = root / "benchmarks" / "07-native-benchmark" / "Dockerfile"
+            self.assertTrue(native_dockerfile.exists())
+            native_variants_dir = root / "benchmarks" / "07-native-benchmark" / "variants"
+            self.assertFalse(native_variants_dir.exists())
 
     def test_scenario_variants_match_intended_optimizations(self) -> None:
         scenarios = {scenario.id: scenario for scenario in default_scenarios(build_tool="maven", java_version=25)}

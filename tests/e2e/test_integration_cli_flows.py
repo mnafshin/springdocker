@@ -95,7 +95,7 @@ class CliIntegrationTests(unittest.TestCase):
         code = main(["dockerfile", "generate", "--project-root", str(project)])
         self.assertEqual(code, 0)
         generated = (project / "Dockerfile.test").read_text(encoding="utf-8")
-        self.assertIn('ARG MUSTHAVE_MODULES="jdk.crypto.ec,java.naming"', generated)
+        self.assertIn('ARG MUSTHAVE_MODULES="jdk.crypto.ec,java.naming,java.desktop,java.logging"', generated)
 
     def test_inspect_outputs_json_for_maven_fixture(self) -> None:
         td, project = self._workspace_from_fixture("maven-only")
@@ -151,12 +151,12 @@ class CliIntegrationTests(unittest.TestCase):
                     / "benchmarks"
                     / "06-base-image-choice"
                     / "variants"
-                    / "distroless-nonroot"
+                    / "distroless"
                     / "Dockerfile"
                 )
                 self.assertTrue(distroless.exists())
                 self.assertIn("gcr.io/distroless", distroless.read_text(encoding="utf-8"))
-                self.assertTrue((project / "benchmarks" / "07-native-vs-jvm" / "results" / "raw.csv").exists())
+                self.assertTrue((project / "benchmarks" / "07-native-benchmark" / "results" / "raw.csv").exists())
 
 
 if __name__ == "__main__":

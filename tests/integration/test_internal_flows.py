@@ -62,7 +62,7 @@ class InternalFlowTests(unittest.TestCase):
             )
             self.assertEqual(code, 0)
             self.assertTrue((root / "benchmarks" / "01-multi-stage-build-structure" / "variants").exists())
-            distroless = root / "benchmarks" / "06-base-image-choice" / "variants" / "distroless-nonroot" / "Dockerfile"
+            distroless = root / "benchmarks" / "06-base-image-choice" / "variants" / "distroless" / "Dockerfile"
             self.assertTrue(distroless.exists())
             self.assertIn("gcr.io/distroless", distroless.read_text(encoding="utf-8"))
 
@@ -99,7 +99,7 @@ class InternalFlowTests(unittest.TestCase):
             self.assertIn("01-multi-stage-build-structure", raw_csv.read_text(encoding="utf-8"))
             self.assertIn("=== Scenario: 01-multi-stage-build-structure", stdout.getvalue())
             self.assertIn("run 1:", stdout.getvalue())
-            self.assertIn("Skipping native scenario: 07-native-vs-jvm", stdout.getvalue())
+            self.assertIn("Skipping native scenario: 07-native-benchmark", stdout.getvalue())
 
     def test_dockerfile_generate_round_trips_to_explain(self) -> None:
         with tempfile.TemporaryDirectory() as td:

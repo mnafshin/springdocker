@@ -352,7 +352,7 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
 
     if spec.build.recipe == "native-aot":
         native_runtime_lines = [
-            f"FROM --platform=$TARGETPLATFORM {_pin_image('gcr.io/distroless/base-debian12:nonroot', DISTROLESS_BASE_DIGEST)}",
+            f"FROM --platform=$TARGETPLATFORM {_pin_image('gcr.io/distroless/base-debian12:nonroot', DISTROLESS_BASE_DIGESTS.get(12))}",
             "WORKDIR /app",
             "COPY --from=build /app/" + jar_path + " /app/app",
         ]
@@ -376,7 +376,12 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         return DockerfileDocument(sections=tuple(sections))
 
     if spec.build.use_jlink:
-        must_have_csv = ",".join(spec.build.must_have_modules).replace('"', '\\"')
+        # Ensure common modules required by frameworks (e.g., java.beans, java.logging, java.naming) are present
+        must_have = list(spec.build.must_have_modules)
+        for _m in ("java.desktop", "java.logging", "java.naming"):
+            if _m not in must_have:
+                must_have.append(_m)
+        must_have_csv = ",".join(must_have).replace('"', '\\"')
         sections.append(
             _section(
                 f"FROM --platform=$BUILDPLATFORM {build_base} AS jre-builder",

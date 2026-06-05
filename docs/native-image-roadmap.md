@@ -27,7 +27,7 @@
 
 ## Benchmark integration
 
-- Reuse the existing `07-native-vs-jvm` benchmark scenario as the comparison anchor.
+- Reuse the existing `07-native-benchmark` benchmark scenario as the comparison anchor.
 - Capture both the native and JVM outputs in the same reporting format.
 - Gate native adoption on measured startup and footprint improvements.
 
