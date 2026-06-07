@@ -225,6 +225,13 @@ def _pin_image(tag: str, digest: str | None) -> str:
     return f"{tag}@{digest}"
 
 
+def _jlink_build_base(spec: DockerfileSpec, default_build_base: str) -> str:
+    """Use a musl-linked JDK for jlink when the runtime base is Alpine."""
+    if spec.runtime.runtime_image == "alpine":
+        return f"eclipse-temurin:{spec.java_version}-jdk-alpine"
+    return default_build_base
+
+
 def _os_runtime_user_setup(runtime_image: str) -> list[str]:
     if runtime_image == "alpine":
         return [
@@ -386,9 +393,10 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
             if _m not in must_have:
                 must_have.append(_m)
         must_have_csv = ",".join(must_have).replace('"', '\\"')
+        jre_build_base = _jlink_build_base(spec, build_base)
         sections.append(
             _section(
-                f"FROM --platform=$BUILDPLATFORM {build_base} AS jre-builder",
+                f"FROM --platform=$BUILDPLATFORM {jre_build_base} AS jre-builder",
                 "WORKDIR /jre",
                 f"COPY --from=build /app/{jar_path} app.jar",
                 (

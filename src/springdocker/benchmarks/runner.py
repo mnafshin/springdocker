@@ -206,12 +206,14 @@ def _run_standard_scenario(
             finally:
                 _stop_container(warmup_container)
 
+        dockerfile_arg = dockerfile.relative_to(project_root).as_posix()
         for run_number in range(1, runs + 1):
             build_start = time.time()
             build = _run_command(
-                ["docker", "build", "-q", "-f", str(dockerfile), "-t", image_tag, "."],
+                ["docker", "build", "-q", "-f", dockerfile_arg, "-t", image_tag, "."],
                 cwd=project_root,
                 timeout_seconds=900,
+                capture_output=True,
             )
             build_ms = int((time.time() - build_start) * 1000)
             if build.returncode != 0:
@@ -226,7 +228,7 @@ def _run_standard_scenario(
                         "-1",
                         "-1",
                         "build_failed",
-                        build.detail or build.stderr or "docker build failed",
+                        (build.stderr or build.stdout or build.detail or "docker build failed").strip(),
                         host,
                         docker_version,
                         run_profile,
@@ -313,6 +315,7 @@ def run_benchmarks(
     max_workers: int = 1,
     normalized_runtime: bool = False,
 ) -> int:
+    project_root = project_root.resolve()
     options = parse_runner_args(profile=profile, extra_args=extra_args)
     print(f"Using profile: {options.profile}")
     print(f"Project root: {project_root}")
