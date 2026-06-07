@@ -10,6 +10,10 @@ python3 -m venv .venv
 python3 -m pip install -e ".[dev]"
 ```
 
+## IntelliJ / PyCharm
+
+See [`docs/ide/intellij.md`](docs/ide/intellij.md) if the IDE reports many errors in `dockerfile.py` while `mypy` passes (usually Dockerfile language injection or missing `src` sources root).
+
 ## Before you push
 
 Run the existing checks:

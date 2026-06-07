@@ -1,3 +1,7 @@
+"""
+Dockerfile generation and explain helpers.
+"""
+
 from __future__ import annotations
 
 import re
@@ -43,56 +47,6 @@ def _distroless_java_image(java_version: int) -> str:
 def _distroless_base_image(java_version: int) -> str:
     release = _distroless_debian_release(java_version)
     return f"gcr.io/distroless/base-{release}:nonroot"
-
-
-@dataclass(frozen=True)
-class DockerfileOptions:
-    build_tool: str
-    recipe: str = "jvm-balanced"
-    java_version: int = 25
-    use_buildkit_cache: bool = True
-    use_jlink: bool = True
-    non_root: bool = True
-    tuned_jvm_flags: bool = True
-    must_have_modules: tuple[str, ...] = ()
-    runtime_image: str = "temurin"
-    platform_aware: bool = True
-    healthcheck_path: str | None = None
-    include_oci_labels: bool = True
-    include_stopsignal: bool = True
-    include_embedded_sbom: bool = True
-    include_reproducible_controls: bool = True
-    use_layered_jar: bool = True
-    enable_appcds: bool = True
-    enable_jep483_aot_cache: bool = False
-
-    def to_spec(self) -> DockerfileSpec:
-        return DockerfileSpec(
-            build_tool=self.build_tool,
-            java_version=self.java_version,
-            build=BuildConfig(
-                recipe=self.recipe,
-                use_buildkit_cache=self.use_buildkit_cache,
-                use_jlink=self.use_jlink,
-                use_layered_jar=self.use_layered_jar,
-                enable_appcds=self.enable_appcds,
-                enable_jep483_aot_cache=self.enable_jep483_aot_cache,
-                must_have_modules=self.must_have_modules,
-            ),
-            runtime=RuntimeConfig(
-                runtime_image=self.runtime_image,
-                platform_aware=self.platform_aware,
-                non_root=self.non_root,
-                tuned_jvm_flags=self.tuned_jvm_flags,
-                healthcheck_path=self.healthcheck_path,
-            ),
-            supply_chain=SupplyChainConfig(
-                include_oci_labels=self.include_oci_labels,
-                include_stopsignal=self.include_stopsignal,
-                include_embedded_sbom=self.include_embedded_sbom,
-                include_reproducible_controls=self.include_reproducible_controls,
-            ),
-        )
 
 
 @dataclass(frozen=True)
@@ -155,6 +109,56 @@ class DockerfileDocument:
         )
         template = env.get_template("dockerfile.j2")
         return template.render(lines=lines)
+
+
+@dataclass(frozen=True)
+class DockerfileOptions:
+    build_tool: str
+    recipe: str = "jvm-balanced"
+    java_version: int = 25
+    use_buildkit_cache: bool = True
+    use_jlink: bool = True
+    non_root: bool = True
+    tuned_jvm_flags: bool = True
+    must_have_modules: tuple[str, ...] = ()
+    runtime_image: str = "temurin"
+    platform_aware: bool = True
+    healthcheck_path: str | None = None
+    include_oci_labels: bool = True
+    include_stopsignal: bool = True
+    include_embedded_sbom: bool = True
+    include_reproducible_controls: bool = True
+    use_layered_jar: bool = True
+    enable_appcds: bool = True
+    enable_jep483_aot_cache: bool = False
+
+    def to_spec(self) -> DockerfileSpec:
+        return DockerfileSpec(
+            build_tool=self.build_tool,
+            java_version=self.java_version,
+            build=BuildConfig(
+                recipe=self.recipe,
+                use_buildkit_cache=self.use_buildkit_cache,
+                use_jlink=self.use_jlink,
+                use_layered_jar=self.use_layered_jar,
+                enable_appcds=self.enable_appcds,
+                enable_jep483_aot_cache=self.enable_jep483_aot_cache,
+                must_have_modules=self.must_have_modules,
+            ),
+            runtime=RuntimeConfig(
+                runtime_image=self.runtime_image,
+                platform_aware=self.platform_aware,
+                non_root=self.non_root,
+                tuned_jvm_flags=self.tuned_jvm_flags,
+                healthcheck_path=self.healthcheck_path,
+            ),
+            supply_chain=SupplyChainConfig(
+                include_oci_labels=self.include_oci_labels,
+                include_stopsignal=self.include_stopsignal,
+                include_embedded_sbom=self.include_embedded_sbom,
+                include_reproducible_controls=self.include_reproducible_controls,
+            ),
+        )
 
 
 def _build_setup(build_tool: str, recipe: str) -> tuple[list[str], str, str]:
@@ -427,10 +431,11 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
 
     if spec.runtime.runtime_image == "distroless":
         debian_release = _distroless_debian_release(spec.java_version)
+        distroless_base_digest = DISTROLESS_BASE_DIGESTS.get(12) if debian_release == "debian12" else None
         runtime_base = (
             _pin_image(
                 _distroless_base_image(spec.java_version),
-                DISTROLESS_BASE_DIGESTS.get(12 if debian_release == "debian12" else None),
+                distroless_base_digest,
             )
             if spec.build.use_jlink
             else _pin_image(
