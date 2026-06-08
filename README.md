@@ -76,6 +76,7 @@ springdocker init --project-root examples/spring-boot-maven --build-tool maven
 springdocker inspect --project-root examples/spring-boot-maven --format json
 springdocker dockerfile generate --project-root examples/spring-boot-maven --output Dockerfile.generated --recipe jvm-balanced
 springdocker explain --project-root examples/spring-boot-maven Dockerfile.generated --format json
+springdocker verify --project-root examples/spring-boot-maven Dockerfile.generated
 
 # Benchmark workflow — use the full sample app under samples/
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25

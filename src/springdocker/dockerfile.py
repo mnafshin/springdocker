@@ -1,3 +1,7 @@
+"""
+Dockerfile generation and explain helpers.
+"""
+
 from __future__ import annotations
 
 import re
@@ -43,56 +47,6 @@ def _distroless_java_image(java_version: int) -> str:
 def _distroless_base_image(java_version: int) -> str:
     release = _distroless_debian_release(java_version)
     return f"gcr.io/distroless/base-{release}:nonroot"
-
-
-@dataclass(frozen=True)
-class DockerfileOptions:
-    build_tool: str
-    recipe: str = "jvm-balanced"
-    java_version: int = 25
-    use_buildkit_cache: bool = True
-    use_jlink: bool = True
-    non_root: bool = True
-    tuned_jvm_flags: bool = True
-    must_have_modules: tuple[str, ...] = ()
-    runtime_image: str = "temurin"
-    platform_aware: bool = True
-    healthcheck_path: str | None = None
-    include_oci_labels: bool = True
-    include_stopsignal: bool = True
-    include_embedded_sbom: bool = True
-    include_reproducible_controls: bool = True
-    use_layered_jar: bool = True
-    enable_appcds: bool = True
-    enable_jep483_aot_cache: bool = False
-
-    def to_spec(self) -> DockerfileSpec:
-        return DockerfileSpec(
-            build_tool=self.build_tool,
-            java_version=self.java_version,
-            build=BuildConfig(
-                recipe=self.recipe,
-                use_buildkit_cache=self.use_buildkit_cache,
-                use_jlink=self.use_jlink,
-                use_layered_jar=self.use_layered_jar,
-                enable_appcds=self.enable_appcds,
-                enable_jep483_aot_cache=self.enable_jep483_aot_cache,
-                must_have_modules=self.must_have_modules,
-            ),
-            runtime=RuntimeConfig(
-                runtime_image=self.runtime_image,
-                platform_aware=self.platform_aware,
-                non_root=self.non_root,
-                tuned_jvm_flags=self.tuned_jvm_flags,
-                healthcheck_path=self.healthcheck_path,
-            ),
-            supply_chain=SupplyChainConfig(
-                include_oci_labels=self.include_oci_labels,
-                include_stopsignal=self.include_stopsignal,
-                include_embedded_sbom=self.include_embedded_sbom,
-                include_reproducible_controls=self.include_reproducible_controls,
-            ),
-        )
 
 
 @dataclass(frozen=True)
@@ -157,6 +111,56 @@ class DockerfileDocument:
         return template.render(lines=lines)
 
 
+@dataclass(frozen=True)
+class DockerfileOptions:
+    build_tool: str
+    recipe: str = "jvm-balanced"
+    java_version: int = 25
+    use_buildkit_cache: bool = True
+    use_jlink: bool = True
+    non_root: bool = True
+    tuned_jvm_flags: bool = True
+    must_have_modules: tuple[str, ...] = ()
+    runtime_image: str = "temurin"
+    platform_aware: bool = True
+    healthcheck_path: str | None = None
+    include_oci_labels: bool = True
+    include_stopsignal: bool = True
+    include_embedded_sbom: bool = True
+    include_reproducible_controls: bool = True
+    use_layered_jar: bool = True
+    enable_appcds: bool = True
+    enable_jep483_aot_cache: bool = False
+
+    def to_spec(self) -> DockerfileSpec:
+        return DockerfileSpec(
+            build_tool=self.build_tool,
+            java_version=self.java_version,
+            build=BuildConfig(
+                recipe=self.recipe,
+                use_buildkit_cache=self.use_buildkit_cache,
+                use_jlink=self.use_jlink,
+                use_layered_jar=self.use_layered_jar,
+                enable_appcds=self.enable_appcds,
+                enable_jep483_aot_cache=self.enable_jep483_aot_cache,
+                must_have_modules=self.must_have_modules,
+            ),
+            runtime=RuntimeConfig(
+                runtime_image=self.runtime_image,
+                platform_aware=self.platform_aware,
+                non_root=self.non_root,
+                tuned_jvm_flags=self.tuned_jvm_flags,
+                healthcheck_path=self.healthcheck_path,
+            ),
+            supply_chain=SupplyChainConfig(
+                include_oci_labels=self.include_oci_labels,
+                include_stopsignal=self.include_stopsignal,
+                include_embedded_sbom=self.include_embedded_sbom,
+                include_reproducible_controls=self.include_reproducible_controls,
+            ),
+        )
+
+
 def _build_setup(build_tool: str, recipe: str) -> tuple[list[str], str, str]:
     if build_tool == "maven":
         build_cmd = "./mvnw -B -q package -DskipTests"
@@ -219,6 +223,13 @@ def _pin_image(tag: str, digest: str | None) -> str:
     if digest is None:
         return tag
     return f"{tag}@{digest}"
+
+
+def _jlink_build_base(spec: DockerfileSpec, default_build_base: str) -> str:
+    """Use a musl-linked JDK for jlink when the runtime base is Alpine."""
+    if spec.runtime.runtime_image == "alpine":
+        return f"eclipse-temurin:{spec.java_version}-jdk-alpine"
+    return default_build_base
 
 
 def _os_runtime_user_setup(runtime_image: str) -> list[str]:
@@ -382,9 +393,10 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
             if _m not in must_have:
                 must_have.append(_m)
         must_have_csv = ",".join(must_have).replace('"', '\\"')
+        jre_build_base = _jlink_build_base(spec, build_base)
         sections.append(
             _section(
-                f"FROM --platform=$BUILDPLATFORM {build_base} AS jre-builder",
+                f"FROM --platform=$BUILDPLATFORM {jre_build_base} AS jre-builder",
                 "WORKDIR /jre",
                 f"COPY --from=build /app/{jar_path} app.jar",
                 (
@@ -427,10 +439,11 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
 
     if spec.runtime.runtime_image == "distroless":
         debian_release = _distroless_debian_release(spec.java_version)
+        distroless_base_digest = DISTROLESS_BASE_DIGESTS.get(12) if debian_release == "debian12" else None
         runtime_base = (
             _pin_image(
                 _distroless_base_image(spec.java_version),
-                DISTROLESS_BASE_DIGESTS.get(12 if debian_release == "debian12" else None),
+                distroless_base_digest,
             )
             if spec.build.use_jlink
             else _pin_image(

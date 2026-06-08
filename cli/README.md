@@ -150,6 +150,42 @@ Use `--format json` for machine-readable output.
 
 Use `--format json` when you want stable structured output.
 
+## Verify command
+
+`springdocker verify` runs a battery of checks against a generated Dockerfile and optional runtime context. It is designed to work in CI without installing every external tool.
+
+```bash
+springdocker verify --project-root examples/spring-boot-maven Dockerfile.generated
+springdocker verify --project-root examples/spring-boot-maven Dockerfile.generated \
+  --image demo:latest \
+  --smoke-url http://127.0.0.1:8081/actuator/health \
+  --format junit \
+  --output reports/verify.junit.xml
+```
+
+### Built-in checks
+
+| Check | Requires | Missing prerequisite | Check failure |
+|---|---|---|---|
+| `hadolint` | `hadolint` on `PATH` | **skipped** (`hadolint not installed`) | non-zero exit |
+| `trivy` | `trivy` on `PATH` | **skipped** (`trivy not installed`) | HIGH/CRITICAL findings |
+| `dive` | `--image` and `dive` on `PATH` | **skipped** (`no image provided` or `dive not installed`) | non-zero exit |
+| `cosign` | `--image` and `cosign` on `PATH` | **skipped** (`no image provided` or `cosign not installed`) | non-zero exit |
+| `sbom` | `sbom.spdx.json` in project root | n/a (always runs) | **failed** if file missing, invalid JSON, or missing `spdxVersion` |
+| `smoke` | `--smoke-url` | **skipped** (`no smoke URL provided`) | HTTP/network error or status ≥ 400 |
+
+Verifier plugins registered under `springdocker.verifiers` run after the built-in checks. See `docs/extensions.md`.
+
+### Skip vs fail semantics
+
+- **skipped** checks do not fail the command. They appear in table/JSON/JUnit/SARIF output for visibility.
+- **failed** checks set the overall result to `failed` and make `springdocker verify` exit with code `1`.
+- Only **failed** checks affect the exit code. A run where every external tool is missing but `sbom.spdx.json` is valid still exits `0`.
+
+Optional tools are intentionally optional: install `hadolint`, `trivy`, `dive`, and `cosign` locally or in CI when you want those gates enforced.
+
+Supported `--format` values: `table` (default), `json`, `junit`, `sarif`, plus plugin-provided formats.
+
 ## Security hardening
 
 See `docs/security-hardening.md` for the runtime hardening defaults and recommended `docker run` flags.

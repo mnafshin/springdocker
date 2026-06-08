@@ -42,6 +42,18 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
             },
         )
 
+    def test_alpine_runtime_uses_musl_jdk_for_jlink_builder(self) -> None:
+        rendered = build_dockerfile(
+            DockerfileOptions(
+                build_tool="maven",
+                java_version=25,
+                runtime_image="alpine",
+                enable_appcds=False,
+            )
+        )
+        self.assertIn("FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk-alpine AS jre-builder", rendered)
+        self.assertIn("FROM --platform=$TARGETPLATFORM alpine:3.21", rendered)
+
     def test_debian_slim_runtime_renders_with_jlink(self) -> None:
         rendered = build_dockerfile(
             DockerfileOptions(
