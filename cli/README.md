@@ -99,6 +99,23 @@ When `dockerfile.must_have_modules_file` is set, springdocker reads modules from
 (`must-have.txt` style, one module per line, `#` comments allowed) and injects them into
 the jlink module list for reflection/dynamic-loading edge cases.
 
+When jlink is enabled, springdocker also auto-merges built-in **jlink baseline modules**:
+
+- `java.desktop` — JavaBeans and desktop-related APIs used by parts of the Spring stack
+- `java.logging` — `java.util.logging` used by framework and library code
+- `java.naming` — JNDI lookups that jdeps often misses on web apps
+
+Configure or disable them in `.springdocker.toml`:
+
+```toml
+[dockerfile]
+# Override defaults or set [] to disable baseline injection.
+jlink_baseline_modules = ["java.desktop", "java.logging", "java.naming"]
+```
+
+`springdocker explain` reports baseline and curated modules separately in JSON/table output.
+Baseline modules are generator defaults; curated modules come from `must_have_modules_file`.
+
 Create template config:
 
 ```bash
@@ -146,7 +163,8 @@ Use `--format json` for machine-readable output.
 - jlink runtime stage
 - non-root runtime
 - tuned JVM flags
-- curated must-have modules
+- jlink baseline modules (built-in defaults)
+- curated must-have modules (from `must-have.txt`)
 
 Use `--format json` when you want stable structured output.
 

@@ -10,11 +10,13 @@ add_src_to_path()
 
 from springdocker.config import (
     load_config,
+    render_default_config,
     resolve_benchmark_generate_config,
     resolve_benchmark_run_config,
     resolve_dockerfile_generate_config,
     resolve_doctor_config,
 )
+from springdocker.dockerfile import JLINK_BASELINE_MODULES
 
 
 class ConfigTests(unittest.TestCase):
@@ -100,6 +102,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(dockerfile.java_version, 21)
         self.assertEqual(dockerfile.recipe, "spring-aot")
         self.assertEqual(dockerfile.must_have_modules_file, "must-have.txt")
+        self.assertEqual(dockerfile.jlink_baseline_modules, JLINK_BASELINE_MODULES)
         self.assertTrue(dockerfile.use_legacy_scripts)
         self.assertEqual(bench_generate.java_version, 21)
         self.assertTrue(bench_generate.use_legacy_scripts)
@@ -107,6 +110,24 @@ class ConfigTests(unittest.TestCase):
             bench_generate.base_image_variants,
             ("alpine", "debian-slim", "ubuntu", "distroless", "temurin"),
         )
+
+    def test_resolve_jlink_baseline_modules_from_config(self) -> None:
+        loaded = {
+            "dockerfile": {
+                "jlink_baseline_modules": ["java.logging"],
+            }
+        }
+        resolved = resolve_dockerfile_generate_config(None, None, None, None, None, None, loaded)
+        self.assertEqual(resolved.jlink_baseline_modules, ("java.logging",))
+
+        empty_loaded = {"dockerfile": {"jlink_baseline_modules": []}}
+        empty_resolved = resolve_dockerfile_generate_config(None, None, None, None, None, None, empty_loaded)
+        self.assertEqual(empty_resolved.jlink_baseline_modules, ())
+
+    def test_render_default_config_documents_jlink_baseline_modules(self) -> None:
+        text = render_default_config("maven")
+        self.assertIn("jlink_baseline_modules", text)
+        self.assertIn("java.desktop", text)
 
     def test_resolve_base_image_variants_from_config(self) -> None:
         loaded = {

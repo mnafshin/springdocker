@@ -35,6 +35,20 @@ OS_RUNTIME_IMAGES: dict[str, tuple[str, str | None]] = {
     "alpine": ("alpine:3.21", None),
 }
 
+# Auto-merged into jlink MUSTHAVE_MODULES when jlink is enabled (see merge_jlink_must_have_modules).
+JLINK_BASELINE_MODULES: tuple[str, ...] = ("java.desktop", "java.logging", "java.naming")
+
+
+def merge_jlink_must_have_modules(
+    curated: tuple[str, ...],
+    baseline: tuple[str, ...],
+) -> tuple[str, ...]:
+    merged = list(curated)
+    for module in baseline:
+        if module not in merged:
+            merged.append(module)
+    return tuple(merged)
+
 
 def _distroless_debian_release(java_version: int) -> str:
     return "debian13" if java_version >= 25 else "debian12"
@@ -58,6 +72,7 @@ class BuildConfig:
     enable_appcds: bool
     enable_jep483_aot_cache: bool
     must_have_modules: tuple[str, ...]
+    jlink_baseline_modules: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -121,6 +136,7 @@ class DockerfileOptions:
     non_root: bool = True
     tuned_jvm_flags: bool = True
     must_have_modules: tuple[str, ...] = ()
+    jlink_baseline_modules: tuple[str, ...] = JLINK_BASELINE_MODULES
     runtime_image: str = "temurin"
     platform_aware: bool = True
     healthcheck_path: str | None = None
@@ -144,6 +160,7 @@ class DockerfileOptions:
                 enable_appcds=self.enable_appcds,
                 enable_jep483_aot_cache=self.enable_jep483_aot_cache,
                 must_have_modules=self.must_have_modules,
+                jlink_baseline_modules=self.jlink_baseline_modules,
             ),
             runtime=RuntimeConfig(
                 runtime_image=self.runtime_image,
@@ -387,11 +404,10 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         return DockerfileDocument(sections=tuple(sections))
 
     if spec.build.use_jlink:
-        # Ensure common modules required by frameworks (e.g., java.beans, java.logging, java.naming) are present
-        must_have = list(spec.build.must_have_modules)
-        for _m in ("java.desktop", "java.logging", "java.naming"):
-            if _m not in must_have:
-                must_have.append(_m)
+        must_have = merge_jlink_must_have_modules(
+            spec.build.must_have_modules,
+            spec.build.jlink_baseline_modules,
+        )
         must_have_csv = ",".join(must_have).replace('"', '\\"')
         jre_build_base = _jlink_build_base(spec, build_base)
         sections.append(
@@ -708,12 +724,37 @@ def explain_dockerfile_text(text: str) -> dict[str, object]:
     must_have_modules = tuple(
         module for module in (part.strip() for part in (must_have_match.group(1) if must_have_match else "").split(",")) if module
     )
-    if must_have_modules:
+    baseline_set = set(JLINK_BASELINE_MODULES)
+    baseline_modules = tuple(module for module in must_have_modules if module in baseline_set)
+    curated_modules = tuple(module for module in must_have_modules if module not in baseline_set)
+    jlink_modules: dict[str, list[str]] = {
+        "baseline": list(baseline_modules),
+        "curated": list(curated_modules),
+    }
+    if baseline_modules:
+        features.append(
+            {
+                "name": "jlink baseline modules",
+                "enabled": True,
+                "reason": (
+                    "Auto-injects built-in modules ("
+                    + ", ".join(baseline_modules)
+                    + ") for Spring/logging/desktop edge cases jdeps often misses."
+                ),
+                "modules": list(baseline_modules),
+            }
+        )
+    if curated_modules:
         features.append(
             {
                 "name": "must-have modules",
                 "enabled": True,
-                "reason": "Includes manually curated modules that jdeps cannot infer reliably.",
+                "reason": (
+                    "Includes user-curated modules ("
+                    + ", ".join(curated_modules)
+                    + ") from must-have file that jdeps cannot infer reliably."
+                ),
+                "modules": list(curated_modules),
             }
         )
 
@@ -734,7 +775,9 @@ def explain_dockerfile_text(text: str) -> dict[str, object]:
         summary_parts.append("It keeps /tmp writable for read-only root filesystem deployments.")
     if any(feature["name"] == "tuned JVM flags" for feature in features):
         summary_parts.append("It applies container-oriented JVM defaults.")
-    if must_have_modules:
+    if baseline_modules:
+        summary_parts.append("It merges built-in jlink baseline modules for common Spring framework needs.")
+    if curated_modules:
         summary_parts.append("It adds curated modules for reflection or dynamic-loading edge cases.")
 
     if not summary_parts:
@@ -823,6 +866,7 @@ def explain_dockerfile_text(text: str) -> dict[str, object]:
         "java_version": java_version,
         "stage_count": sum(1 for line in lines if line.strip().upper().startswith("FROM ")),
         "features": features,
+        "jlink_modules": jlink_modules,
         "summary": " ".join(summary_parts),
         "notes": notes,
     }

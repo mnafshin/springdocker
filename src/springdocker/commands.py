@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import cast
 
 from .benchmarks.generate import generate_benchmark_assets
+from .dockerfile import JLINK_BASELINE_MODULES
 from .benchmarks.runner import run_benchmarks
 from .errors import EXIT_FAILURE, EXIT_OK, EXIT_USAGE, print_error, print_warning
 from .plugins import render_verify_with_plugins
@@ -97,6 +98,9 @@ def _render_explain_table(payload: dict[str, object]) -> str:
         str(feature["name"]) for feature in features if feature.get("enabled") and "name" in feature
     )
     notes = cast(list[str], payload.get("notes", []))
+    jlink_modules = cast(dict[str, list[str]], payload.get("jlink_modules", {}))
+    baseline_modules = ", ".join(jlink_modules.get("baseline", [])) or "-"
+    curated_modules = ", ".join(jlink_modules.get("curated", [])) or "-"
     return "\n".join(
         [
             "| Field | Value |",
@@ -106,6 +110,8 @@ def _render_explain_table(payload: dict[str, object]) -> str:
             f"| Java version | {payload.get('java_version') if payload.get('java_version') is not None else '-'} |",
             f"| Stage count | {payload.get('stage_count', '-')} |",
             f"| Features | {feature_names or '-'} |",
+            f"| Jlink baseline modules | {baseline_modules} |",
+            f"| Curated must-have modules | {curated_modules} |",
             f"| Summary | {payload.get('summary', '-')} |",
             f"| Notes | {'; '.join(notes) if notes else '-'} |",
         ]
@@ -256,6 +262,7 @@ def cmd_dockerfile_generate(
     extra_args: list[str],
     use_legacy_scripts: bool,
     recipe: str = "jvm-balanced",
+    jlink_baseline_modules: tuple[str, ...] | None = None,
 ) -> int:
     try:
         info = inspect_project(project_root, build_tool)
@@ -290,6 +297,7 @@ def cmd_dockerfile_generate(
             build_tool=info.build_tool,
             java_version=java_version,
             must_have_modules_file=must_have_modules_file,
+            jlink_baseline_modules=jlink_baseline_modules or JLINK_BASELINE_MODULES,
             recipe=recipe,
         )
     except ValueError as exc:

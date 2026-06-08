@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from springdocker.dockerfile import JLINK_BASELINE_MODULES
 from springdocker.runtime_images import parse_base_image_variants
 
 try:
@@ -24,6 +25,7 @@ class DockerfileGenerateConfig:
     java_version: int
     recipe: str
     must_have_modules_file: str | None
+    jlink_baseline_modules: tuple[str, ...]
     wizard_args: list[str]
     use_legacy_scripts: bool
 
@@ -65,6 +67,9 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         "java_version = 25\n"
         'recipe = "jvm-balanced"\n'
         '# must_have_modules_file = "must-have.txt"\n'
+        "# When jlink is enabled, these modules are auto-merged into the jlink module list.\n"
+        '# jlink_baseline_modules = ["java.desktop", "java.logging", "java.naming"]\n'
+        "# Set jlink_baseline_modules = [] to disable built-in baseline injection.\n"
         "legacy_scripts = false\n"
         "wizard_args = []\n\n"
         "[benchmark.generate]\n"
@@ -153,7 +158,15 @@ def _validate_schema(data: dict[str, Any]) -> None:
         (
             "dockerfile",
             dockerfile,
-            {"output", "java_version", "recipe", "must_have_modules_file", "legacy_scripts", "wizard_args"},
+            {
+                "output",
+                "java_version",
+                "recipe",
+                "must_have_modules_file",
+                "jlink_baseline_modules",
+                "legacy_scripts",
+                "wizard_args",
+            },
         ),
         ("benchmark", benchmark, {"run", "generate", "profile", "runner_args"}),
         (
@@ -173,6 +186,7 @@ def _validate_schema(data: dict[str, Any]) -> None:
     _expect_optional_int(dockerfile.get("java_version"), "dockerfile.java_version")
     _expect_optional_str(dockerfile.get("recipe"), "dockerfile.recipe")
     _expect_optional_str(dockerfile.get("must_have_modules_file"), "dockerfile.must_have_modules_file")
+    _expect_optional_str_list(dockerfile.get("jlink_baseline_modules"), "dockerfile.jlink_baseline_modules")
     _expect_optional_bool(dockerfile.get("legacy_scripts"), "dockerfile.legacy_scripts")
     _expect_optional_str_list(dockerfile.get("wizard_args"), "dockerfile.wizard_args")
     _expect_optional_str(benchmark_run.get("profile"), "benchmark.run.profile")
@@ -250,6 +264,13 @@ def resolve_dockerfile_generate_config(
         dockerfile.get("must_have_modules_file"),
         "dockerfile.must_have_modules_file",
     )
+    jlink_baseline_modules_raw = _expect_optional_str_list(
+        dockerfile.get("jlink_baseline_modules"),
+        "dockerfile.jlink_baseline_modules",
+    )
+    jlink_baseline_modules = (
+        JLINK_BASELINE_MODULES if jlink_baseline_modules_raw is None else tuple(jlink_baseline_modules_raw)
+    )
 
     if cli_wizard_args is not None:
         wizard_args = cli_wizard_args
@@ -267,6 +288,7 @@ def resolve_dockerfile_generate_config(
         java_version=java_version,
         recipe=recipe,
         must_have_modules_file=must_have_modules_file,
+        jlink_baseline_modules=jlink_baseline_modules,
         wizard_args=wizard_args,
         use_legacy_scripts=use_legacy,
     )

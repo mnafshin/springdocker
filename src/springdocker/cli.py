@@ -253,6 +253,7 @@ def _handle_dockerfile_generate(args: argparse.Namespace, project_root: Path) ->
         java_version=resolved.java_version,
         recipe=resolved.recipe,
         must_have_modules_file=resolved.must_have_modules_file,
+        jlink_baseline_modules=resolved.jlink_baseline_modules,
         extra_args=resolved.wizard_args,
         use_legacy_scripts=resolved.use_legacy_scripts,
     )

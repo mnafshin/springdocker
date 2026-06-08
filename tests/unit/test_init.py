@@ -23,6 +23,7 @@ class InitCommandTests(unittest.TestCase):
             text = cfg.read_text(encoding="utf-8")
             self.assertIn('build_tool = "maven"', text)
             self.assertIn('profile = "full"', text)
+            self.assertIn("jlink_baseline_modules", text)
 
     def test_init_requires_force_when_exists(self) -> None:
         with tempfile.TemporaryDirectory() as td:

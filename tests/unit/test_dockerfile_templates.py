@@ -7,7 +7,7 @@ from tests.test_support import add_src_to_path
 
 add_src_to_path()
 
-from springdocker.dockerfile import DockerfileOptions, build_dockerfile
+from springdocker.dockerfile import JLINK_BASELINE_MODULES, DockerfileOptions, build_dockerfile, merge_jlink_must_have_modules
 
 
 class DockerfileTemplateRenderingTests(unittest.TestCase):
@@ -29,6 +29,7 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
                 "non_root",
                 "tuned_jvm_flags",
                 "must_have_modules",
+                "jlink_baseline_modules",
                 "runtime_image",
                 "platform_aware",
                 "healthcheck_path",
@@ -41,6 +42,25 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
                 "enable_jep483_aot_cache",
             },
         )
+
+    def test_merge_jlink_must_have_modules_appends_baseline_without_duplicates(self) -> None:
+        merged = merge_jlink_must_have_modules(("java.naming", "jdk.crypto.ec"), JLINK_BASELINE_MODULES)
+        self.assertEqual(
+            merged,
+            ("java.naming", "jdk.crypto.ec", "java.desktop", "java.logging"),
+        )
+
+    def test_build_dockerfile_omits_baseline_when_disabled(self) -> None:
+        rendered = build_dockerfile(
+            DockerfileOptions(
+                build_tool="maven",
+                java_version=25,
+                must_have_modules=("jdk.crypto.ec",),
+                jlink_baseline_modules=(),
+            )
+        )
+        self.assertIn('ARG MUSTHAVE_MODULES="jdk.crypto.ec"', rendered)
+        self.assertNotIn("java.desktop", rendered)
 
     def test_alpine_runtime_uses_musl_jdk_for_jlink_builder(self) -> None:
         rendered = build_dockerfile(

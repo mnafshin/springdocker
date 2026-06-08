@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..dockerfile import DockerfileOptions, build_dockerfile, explain_dockerfile_text
+from ..dockerfile import JLINK_BASELINE_MODULES, DockerfileOptions, build_dockerfile, explain_dockerfile_text
 from ..plugins import apply_dockerfile_mutators, render_recipe_from_plugins
 
 DEFAULT_DOCKERIGNORE = (
@@ -76,6 +76,7 @@ def generate_dockerfile(
     build_tool: str,
     java_version: int,
     must_have_modules_file: str | None,
+    jlink_baseline_modules: tuple[str, ...] = JLINK_BASELINE_MODULES,
     recipe: str = "jvm-balanced",
 ) -> GeneratedDockerfile:
     must_have_modules = parse_must_have_modules(project_root, must_have_modules_file)
@@ -85,6 +86,7 @@ def generate_dockerfile(
         recipe=recipe,
         java_version=java_version,
         must_have_modules=must_have_modules,
+        jlink_baseline_modules=jlink_baseline_modules,
         healthcheck_path=actuator_healthcheck,
     )
     recipe_warnings: tuple[str, ...] = ()

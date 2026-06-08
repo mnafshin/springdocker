@@ -35,6 +35,42 @@ class ExplainCommandTests(unittest.TestCase):
             self.assertIn("jlink runtime", [feature["name"] for feature in payload["features"]])
             self.assertIn("read-only filesystem ready", [feature["name"] for feature in payload["features"]])
             self.assertIn("multi-architecture build", [feature["name"] for feature in payload["features"]])
+            self.assertEqual(
+                payload["jlink_modules"]["baseline"],
+                ["java.desktop", "java.logging", "java.naming"],
+            )
+            self.assertEqual(payload["jlink_modules"]["curated"], [])
+            feature_names = [feature["name"] for feature in payload["features"]]
+            self.assertIn("jlink baseline modules", feature_names)
+            self.assertNotIn("must-have modules", feature_names)
+
+    def test_explain_distinguishes_baseline_and_curated_modules(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dockerfile = root / "Dockerfile.generated"
+            dockerfile.write_text(
+                build_dockerfile(
+                    DockerfileOptions(
+                        build_tool="maven",
+                        java_version=25,
+                        must_have_modules=("jdk.crypto.ec",),
+                    )
+                ),
+                encoding="utf-8",
+            )
+            stdout = StringIO()
+            with redirect_stdout(stdout):
+                code = cmd_explain(root, "Dockerfile.generated", "json")
+            self.assertEqual(code, EXIT_OK)
+            payload = json.loads(stdout.getvalue())
+            self.assertEqual(
+                payload["jlink_modules"]["baseline"],
+                ["java.desktop", "java.logging", "java.naming"],
+            )
+            self.assertEqual(payload["jlink_modules"]["curated"], ["jdk.crypto.ec"])
+            feature_names = [feature["name"] for feature in payload["features"]]
+            self.assertIn("jlink baseline modules", feature_names)
+            self.assertIn("must-have modules", feature_names)
 
     def test_explain_generated_dockerfile_table(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -51,6 +87,8 @@ class ExplainCommandTests(unittest.TestCase):
             output = stdout.getvalue()
             self.assertIn("| Field | Value |", output)
             self.assertIn("BuildKit cache", output)
+            self.assertIn("| Jlink baseline modules | java.desktop, java.logging, java.naming |", output)
+            self.assertIn("| Curated must-have modules | - |", output)
 
     def test_explain_manual_dockerfile_succeeds(self) -> None:
         with tempfile.TemporaryDirectory() as td:
