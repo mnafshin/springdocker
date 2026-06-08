@@ -16,7 +16,7 @@ Developer toolkit for Spring Boot containerization and benchmark-driven JVM tuni
 - **springdocker** optimizes for teams that want a **real Dockerfile they can own, read, and edit**.
 - It combines explicit Dockerfile generation with explainability and verification workflows.
 
-See `docs/POSITIONING.md` for the detailed comparison and tradeoffs.
+See [`docs/POSITIONING.md`](docs/POSITIONING.md) for the detailed comparison and tradeoffs.
 
 ## Architecture
 
