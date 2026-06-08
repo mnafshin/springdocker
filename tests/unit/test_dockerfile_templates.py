@@ -7,7 +7,12 @@ from tests.test_support import add_src_to_path
 
 add_src_to_path()
 
-from springdocker.dockerfile import JLINK_BASELINE_MODULES, DockerfileOptions, build_dockerfile, merge_jlink_must_have_modules
+from springdocker.dockerfile import (
+    JLINK_BASELINE_MODULES,
+    DockerfileOptions,
+    build_dockerfile,
+    merge_jlink_must_have_modules,
+)
 
 
 class DockerfileTemplateRenderingTests(unittest.TestCase):

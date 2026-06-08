@@ -4,7 +4,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..dockerfile import JLINK_BASELINE_MODULES, DockerfileOptions, build_dockerfile, explain_dockerfile_text
+from ..dockerfile import JLINK_BASELINE_MODULES, DockerfileOptions, build_dockerfile
+from ..dockerfile_explain import explain_dockerfile_text
 from ..plugins import apply_dockerfile_mutators, render_recipe_from_plugins
 
 DEFAULT_DOCKERIGNORE = (

@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import cast
 
 from .benchmarks.generate import generate_benchmark_assets
-from .dockerfile import JLINK_BASELINE_MODULES
 from .benchmarks.runner import run_benchmarks
+from .dockerfile import JLINK_BASELINE_MODULES
 from .errors import EXIT_FAILURE, EXIT_OK, EXIT_USAGE, print_error, print_warning
 from .plugins import render_verify_with_plugins
 from .project_detect import inspect_project

@@ -12,6 +12,7 @@ flowchart TD
   commands --> services[services/*_service.py]
   commands --> detect[project_detect.py]
   commands --> dockerfile[dockerfile.py]
+  commands --> explain[dockerfile_explain.py]
   commands --> analyze[analyze.py]
   commands --> benchgen[benchmarks/generate.py]
   commands --> benchr[benchmarks/runner.py]
@@ -29,6 +30,7 @@ flowchart TD
 | `src/springdocker/config.py` | Load `.springdocker.toml` and resolve command settings. |
 | `src/springdocker/project_detect.py` | Detect Maven/Gradle markers and Spring Boot hints. |
 | `src/springdocker/dockerfile.py` | Render Dockerfiles from structured options. |
+| `src/springdocker/dockerfile_explain.py` | Explain generated Dockerfiles via static text heuristics. |
 | `src/springdocker/analyze.py` | Summarize benchmark CSV data and format reports. |
 | `src/springdocker/benchmarks/` | Generate and run benchmark scenario assets. |
 
@@ -60,7 +62,7 @@ The configuration loader validates the schema early so invalid keys fail fast in
 4. Calls `build_dockerfile()` with structured options.
 5. Writes the generated file to the target path.
 
-`dockerfile.py` currently produces:
+`dockerfile.py` produces:
 
 - multi-stage build stages
 - optional jlink runtime stage
