@@ -24,7 +24,7 @@ See `docs/examples/benchmark-trends.json` for a compact sample of the trend payl
 
 ## CI integration
 
-The CI workflow uses the benchmark regression gate to keep trend lines honest when sample results drift.
+The CI workflow runs the benchmark regression gate once on `ubuntu-latest` to keep trend lines honest when sample results drift.
 
 ## Regeneration
 
