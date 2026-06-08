@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 from .commands import (
     cmd_benchmark_analyze,
@@ -192,7 +193,7 @@ def build_parser() -> argparse.ArgumentParser:
     bench_compare.add_argument("--format", choices=["table", "json"], default="table")
 
     plugin_warnings = register_command_plugins(sub)
-    setattr(parser, "_plugin_registration_warnings", plugin_warnings)
+    parser._plugin_registration_warnings = plugin_warnings
     return parser
 
 

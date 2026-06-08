@@ -91,9 +91,8 @@ class PluginTests(unittest.TestCase):
         with patch(
             "springdocker.plugins._iter_entry_points",
             return_value=[_EntryPoint("p1", _ProjectDetectorMaven), _EntryPoint("p2", _ProjectDetectorGradle)],
-        ):
-            with self.assertRaises(ValueError):
-                detect_build_tool_from_plugins(root=None)
+        ), self.assertRaises(ValueError):
+            detect_build_tool_from_plugins(root=None)
 
     def test_recipe_renderer_plugin(self) -> None:
         options = DockerfileOptions(build_tool="maven", recipe="acme")
