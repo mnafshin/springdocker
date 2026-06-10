@@ -143,7 +143,6 @@ This repository currently targets:
 - `docs/onboarding.md`
 - `docs/troubleshooting.md`
 - `docs/jvm-optimization.md`
-- `ROADMAP.md`
 - `SECURITY.md`
 - `CONTRIBUTING.md`
 
