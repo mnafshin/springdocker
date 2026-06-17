@@ -9,7 +9,12 @@ from tests.test_support import add_src_to_path
 
 add_src_to_path()
 
-from springdocker.project_detect import detect_build_tool, has_spring_project_markers, inspect_project_details
+from springdocker.project_detect import (
+    analyze_multi_module_layout,
+    detect_build_tool,
+    has_spring_project_markers,
+    inspect_project_details,
+)
 
 
 class ProjectDetectTests(unittest.TestCase):
@@ -87,6 +92,68 @@ class ProjectDetectTests(unittest.TestCase):
             self.assertEqual(info.spring_boot_version, "3.3.0")
             self.assertIn("org.springframework.boot:spring-boot-starter-web", info.direct_dependencies)
             self.assertEqual(info.runtime_compatibility, "compatible")
+
+    def test_maven_reactor_detects_spring_boot_submodule(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "pom.xml").write_text(
+                "<project>"
+                "<packaging>pom</packaging>"
+                "<modules><module>services/api</module></modules>"
+                "</project>",
+                encoding="utf-8",
+            )
+            api = root / "services" / "api"
+            api.mkdir(parents=True)
+            (api / "pom.xml").write_text(
+                "<project>"
+                "<parent><groupId>org.springframework.boot</groupId>"
+                "<artifactId>spring-boot-starter-parent</artifactId><version>3.3.0</version></parent>"
+                "<properties><java.version>17</java.version></properties>"
+                "<dependencies><dependency><groupId>org.springframework.boot</groupId>"
+                "<artifactId>spring-boot-starter-web</artifactId></dependency></dependencies>"
+                "</project>",
+                encoding="utf-8",
+            )
+            layout = analyze_multi_module_layout(root, "maven")
+            self.assertEqual(layout.kind, "maven-reactor")
+            self.assertEqual(layout.modules, ("services/api",))
+            self.assertEqual(layout.spring_boot_modules, ("services/api",))
+            self.assertTrue(has_spring_project_markers(root, "maven"))
+
+            info = inspect_project_details(root)
+            self.assertEqual(info.layout, "maven-reactor")
+            self.assertEqual(info.spring_boot_modules, ("services/api",))
+            self.assertEqual(info.java_version, 17)
+            self.assertEqual(info.spring_boot_version, "3.3.0")
+            self.assertTrue(any("services/api" in note for note in info.recommendations))
+
+    def test_gradle_multi_project_detects_spring_boot_subproject(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "gradlew").write_text("#!/bin/sh\n", encoding="utf-8")
+            (root / "settings.gradle.kts").write_text(
+                'include("app")\n',
+                encoding="utf-8",
+            )
+            app = root / "app"
+            app.mkdir()
+            (app / "build.gradle.kts").write_text(
+                'plugins { id("org.springframework.boot") version "3.3.0" }\n'
+                "java { toolchain { languageVersion.set(JavaLanguageVersion.of(17)) } }\n"
+                'dependencies { implementation("org.springframework.boot:spring-boot-starter-web:3.3.0") }\n',
+                encoding="utf-8",
+            )
+            layout = analyze_multi_module_layout(root, "gradle")
+            self.assertEqual(layout.kind, "gradle-multi-project")
+            self.assertEqual(layout.modules, ("app",))
+            self.assertEqual(layout.spring_boot_modules, ("app",))
+            self.assertTrue(has_spring_project_markers(root, "gradle"))
+
+            info = inspect_project_details(root)
+            self.assertEqual(info.layout, "gradle-multi-project")
+            self.assertEqual(info.java_version, 17)
+            self.assertTrue(any("app" in note for note in info.recommendations))
 
 
 if __name__ == "__main__":

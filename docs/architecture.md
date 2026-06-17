@@ -28,7 +28,7 @@ flowchart TD
 | `src/springdocker/commands.py` | Thin command handlers for CLI output and exit-code mapping. |
 | `src/springdocker/services/` | Command service layer for Dockerfile, benchmark, and project orchestration logic. |
 | `src/springdocker/config.py` | Load `.springdocker.toml` and resolve command settings. |
-| `src/springdocker/project_detect.py` | Detect Maven/Gradle markers and Spring Boot hints. |
+| `src/springdocker/project_detect.py` | Detect Maven/Gradle markers, Spring Boot hints, and common multi-module layouts (Maven reactor / Gradle `include`). |
 | `src/springdocker/dockerfile.py` | Render Dockerfiles from structured options. |
 | `src/springdocker/dockerfile_explain.py` | Explain generated Dockerfiles via static text heuristics. |
 | `src/springdocker/analyze.py` | Summarize benchmark CSV data and format reports. |

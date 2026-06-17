@@ -60,6 +60,9 @@ def _render_inspect_table(info) -> str:
         f"| Direct dependencies | {', '.join(info.direct_dependencies) or '-'} |",
         f"| Reflection hits | {len(info.reflection_hits)} |",
         f"| Runtime compatibility | {info.runtime_compatibility} |",
+        f"| Layout | {info.layout} |",
+        f"| Modules | {', '.join(info.modules) or '-'} |",
+        f"| Spring Boot modules | {', '.join(info.spring_boot_modules) or '-'} |",
         f"| Recommendations | {'; '.join(info.recommendations) or '-'} |",
     ]
     return "\n".join(lines)
@@ -84,6 +87,9 @@ def cmd_inspect(project_root: Path, build_tool: str | None, output_format: str) 
         "reflection_hits": list(info.reflection_hits),
         "runtime_compatibility": info.runtime_compatibility,
         "recommendations": list(info.recommendations),
+        "layout": info.layout,
+        "modules": list(info.modules),
+        "spring_boot_modules": list(info.spring_boot_modules),
     }
     if output_format == "json":
         print(json.dumps(payload, indent=2, sort_keys=True))

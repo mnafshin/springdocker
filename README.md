@@ -189,6 +189,7 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 
 ### Implemented docs
 
+- `docs/project-detection.md` — Maven/Gradle detection boundaries and monorepo workflows
 - `docs/POSITIONING.md` — product scope, CI guarantees, sample-tree strategy
 - `docs/digest-pin-runbook.md`
 - `docs/architecture.md`
