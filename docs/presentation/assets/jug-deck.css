@@ -1,0 +1,384 @@
+/* Shared styling for JUG / evidence-based Docker+JVM decks */
+
+:root {
+  --accent: #6cf0c2;
+  --accent-2: #ffb86b;
+  --accent-3: #ff6b9d;
+  --danger: #ff5d6e;
+  --ink: #e8eef5;
+  --muted: #8a99ad;
+  --panel: rgba(255, 255, 255, 0.04);
+  --panel-strong: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.1);
+}
+
+.reveal {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at 20% 0%, #14201f 0%, #0a0d12 50%) fixed;
+}
+
+.reveal .slides {
+  text-align: left;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: -0.02em;
+}
+
+.reveal h1 {
+  font-size: 2.6em;
+  line-height: 1.05;
+}
+
+.reveal h2 {
+  font-size: 1.85em;
+  line-height: 1.1;
+}
+
+.reveal h3 {
+  font-size: 1.2em;
+  color: var(--accent);
+}
+
+.reveal p,
+.reveal li {
+  font-size: 0.82em;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.reveal small,
+.reveal .muted,
+.reveal .small {
+  color: var(--muted);
+  font-size: 0.68em;
+}
+
+.reveal .tiny {
+  font-size: 0.55em;
+  color: var(--muted);
+}
+
+.reveal code {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent);
+  background: var(--panel);
+  padding: 0.05em 0.35em;
+  border-radius: 4px;
+}
+
+.reveal pre {
+  box-shadow: none;
+  width: 100%;
+  margin: 0.45em 0;
+}
+
+.reveal pre code {
+  font-size: 0.52em;
+  line-height: 1.4;
+  padding: 1em 1.2em;
+  border-radius: 10px;
+  background: #11151c;
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+
+body {
+  background: #0a0d12;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.7em;
+  border-radius: 999px;
+  background: var(--panel-strong);
+  color: var(--accent);
+  font-size: 0.52em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border: 1px solid rgba(108, 240, 194, 0.25);
+  margin-bottom: 0.7em;
+}
+
+.badge.warn {
+  color: var(--accent-2);
+  border-color: rgba(255, 184, 107, 0.3);
+}
+
+.badge.bad {
+  color: var(--danger);
+  border-color: rgba(255, 93, 110, 0.3);
+}
+
+.badge.pink {
+  color: var(--accent-3);
+  border-color: rgba(255, 107, 157, 0.3);
+}
+
+.grid {
+  display: grid;
+  gap: 1em;
+}
+
+.grid-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1em 1.1em;
+}
+
+.card h4 {
+  color: var(--accent);
+  font-size: 0.85em;
+  margin: 0 0 0.35em 0;
+}
+
+.card.danger h4 {
+  color: var(--danger);
+}
+
+.card.warn h4 {
+  color: var(--accent-2);
+}
+
+.card.pink h4 {
+  color: var(--accent-3);
+}
+
+.card p,
+.card li {
+  font-size: 0.62em;
+  margin: 0.15em 0;
+}
+
+.stat {
+  background: linear-gradient(180deg, rgba(108, 240, 194, 0.1), rgba(108, 240, 194, 0.02));
+  border: 1px solid rgba(108, 240, 194, 0.25);
+  border-radius: 14px;
+  padding: 0.95em 1em;
+  text-align: center;
+}
+
+.stat .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2em;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  display: block;
+  margin-bottom: 0.2em;
+}
+
+.stat.warn {
+  background: linear-gradient(180deg, rgba(255, 184, 107, 0.1), rgba(255, 184, 107, 0.02));
+  border-color: rgba(255, 184, 107, 0.25);
+}
+
+.stat.warn .num {
+  color: var(--accent-2);
+}
+
+.stat.bad {
+  background: linear-gradient(180deg, rgba(255, 93, 110, 0.1), rgba(255, 93, 110, 0.02));
+  border-color: rgba(255, 93, 110, 0.25);
+}
+
+.stat.bad .num {
+  color: var(--danger);
+}
+
+.stat .lbl {
+  color: var(--muted);
+  font-size: 0.52em;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.reveal table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.58em;
+}
+
+.reveal table th,
+.reveal table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.5em 0.55em;
+}
+
+.reveal table th {
+  color: var(--accent);
+  text-align: left;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.reveal table td.good,
+.reveal .good {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.reveal table td.bad,
+.reveal .risk {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.reveal .warn {
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  margin: 0.3em 0;
+  font-size: 0.6em;
+}
+
+.bar-row .label {
+  flex: 0 0 10em;
+  color: var(--muted);
+}
+
+.bar-row .bar-wrap {
+  flex: 1;
+  background: var(--panel);
+  border-radius: 6px;
+  height: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.bar-row .bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #4cb89a);
+}
+
+.bar-row .bar.bad {
+  background: linear-gradient(90deg, var(--danger), #b8404c);
+}
+
+.bar-row .bar.warn {
+  background: linear-gradient(90deg, var(--accent-2), #b8814c);
+}
+
+.bar-row .val {
+  flex: 0 0 6.5em;
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+.scenario-foot {
+  margin-top: 0.9em;
+  font-size: 0.5em;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em;
+  margin-top: 0.5em;
+}
+
+.pill {
+  padding: 0.22em 0.65em;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.52em;
+  color: var(--muted);
+}
+
+.hero-mark {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent);
+  font-size: 0.8em;
+}
+
+.hero-title {
+  font-size: 2.8em;
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.hero-title em,
+.accent {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2em;
+  align-items: start;
+}
+
+.step-list {
+  counter-reset: step;
+  list-style: none;
+  padding: 0;
+}
+
+.step-list li {
+  counter-increment: step;
+  padding: 0.65em 0 0.65em 3em;
+  position: relative;
+  border-bottom: 1px dashed var(--border);
+  font-size: 0.72em;
+}
+
+.step-list li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 2.2em;
+  height: 2.2em;
+  border-radius: 50%;
+  background: var(--panel-strong);
+  border: 1px solid rgba(108, 240, 194, 0.4);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.8em;
+}
+
+.reveal .controls {
+  color: var(--accent);
+}
+
+.reveal .progress {
+  color: var(--accent);
+  height: 3px;
+}

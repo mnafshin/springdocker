@@ -12,13 +12,15 @@ python3 -m http.server 8000
 Open:
 
 - `http://localhost:8000/docs/presentation/index.html` — evidence-based decision deck
-- `http://localhost:8000/docs/presentation/docker_optimizations_jug_revealjs_v3.html` — JUG talk (Docker + JVM, ~40 min)
+- `http://localhost:8000/docs/presentation/java-docker-decisions-jug.html` — JUG talk: Java Docker decisions with benchmark evidence (recommended)
+- `http://localhost:8000/docs/presentation/docker_optimizations_jug_revealjs_v3.html` — JUG talk (Docker + JVM optimization, ~40 min)
 - `http://localhost:8000/docs/presentation/pitch.html` — product pitch deck
 
 ## Files
 
 - `index.html`: main slide deck (benchmark scenarios)
-- `docker_optimizations_jug_revealjs_v3.html`: JUG conference deck (recommended)
+- `java-docker-decisions-jug.html`: JUG deck — decision framework + scenario evidence (uses `jug-deck.css`)
+- `docker_optimizations_jug_revealjs_v3.html`: JUG conference deck (Docker + JVM techniques)
 - `docker_optimizations_jug_revealjs_v2.html`: earlier JUG draft (flat slides)
 - `pitch.html`: springdocker product pitch
 - `newPresentation_idea.html`: alternate Reveal.js deck

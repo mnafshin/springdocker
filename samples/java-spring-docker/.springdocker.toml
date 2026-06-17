@@ -1,0 +1,33 @@
+# springdocker project configuration
+# Precedence: CLI flags > this file > internal defaults
+
+[project]
+build_tool = "maven"
+
+[doctor]
+build_tool = "maven"
+
+[dockerfile]
+output = "Dockerfile.generated"
+java_version = 25
+recipe = "jvm-balanced"
+must_have_modules_file = "musthave_modules.txt"
+legacy_scripts = false
+wizard_args = []
+
+[benchmark.generate]
+java_version = 25
+legacy_scripts = false
+
+[benchmark.generate.base_image_choice]
+variants = ["alpine", "debian-slim", "ubuntu", "distroless", "temurin"]
+
+[benchmark.run]
+profile = "quick"
+runner_args = ["--skip-native"]
+# cpuset_cpus = "0-1"
+# memory_limit = "2g"
+# warmup_runs = 1
+# max_workers = 1
+# normalized_runtime = false
+legacy_scripts = false
