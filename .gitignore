@@ -41,8 +41,13 @@ __pycache__/
 *.py[cod]
 
 ### springdocker generated benchmark artifacts ###
+# Regenerate with:
+#   springdocker benchmark generate --project-root samples/java-spring-docker
 samples/java-spring-docker/benchmarks/*/variants/
 samples/java-spring-docker/benchmarks/*/results/
+samples/java-spring-docker/benchmarks/07-native-benchmark/Dockerfile
+samples/java-spring-docker/benchmarks/07-native-benchmark/README.md
+# CI regression gate (intentionally versioned)
 !samples/java-spring-docker/benchmarks/06-base-image-choice/results/
 !samples/java-spring-docker/benchmarks/06-base-image-choice/results/raw.csv
 !samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json

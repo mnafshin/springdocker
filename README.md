@@ -123,8 +123,9 @@ See `docs/benchmark-methodology.md` for the benchmark model, run profiles, and s
 Benchmarks are an optional evidence subsystem and require benchmark extras (`springdocker[benchmark]`).
 
 The sample project keeps benchmark scenarios under `samples/java-spring-docker/benchmarks/`.
-Each scenario stores generated Dockerfiles and a `results/raw.csv` file so the output stays reproducible and easy to compare.
-Versioned reference datasets are under `samples/java-spring-docker/benchmarks/reference/`.
+Generated variant Dockerfiles and most run output are **gitignored** — regenerate with `springdocker benchmark generate` and `springdocker benchmark run`.
+Versioned reference datasets and the scenario 06 CI regression baseline live under `samples/java-spring-docker/benchmarks/reference/` and `06-base-image-choice/results/`.
+See `samples/java-spring-docker/benchmarks/README.md` for the full artifact policy.
 
 Current reports focus on:
 

@@ -25,6 +25,23 @@ If available, the analyzer also reports RSS memory and CPU usage columns.
 The runner writes rows into `results/raw.csv` next to each scenario.
 Versioned reference evidence snapshots are published under `samples/java-spring-docker/benchmarks/reference/`.
 
+## Repository artifact policy
+
+Generated benchmark assets are **not committed** except where CI or docs explicitly need a pinned snapshot:
+
+| Artifact | Committed? | Purpose |
+|---|---|---|
+| `benchmarks/*/variants/` | No | Regenerate with `springdocker benchmark generate`. |
+| `benchmarks/*/results/raw.csv` | No (except scenario 06 sample file) | Local/CI run output. |
+| `benchmarks/07-native-benchmark/Dockerfile` | No | Native scaffold; generator-owned. |
+| `benchmarks/06-base-image-choice/results/baseline.json` | Yes | Regression gate in CI. |
+| `benchmarks/reference/v1/` | Yes | Versioned evidence for comparisons and docs. |
+
+After `benchmark generate`, `git status` under `samples/java-spring-docker/benchmarks/` should be clean.
+CI enforces this in the `benchmark-hygiene` job.
+
+See `samples/java-spring-docker/benchmarks/README.md` for the maintainer checklist.
+
 ## Run profiles
 
 The CLI supports two profiles:

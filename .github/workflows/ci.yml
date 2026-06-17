@@ -25,6 +25,42 @@ jobs:
       - name: Lint
         run: ruff check src tests
 
+  benchmark-hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install package and dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Generate benchmark assets
+        run: |
+          springdocker benchmark generate \
+            --project-root samples/java-spring-docker \
+            --java-version 25
+
+      - name: Assert generated assets stay untracked
+        run: |
+          if [ -n "$(git status --porcelain samples/java-spring-docker/benchmarks/)" ]; then
+            echo "Generated benchmark files would be committed; update .gitignore or stop tracking them:"
+            git status --porcelain samples/java-spring-docker/benchmarks/
+            exit 1
+          fi
+
+      - name: Verify generated layout exists
+        run: |
+          test -f samples/java-spring-docker/benchmarks/01-multi-stage-build-structure/variants/specialized-multi-stage/Dockerfile
+          test -f samples/java-spring-docker/benchmarks/07-native-benchmark/Dockerfile
+          test -f samples/java-spring-docker/benchmarks/07-native-benchmark/README.md
+
   typecheck:
     runs-on: ubuntu-latest
     steps:
