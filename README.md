@@ -10,6 +10,26 @@ Developer toolkit for Spring Boot containerization and benchmark-driven JVM tuni
 
 `springdocker` is a Python CLI that helps you inspect a Spring Boot project, generate a Dockerfile, create benchmark assets, run benchmark suites, and summarize benchmark results.
 
+## Project naming
+
+**springdocker** is the canonical name for this project — use it when searching GitHub or PyPI, installing the package, or running the CLI.
+
+| Surface | Name |
+|---|---|
+| GitHub repository | [`mnafshin/springdocker`](https://github.com/mnafshin/springdocker) |
+| PyPI package / `pip install` | `springdocker` |
+| CLI command | `springdocker` |
+| Config file | `.springdocker.toml` |
+
+The string **`java-spring-docker`** appears only in the benchmark sample app, not in the CLI package:
+
+| Surface | Path or coordinates | Role |
+|---|---|---|
+| Sample app directory | `samples/java-spring-docker/` | Full Spring Boot app for benchmark scenarios and evidence |
+| Sample Maven/Gradle artifact | `io.github.mnafshin:java-spring-docker` | Demo application identity inside that sample |
+
+Those sample names predate the **springdocker** product name. They do not affect installation (`pip install springdocker`) or CLI usage. Your local clone directory can be named anything.
+
 ## Why springdocker instead of Jib or Buildpacks?
 
 - **Jib** and **Buildpacks** optimize for build convenience and opaque image assembly.

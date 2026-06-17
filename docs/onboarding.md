@@ -1,5 +1,7 @@
 # Onboarding
 
+This repository and CLI are named **springdocker** (`pip install springdocker`, command `springdocker`). The benchmark sample lives at `samples/java-spring-docker/` with Maven coordinates `io.github.mnafshin:java-spring-docker` — see [Project naming](../README.md#project-naming) in the README.
+
 ## 5-minute quickstart
 
 1. Clone the repo.

@@ -48,3 +48,5 @@ samples/java-spring-docker/benchmarks/*/results/
 !samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json
 samples/java-spring-docker/report.md
 samples/java-spring-docker/steps.adoc
+
+*.egg-info/

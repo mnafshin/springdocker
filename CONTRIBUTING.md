@@ -2,6 +2,10 @@
 
 Thanks for helping improve `springdocker`.
 
+## Project naming
+
+The installable CLI, GitHub repository, and PyPI package are all **springdocker**. The benchmark sample under `samples/java-spring-docker/` uses the Maven/Gradle artifact `io.github.mnafshin:java-spring-docker` for historical reasons — it is not the CLI package name. See the [naming table in README.md](README.md#project-naming).
+
 ## Local setup
 
 ```bash
