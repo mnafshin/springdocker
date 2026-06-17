@@ -41,6 +41,10 @@ _SUBCOMMAND_ATTR: dict[str, str] = {
 }
 
 
+# Populated by build_parser() when plugin commands are registered.
+_PLUGIN_REGISTRATION_WARNINGS: tuple[str, ...] = ()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="springdocker",
@@ -196,8 +200,8 @@ def build_parser() -> argparse.ArgumentParser:
     bench_compare.add_argument("--scenario", default=None, help="Filter by scenario id")
     bench_compare.add_argument("--format", choices=["table", "json"], default="table")
 
-    plugin_warnings = register_command_plugins(sub)
-    parser._plugin_registration_warnings = plugin_warnings
+    global _PLUGIN_REGISTRATION_WARNINGS
+    _PLUGIN_REGISTRATION_WARNINGS = register_command_plugins(sub)
     return parser
 
 
@@ -371,7 +375,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     project_root = Path(args.project_root).resolve()
-    for warning in cast(tuple[str, ...], getattr(parser, "_plugin_registration_warnings", ())):
+    for warning in _PLUGIN_REGISTRATION_WARNINGS:
         print_warning(warning)
 
     plugin_handler = cast(Any, getattr(args, "_plugin_handler", None))

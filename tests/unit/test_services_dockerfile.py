@@ -9,8 +9,8 @@ from tests.test_support import add_src_to_path
 
 add_src_to_path()
 
-from springdocker.services.dockerfile_service import generate_dockerfile, parse_must_have_modules
 from springdocker.dockerfile import NATIVE_AOT_SCAFFOLD_WARNING
+from springdocker.services.dockerfile_service import generate_dockerfile, parse_must_have_modules
 
 
 class DockerfileServiceTests(unittest.TestCase):
