@@ -28,6 +28,17 @@ ruff check src tests
 mypy src
 ```
 
+## Coverage policy
+
+Local `pytest` and the CI `coverage` job enforce the same gate: **≥80% line coverage** on the entire
+`springdocker` package (`pyproject.toml` → `[tool.pytest.ini_options]` → `addopts`).
+
+- CI matrix jobs run one suite at a time (`unit`, `integration`, `e2e`, `benchmark`) with
+  `--cov-fail-under=0` because partial runs cannot satisfy the global threshold.
+- No modules are intentionally omitted from coverage measurement; every file under `src/springdocker/`
+  counts toward the gate.
+- Add or extend tests when your change touches untested paths — do not lower the threshold to land code.
+
 ## Change shape
 
 - Keep commits small and focused.

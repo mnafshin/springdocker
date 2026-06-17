@@ -28,7 +28,7 @@ These behaviors are enforced by [`.github/workflows/ci.yml`](../.github/workflow
 | Area | What CI proves |
 |---|---|
 | **CLI quality** | `ruff` lint, `mypy` on `src/`, pytest suites (`unit`, `integration`, `e2e`, `benchmark`) on Ubuntu/macOS/Windows and Python 3.10–3.12 |
-| **Core modules** | ≥85% coverage on `dockerfile`, `commands`, and `config` |
+| **Package coverage** | ≥80% line coverage on the entire `springdocker` package (same gate as local `pytest`; see `pyproject.toml`) |
 | **Dockerfile generation** | Snapshot and e2e tests on `tests/fixtures/{maven-only,gradle-only}` and `examples/spring-boot-{maven,gradle}` — output shape, flags, and explain/verify wiring |
 | **Benchmark generator** | `benchmark-hygiene` runs `benchmark generate` and asserts generated assets stay gitignored |
 | **Benchmark analyzer** | `benchmark-regression` verifies committed `06-base-image-choice/results/baseline.json` matches analyze output for the paired `raw.csv`, then runs the 20% regression comparator |
