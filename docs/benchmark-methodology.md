@@ -88,6 +88,8 @@ git add samples/java-spring-docker/benchmarks/06-base-image-choice/results/raw.c
 
 Do not commit `baseline.json` without the matching `raw.csv`. Other scenarios keep `results/` gitignored; scenario 06 is the sole CI regression anchor today.
 
+Analyzer summaries round derived metrics to six decimal places so `baseline.json` stays byte-stable across Python 3.10+ (the stdlib `statistics.quantiles` implementation differs slightly before 3.11).
+
 ## Run profiles
 
 The CLI supports two profiles:

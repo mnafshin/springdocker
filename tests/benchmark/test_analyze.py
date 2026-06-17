@@ -30,6 +30,19 @@ class AnalyzeTests(unittest.TestCase):
             self.assertEqual(filtered[0].runs, 2)
             self.assertAlmostEqual(filtered[0].build_avg_ms or 0.0, 150.0)
 
+    def test_statistical_metrics_are_rounded_for_stable_json(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            csv_path = Path(td) / "raw.csv"
+            csv_path.write_text(
+                "date,scenario,variant,run,build_ms,image_bytes,startup_ms,status,notes\n"
+                "2026-01-01,06-base-image-choice,debian-slim,1,1747,90110432,1591,ok,\n"
+                "2026-01-01,06-base-image-choice,debian-slim,2,613,90110432,1327,ok,\n"
+                "2026-01-01,06-base-image-choice,debian-slim,3,627,90110432,1320,ok,\n",
+                encoding="utf-8",
+            )
+            summary = summarize_csv(csv_path)[0]
+            self.assertEqual(summary.startup_stddev_ms, 154.480851)
+
     def test_missing_required_columns(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             csv_path = Path(td) / "raw.csv"

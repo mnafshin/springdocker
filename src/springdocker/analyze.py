@@ -24,6 +24,15 @@ OPTIONAL_COLUMNS |= {
     "startup_phase_web_server_ms",
 }
 
+# Keep JSON baselines stable across Python versions (statistics.quantiles differs on 3.10 vs 3.11+).
+METRIC_FLOAT_DECIMALS = 6
+
+
+def round_metric(value: float | None, places: int = METRIC_FLOAT_DECIMALS) -> float | None:
+    if value is None:
+        return None
+    return float(round(value, places))
+
 
 @dataclass(frozen=True)
 class VariantSummary:
@@ -73,22 +82,22 @@ def _p95(values: list[int]) -> float | None:
     if not values:
         return None
     if len(values) == 1:
-        return float(values[0])
-    return statistics.quantiles(values, n=20)[18]
+        return round_metric(float(values[0]))
+    return round_metric(statistics.quantiles(values, n=20)[18])
 
 
 def _p99(values: list[int]) -> float | None:
     if not values:
         return None
     if len(values) == 1:
-        return float(values[0])
-    return statistics.quantiles(values, n=100)[98]
+        return round_metric(float(values[0]))
+    return round_metric(statistics.quantiles(values, n=100)[98])
 
 
 def _stddev(values: list[int]) -> float | None:
     if len(values) < 2:
         return None
-    return statistics.stdev(values)
+    return round_metric(statistics.stdev(values))
 
 
 def _ci95(values: list[int]) -> tuple[float | None, float | None]:
@@ -97,11 +106,15 @@ def _ci95(values: list[int]) -> tuple[float | None, float | None]:
     mean = statistics.mean(values)
     stddev = statistics.stdev(values)
     margin = 1.96 * (stddev / math.sqrt(len(values)))
-    return mean - margin, mean + margin
+    return round_metric(mean - margin), round_metric(mean + margin)
 
 
 def _mean_float(values: list[float]) -> float | None:
-    return statistics.mean(values) if values else None
+    return round_metric(statistics.mean(values)) if values else None
+
+
+def _mean_int(values: list[int]) -> float | None:
+    return round_metric(statistics.mean(values)) if values else None
 
 
 def summarize_csv(path: Path, scenario: str | None = None, variant: str | None = None) -> list[VariantSummary]:
@@ -169,11 +182,11 @@ def summarize_csv(path: Path, scenario: str | None = None, variant: str | None =
                 scenario=sc,
                 variant=vr,
                 runs=total,
-                build_avg_ms=statistics.mean(build) if build else None,
+                build_avg_ms=_mean_int(build),
                 build_stddev_ms=_stddev(build),
                 build_ci95_low_ms=build_ci95_low,
                 build_ci95_high_ms=build_ci95_high,
-                startup_avg_ms=statistics.mean(startup) if startup else None,
+                startup_avg_ms=_mean_int(startup),
                 startup_p95_ms=_p95(startup),
                 startup_p99_ms=_p99(startup),
                 startup_stddev_ms=_stddev(startup),
@@ -184,17 +197,17 @@ def summarize_csv(path: Path, scenario: str | None = None, variant: str | None =
                 startup_phase_boot_ms_avg=_mean_float(phase_boot),
                 startup_phase_context_ms_avg=_mean_float(phase_context),
                 startup_phase_web_server_ms_avg=_mean_float(phase_web_server),
-                startup_phase_total_ms_avg=(
+                startup_phase_total_ms_avg=round_metric(
                     (_mean_float(phase_boot) or 0.0)
                     + (_mean_float(phase_context) or 0.0)
                     + (_mean_float(phase_web_server) or 0.0)
-                    if any([phase_boot, phase_context, phase_web_server])
-                    else None
-                ),
-                image_mb_avg=(statistics.mean(image) / (1024 * 1024)) if image else None,
-                rss_mb_avg=(statistics.mean(rss) / (1024 * 1024)) if rss else None,
-                cpu_pct_avg=statistics.mean(cpu) if cpu else None,
-                success_rate_pct=((ok / total) * 100.0) if total else 0.0,
+                )
+                if any([phase_boot, phase_context, phase_web_server])
+                else None,
+                image_mb_avg=round_metric(statistics.mean(image) / (1024 * 1024)) if image else None,
+                rss_mb_avg=round_metric(statistics.mean(rss) / (1024 * 1024)) if rss else None,
+                cpu_pct_avg=_mean_float(cpu),
+                success_rate_pct=round_metric((ok / total) * 100.0) if total else 0.0,
                 host=first.get("host") or None,
                 docker_version=first.get("docker_version") or None,
                 run_profile=first.get("run_profile") or None,

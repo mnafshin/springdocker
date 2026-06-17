@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from .analyze import VariantSummary
+from .analyze import VariantSummary, round_metric
 
 
 @dataclass(frozen=True)
@@ -32,6 +32,12 @@ def _pct_change(current: float, baseline: float) -> float:
     return ((current - baseline) / baseline) * 100.0
 
 
+def _optional_metric(value: object) -> float | None:
+    if value is None:
+        return None
+    return round_metric(float(value))
+
+
 def load_summaries(path: Path) -> list[VariantSummary]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, list):
@@ -46,26 +52,26 @@ def load_summaries(path: Path) -> list[VariantSummary]:
                 scenario=str(item.get("scenario", "")),
                 variant=str(item.get("variant", "")),
                 runs=int(item.get("runs", 0)),
-                build_avg_ms=item.get("build_avg_ms"),
-                build_stddev_ms=item.get("build_stddev_ms"),
-                build_ci95_low_ms=item.get("build_ci95_low_ms"),
-                build_ci95_high_ms=item.get("build_ci95_high_ms"),
-                startup_avg_ms=item.get("startup_avg_ms"),
-                startup_p95_ms=item.get("startup_p95_ms"),
-                startup_p99_ms=item.get("startup_p99_ms"),
-                startup_stddev_ms=item.get("startup_stddev_ms"),
-                startup_ci95_low_ms=item.get("startup_ci95_low_ms"),
-                startup_ci95_high_ms=item.get("startup_ci95_high_ms"),
-                gc_pause_ms_avg=item.get("gc_pause_ms_avg"),
-                alloc_mb_avg=item.get("alloc_mb_avg"),
-                startup_phase_boot_ms_avg=item.get("startup_phase_boot_ms_avg"),
-                startup_phase_context_ms_avg=item.get("startup_phase_context_ms_avg"),
-                startup_phase_web_server_ms_avg=item.get("startup_phase_web_server_ms_avg"),
-                startup_phase_total_ms_avg=item.get("startup_phase_total_ms_avg"),
-                image_mb_avg=item.get("image_mb_avg"),
-                success_rate_pct=float(item.get("success_rate_pct", 0.0)),
-                rss_mb_avg=item.get("rss_mb_avg"),
-                cpu_pct_avg=item.get("cpu_pct_avg"),
+                build_avg_ms=_optional_metric(item.get("build_avg_ms")),
+                build_stddev_ms=_optional_metric(item.get("build_stddev_ms")),
+                build_ci95_low_ms=_optional_metric(item.get("build_ci95_low_ms")),
+                build_ci95_high_ms=_optional_metric(item.get("build_ci95_high_ms")),
+                startup_avg_ms=_optional_metric(item.get("startup_avg_ms")),
+                startup_p95_ms=_optional_metric(item.get("startup_p95_ms")),
+                startup_p99_ms=_optional_metric(item.get("startup_p99_ms")),
+                startup_stddev_ms=_optional_metric(item.get("startup_stddev_ms")),
+                startup_ci95_low_ms=_optional_metric(item.get("startup_ci95_low_ms")),
+                startup_ci95_high_ms=_optional_metric(item.get("startup_ci95_high_ms")),
+                gc_pause_ms_avg=_optional_metric(item.get("gc_pause_ms_avg")),
+                alloc_mb_avg=_optional_metric(item.get("alloc_mb_avg")),
+                startup_phase_boot_ms_avg=_optional_metric(item.get("startup_phase_boot_ms_avg")),
+                startup_phase_context_ms_avg=_optional_metric(item.get("startup_phase_context_ms_avg")),
+                startup_phase_web_server_ms_avg=_optional_metric(item.get("startup_phase_web_server_ms_avg")),
+                startup_phase_total_ms_avg=_optional_metric(item.get("startup_phase_total_ms_avg")),
+                image_mb_avg=_optional_metric(item.get("image_mb_avg")),
+                success_rate_pct=round_metric(float(item.get("success_rate_pct", 0.0))) or 0.0,
+                rss_mb_avg=_optional_metric(item.get("rss_mb_avg")),
+                cpu_pct_avg=_optional_metric(item.get("cpu_pct_avg")),
                 host=item.get("host"),
                 docker_version=item.get("docker_version"),
                 run_profile=item.get("run_profile"),
