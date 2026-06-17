@@ -33,3 +33,5 @@ The same E2E paths validate generated variant families that the benchmark genera
 
 The `examples/` walkthrough projects are additionally covered by e2e tests so README quick-start paths cannot drift from the CLI.
 
+For how these paths relate to public guarantees vs benchmark evidence, see [`docs/POSITIONING.md`](../docs/POSITIONING.md).
+

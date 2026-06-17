@@ -40,6 +40,8 @@ Generated benchmark assets are **not committed** except where CI or docs explici
 After `benchmark generate`, `git status` under `samples/java-spring-docker/benchmarks/` should be clean.
 CI enforces this in the `benchmark-hygiene` job.
 
+CI does **not** run full Docker benchmark builds on every push — the regression gate validates analyzer output against a pinned baseline only. See [`POSITIONING.md`](POSITIONING.md#shipped-guarantees-ci-evidenced).
+
 See `samples/java-spring-docker/benchmarks/README.md` for the maintainer checklist.
 
 ## Run profiles

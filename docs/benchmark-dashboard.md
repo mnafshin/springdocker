@@ -24,7 +24,7 @@ See `docs/examples/benchmark-trends.json` for a compact sample of the trend payl
 
 ## CI integration
 
-The CI workflow runs the benchmark regression gate once on `ubuntu-latest` to keep trend lines honest when sample results drift.
+CI runs the **analyzer regression gate** on a pinned `raw.csv` / `baseline.json` pair (scenario 06) and a **benchmark-hygiene** check that `benchmark generate` produces gitignored assets only. It does not rebuild Docker images or re-run the full benchmark matrix on every push. See [`POSITIONING.md`](POSITIONING.md#shipped-guarantees-ci-evidenced).
 
 ## Regeneration
 

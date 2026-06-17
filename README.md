@@ -6,9 +6,11 @@
 [![Coverage](https://img.shields.io/badge/coverage-%3E%3D75%25-brightgreen)](./pyproject.toml)
 [![Benchmark](https://img.shields.io/badge/benchmark-regression--gated-orange)](./docs/benchmark-methodology.md)
 
-Developer toolkit for Spring Boot containerization and benchmark-driven JVM tuning.
+Developer toolkit for Spring Boot containerization with optional benchmark evidence for tuning decisions.
 
 `springdocker` is a Python CLI that helps you inspect a Spring Boot project, generate a Dockerfile, create benchmark assets, run benchmark suites, and summarize benchmark results.
+
+See [`docs/POSITIONING.md`](docs/POSITIONING.md) for product scope, **CI-evidenced guarantees**, and how the sample projects relate to shipped behavior.
 
 ## Project naming
 
@@ -61,11 +63,15 @@ See [Sample project map](#sample-project-map) for which Spring Boot path to use.
 
 ## What it does
 
+**Shipped and CI-validated:** project detection, config, Dockerfile generation, explain/verify commands, and benchmark asset/analyzer plumbing (see [`docs/POSITIONING.md`](docs/POSITIONING.md#shipped-guarantees-ci-evidenced)).
+
+**Optional / sample-anchored:** full benchmark runs, performance comparison tables, and reference evidence under `samples/java-spring-docker/`.
+
 - Detects Maven or Gradle projects.
 - Writes a starter `.springdocker.toml` config.
-- Generates optimized Dockerfiles for the sample workflow.
+- Generates Dockerfiles with opinionated Spring Boot defaults.
 - Pins generated base images by digest when known.
-- Creates benchmark variants and runs benchmark suites.
+- Creates benchmark variants and runs benchmark suites (requires Docker and `[benchmark]` extra).
 - Summarizes benchmark CSV output as a table or JSON.
 
 Digest update automation template: `.github/renovate.json`
@@ -141,17 +147,20 @@ Benchmark summaries can be rendered as:
 
 ## Supported stack
 
-This repository currently targets:
+| Layer | CI / fixtures | Reference sample (`samples/java-spring-docker/`) |
+|---|---|---|
+| Python CLI | 3.10–3.12 tested in CI | — |
+| Build tools | Maven and Gradle (minimal fixtures + examples) | Maven and Gradle |
+| Spring Boot | Projects with Spring Boot markers | 4.0.1 |
+| Java in generated Dockerfiles | ≥17 (generator validation) | 25 default in sample config |
 
-- Python 3.10+ for the CLI
-- Maven or Gradle Spring Boot projects
-- Spring Boot 4.0.1 sample project
-- Java 25 sample configuration
+The reference sample uses bleeding-edge versions to stress-test generator output and benchmark scenarios. Your project does not need to match those versions to use the CLI.
 
 ## Project docs
 
 ### Implemented docs
 
+- `docs/POSITIONING.md` — product scope, CI guarantees, sample-tree strategy
 - `docs/architecture.md`
 - `docs/benchmark-methodology.md`
 - `docs/golden-samples.md`

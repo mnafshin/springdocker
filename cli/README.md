@@ -2,6 +2,8 @@
 
 CLI for Spring Boot Dockerfile and benchmark workflows across Maven and Gradle projects.
 
+Product scope and CI-evidenced guarantees: [`docs/POSITIONING.md`](../docs/POSITIONING.md).
+
 ## Install
 
 ### Local editable
