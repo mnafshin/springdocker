@@ -80,6 +80,25 @@ jobs:
       - name: Type check
         run: mypy
 
+  digest-pins:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install package (editable)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Verify pinned base image digests resolve
+        run: python scripts/verify_digest_pins.py
+
   benchmark-regression:
     runs-on: ubuntu-latest
     steps:

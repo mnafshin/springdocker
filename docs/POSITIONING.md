@@ -32,7 +32,7 @@ These behaviors are enforced by [`.github/workflows/ci.yml`](../.github/workflow
 | **Dockerfile generation** | Snapshot and e2e tests on `tests/fixtures/{maven-only,gradle-only}` and `examples/spring-boot-{maven,gradle}` — output shape, flags, and explain/verify wiring |
 | **Benchmark generator** | `benchmark-hygiene` runs `benchmark generate` and asserts generated assets stay gitignored |
 | **Benchmark analyzer** | `benchmark-regression` verifies committed `06-base-image-choice/results/baseline.json` matches analyze output for the paired `raw.csv`, then runs the 20% regression comparator |
-| **Supply chain (repo)** | SPDX SBOM artifact and CRITICAL filesystem scan on the Python package |
+| **Supply chain (repo)** | SPDX SBOM artifact, CRITICAL filesystem scan, and `digest-pins` job verifying registry manifests for `digest_pins.py` |
 
 What CI **does not** prove today:
 

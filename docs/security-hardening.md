@@ -24,6 +24,7 @@ docker run --read-only --cap-drop=ALL --security-opt=no-new-privileges --tmpfs /
 
 ## Supply-chain hygiene
 
+- Pin base images by digest where the generator catalog provides them ([`digest-pin-runbook.md`](digest-pin-runbook.md)).
 - Generate an SBOM in CI.
 - Sign images before release.
 - Scan images and dependencies regularly.

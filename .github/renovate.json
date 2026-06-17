@@ -12,6 +12,56 @@
         "FROM --platform=\\$TARGETPLATFORM (?<depName>gcr\\.io/distroless/java\\d+-debian12):(?<currentValue>nonroot)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
       "datasourceTemplate": "docker"
+    },
+    {
+      "description": "Temurin JDK digests in digest_pins.py",
+      "fileMatch": ["^src/springdocker/digest_pins\\.py$"],
+      "matchStrings": [
+        "ImagePin\\(\"temurin-jdk-(?<currentValue>\\d+)\", \"registry-1.docker.io\", \"library/eclipse-temurin\", \"\\d+-jdk\", \"(?<currentDigest>sha256:[a-f0-9]{64})\"\\)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "eclipse-temurin",
+      "currentValueTemplate": "{{currentValue}}-jdk"
+    },
+    {
+      "description": "Temurin JRE digests in digest_pins.py",
+      "fileMatch": ["^src/springdocker/digest_pins\\.py$"],
+      "matchStrings": [
+        "ImagePin\\(\"temurin-jre-(?<currentValue>\\d+)\", \"registry-1.docker.io\", \"library/eclipse-temurin\", \"\\d+-jre\", \"(?<currentDigest>sha256:[a-f0-9]{64})\"\\)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "eclipse-temurin",
+      "currentValueTemplate": "{{currentValue}}-jre"
+    },
+    {
+      "description": "Distroless Java digests in digest_pins.py",
+      "fileMatch": ["^src/springdocker/digest_pins\\.py$"],
+      "matchStrings": [
+        "ImagePin\\(\"distroless-java-(?<currentValue>\\d+)\", \"gcr.io\", \"distroless/java\\d+-debian12\", \"nonroot\", \"(?<currentDigest>sha256:[a-f0-9]{64})\"\\)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "gcr.io/distroless/java{{currentValue}}-debian12",
+      "currentValueTemplate": "nonroot"
+    },
+    {
+      "description": "Distroless base digests in digest_pins.py",
+      "fileMatch": ["^src/springdocker/digest_pins\\.py$"],
+      "matchStrings": [
+        "ImagePin\\(\"distroless-base-debian12\", \"gcr.io\", \"distroless/base-debian12\", \"nonroot\", \"(?<currentDigest>sha256:[a-f0-9]{64})\"\\)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "gcr.io/distroless/base-debian12",
+      "currentValueTemplate": "nonroot"
+    },
+    {
+      "description": "Debian slim digests in digest_pins.py",
+      "fileMatch": ["^src/springdocker/digest_pins\\.py$"],
+      "matchStrings": [
+        "ImagePin\\(\"debian-bookworm-slim\", \"registry-1.docker.io\", \"library/debian\", \"bookworm-slim\", \"(?<currentDigest>sha256:[a-f0-9]{64})\"\\)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "debian",
+      "currentValueTemplate": "bookworm-slim"
     }
   ],
   "packageRules": [

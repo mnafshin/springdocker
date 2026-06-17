@@ -32,9 +32,8 @@ class RegressionTests(unittest.TestCase):
         self.assertEqual(violations, [])
 
     def test_scenario_06_baseline_matches_committed_raw_csv(self) -> None:
-        from tests.test_support import ROOT
-
         from springdocker.analyze import format_json, summarize_csv
+        from tests.test_support import ROOT
 
         results = ROOT / "samples" / "java-spring-docker" / "benchmarks" / "06-base-image-choice" / "results"
         raw_csv = results / "raw.csv"

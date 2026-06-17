@@ -74,7 +74,8 @@ See [Sample project map](#sample-project-map) for which Spring Boot path to use.
 - Creates benchmark variants and runs benchmark suites (requires Docker and `[benchmark]` extra).
 - Summarizes benchmark CSV output as a table or JSON.
 
-Digest update automation template: `.github/renovate.json`
+Digest pins are centralized in `src/springdocker/digest_pins.py` and verified in CI.
+Runbook: [`docs/digest-pin-runbook.md`](docs/digest-pin-runbook.md) · Renovate template: [`.github/renovate.json`](.github/renovate.json)
 
 ## Sample project map
 
@@ -189,6 +190,7 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 ### Implemented docs
 
 - `docs/POSITIONING.md` — product scope, CI guarantees, sample-tree strategy
+- `docs/digest-pin-runbook.md`
 - `docs/architecture.md`
 - `docs/benchmark-methodology.md`
 - `docs/golden-samples.md`

@@ -10,31 +10,14 @@ from dataclasses import dataclass
 
 from jinja2 import Environment, PackageLoader, StrictUndefined
 
+from springdocker.digest_pins import (
+    DISTROLESS_BASE_DIGESTS,
+    DISTROLESS_JAVA_DIGESTS,
+    OS_RUNTIME_IMAGES,
+    TEMURIN_JDK_DIGESTS,
+    TEMURIN_JRE_DIGESTS,
+)
 from springdocker.runtime_images import SUPPORTED_RUNTIME_IMAGES
-
-TEMURIN_JDK_DIGESTS = {
-    17: "sha256:b04a8c5d46e210873ffd1af6ad5f4d62c69ed3a6736993556eae60bba1373a23",
-    21: "sha256:b9142586f9712700c6c9e07adcedfb18608b1a3a056e4001423a3354adfa9d80",
-    25: "sha256:c2b7ea21649875fb9052237ac4e3cd4ef63968a2a389a0a1b1a72a5e53e5c93f",
-}
-TEMURIN_JRE_DIGESTS = {
-    17: "sha256:0d79988c68791ce864fe39d149ab1dc84f680539dca77ee7f6f3b041ad7f2f43",
-    21: "sha256:010e0a06bd4e0184dec58626afb3ba727b42c56c91b977e2f0a9e0837e0fa3fb",
-    25: "sha256:04262e8782d6b034ee5d7c1c5d4e8938fcf2063a76b4bfcd84e5d994d09c27bc",
-}
-DISTROLESS_JAVA_DIGESTS = {
-    17: "sha256:06484c2a9dcc9070aeafbc0fe752cb9f73bc0cea5c311f6a516e9010061998ad",
-    21: "sha256:7e37784d94dccbf5ccb195c73b295f5ad00cd266512dfbac12eb9c3c28f8077d",
-}
-DISTROLESS_BASE_DIGESTS = {
-    12: "sha256:7a75a36f4bec82a7542c64195e402907486f9a4dd2f8797a976aa0cf31cfb470",
-}
-DEBIAN_BOOKWORM_SLIM_DIGEST = "sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c"
-OS_RUNTIME_IMAGES: dict[str, tuple[str, str | None]] = {
-    "debian-slim": ("debian:bookworm-slim", DEBIAN_BOOKWORM_SLIM_DIGEST),
-    "ubuntu": ("ubuntu:24.04", None),
-    "alpine": ("alpine:3.21", None),
-}
 
 # Auto-merged into jlink MUSTHAVE_MODULES when jlink is enabled (see merge_jlink_must_have_modules).
 JLINK_BASELINE_MODULES: tuple[str, ...] = ("java.desktop", "java.logging", "java.naming")
