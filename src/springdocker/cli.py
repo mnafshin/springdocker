@@ -95,7 +95,11 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument(
         "--recipe",
         default=None,
-        help="Dockerfile generation recipe preset",
+        help=(
+            "Dockerfile generation recipe preset "
+            "(jvm-balanced, spring-aot, native-aot scaffold); "
+            "native-aot is experimental and not a production workflow"
+        ),
     )
     gen.add_argument(
         "--wizard-arg",

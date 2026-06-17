@@ -43,6 +43,7 @@ springdocker explain --project-root samples/java-spring-docker Dockerfile.genera
 springdocker benchmark compare --project-root samples/java-spring-docker benchmarks/03-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime --format json
 springdocker dockerfile generate --project-root samples/java-spring-docker --output Dockerfile.generated --recipe jvm-balanced
 springdocker dockerfile generate --project-root samples/java-spring-docker --recipe spring-aot
+# native-aot emits experimental scaffold output only (not a production workflow)
 springdocker dockerfile generate --project-root samples/java-spring-docker --recipe native-aot
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 springdocker benchmark run --project-root samples/java-spring-docker --profile quick --runner-arg --skip-native
@@ -54,6 +55,16 @@ springdocker benchmark analyze --project-root samples/java-spring-docker benchma
 
 Benchmark commands are optional evidence workflows and require benchmark extras.
 Use `samples/java-spring-docker/benchmarks/reference/v1/summary.json` as a versioned baseline example.
+
+## Dockerfile recipes
+
+| Recipe | Status | Notes |
+|---|---|---|
+| `jvm-balanced` | Supported | Default production-oriented JVM Dockerfile. |
+| `spring-aot` | Supported | Spring Boot AOT processing on a JVM runtime. |
+| `native-aot` | Scaffold only | Experimental GraalVM native-image Dockerfile output. Not a production-ready workflow; see `docs/native-image-roadmap.md`. |
+
+The `07-native-benchmark` scenario is generated with the `native-aot` scaffold recipe. The internal benchmark runner skips native scenarios by default (`--skip-native`).
 
 ## Config file (`.springdocker.toml`)
 

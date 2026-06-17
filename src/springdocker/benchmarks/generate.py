@@ -12,6 +12,18 @@ EXPECTED_CSV_HEADER = (
     "gc_pause_ms,alloc_mb,startup_phase_boot_ms,startup_phase_context_ms,startup_phase_web_server_ms\n"
 )
 
+NATIVE_SCENARIO_README = """\
+# Native benchmark scaffold
+
+This scenario is generated as **experimental scaffold output only**.
+
+- The Dockerfile uses the `native-aot` recipe preset.
+- `springdocker` does not ship a production native-image workflow yet.
+- The internal benchmark runner skips this scenario by default (`--skip-native`).
+
+See `docs/native-image-roadmap.md` in the springdocker repository for the planned workflow.
+"""
+
 
 @dataclass(frozen=True)
 class ScenarioDefinition:
@@ -223,6 +235,7 @@ def generate_benchmark_assets(
                 enable_jep483_aot_cache=False,
             )
             native_dockerfile.write_text(build_dockerfile(native_opts), encoding="utf-8")
+            (scenario_dir / "README.md").write_text(NATIVE_SCENARIO_README, encoding="utf-8")
         else:  # pragma: no cover - defensive guard for future extensions
             raise TypeError(f"unsupported scenario definition: {type(scenario)}")
 

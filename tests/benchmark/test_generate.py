@@ -34,6 +34,10 @@ class GenerateScenarioTests(unittest.TestCase):
             self.assertTrue(standard_variant.exists())
             native_dockerfile = root / "benchmarks" / "07-native-benchmark" / "Dockerfile"
             self.assertTrue(native_dockerfile.exists())
+            self.assertIn("scaffold: experimental native-image Dockerfile", native_dockerfile.read_text("utf-8"))
+            native_readme = root / "benchmarks" / "07-native-benchmark" / "README.md"
+            self.assertTrue(native_readme.exists())
+            self.assertIn("experimental scaffold output only", native_readme.read_text("utf-8"))
             native_variants_dir = root / "benchmarks" / "07-native-benchmark" / "variants"
             self.assertFalse(native_variants_dir.exists())
 

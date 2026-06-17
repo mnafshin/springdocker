@@ -327,9 +327,12 @@ def run_benchmarks(
     for scenario_index, scenario in enumerate(scenarios):
         if isinstance(scenario, NativeScenarioDefinition):
             if options.skip_native:
-                print(f"Skipping native scenario: {scenario.id}")
+                print(f"Skipping native scaffold scenario: {scenario.id}")
                 continue
-            print(f"Skipping native scenario in internal runner: {scenario.id}")
+            print(
+                f"Skipping native scaffold scenario in internal runner: {scenario.id} "
+                "(not production-ready; see docs/native-image-roadmap.md)"
+            )
             continue
         if not isinstance(scenario, StandardScenarioDefinition):  # pragma: no cover - defensive guard for future extensions
             raise TypeError(f"unsupported scenario definition: {type(scenario)}")

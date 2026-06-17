@@ -39,6 +39,16 @@ OS_RUNTIME_IMAGES: dict[str, tuple[str, str | None]] = {
 # Auto-merged into jlink MUSTHAVE_MODULES when jlink is enabled (see merge_jlink_must_have_modules).
 JLINK_BASELINE_MODULES: tuple[str, ...] = ("java.desktop", "java.logging", "java.naming")
 
+BUILTIN_RECIPES = ("jvm-balanced", "spring-aot", "native-aot")
+NATIVE_AOT_SCAFFOLD_WARNING = (
+    "native-aot emits experimental scaffold output only; "
+    "springdocker does not ship a production native-image workflow yet "
+    "(see docs/native-image-roadmap.md)"
+)
+NATIVE_AOT_DOCKERFILE_SCAFFOLD_COMMENT = (
+    "# scaffold: experimental native-image Dockerfile; not a production-ready springdocker workflow"
+)
+
 
 def merge_jlink_must_have_modules(
     curated: tuple[str, ...],
@@ -227,8 +237,9 @@ def _validate_options(options: DockerfileOptions) -> None:
         raise ValueError(f"runtime_image must be one of: {supported}")
     if options.runtime_image in {"debian-slim", "ubuntu", "alpine"} and not options.use_jlink:
         raise ValueError(f"runtime_image '{options.runtime_image}' requires use_jlink=True")
-    if options.recipe not in {"jvm-balanced", "spring-aot", "native-aot"}:
-        raise ValueError("recipe must be one of: jvm-balanced, spring-aot, native-aot")
+    if options.recipe not in BUILTIN_RECIPES:
+        supported = ", ".join(BUILTIN_RECIPES)
+        raise ValueError(f"recipe must be one of: {supported}")
     if options.enable_jep483_aot_cache and options.java_version < 24:
         raise ValueError("JEP 483 AOT cache requires Java 24 or newer")
     if options.enable_jep483_aot_cache and not options.use_jlink:
@@ -342,6 +353,8 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
     ]
     if spec.build.recipe != "jvm-balanced":
         header_lines.append(f"# recipe: {spec.build.recipe}")
+    if spec.build.recipe == "native-aot":
+        header_lines.append(NATIVE_AOT_DOCKERFILE_SCAFFOLD_COMMENT)
     header_lines.append("")
     sections: list[DockerfileSection] = [_section(*header_lines)]
     if spec.runtime.platform_aware:

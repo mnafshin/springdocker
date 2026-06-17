@@ -66,6 +66,7 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         'output = "Dockerfile.generated"\n'
         "java_version = 25\n"
         'recipe = "jvm-balanced"\n'
+        '# recipe = "native-aot"  # scaffold only; see docs/native-image-roadmap.md\n'
         '# must_have_modules_file = "must-have.txt"\n'
         "# When jlink is enabled, these modules are auto-merged into the jlink module list.\n"
         '# jlink_baseline_modules = ["java.desktop", "java.logging", "java.naming"]\n'

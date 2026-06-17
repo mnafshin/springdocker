@@ -99,7 +99,7 @@ class InternalFlowTests(unittest.TestCase):
             self.assertIn("01-multi-stage-build-structure", raw_csv.read_text(encoding="utf-8"))
             self.assertIn("=== Scenario: 01-multi-stage-build-structure", stdout.getvalue())
             self.assertIn("run 1:", stdout.getvalue())
-            self.assertIn("Skipping native scenario: 07-native-benchmark", stdout.getvalue())
+            self.assertIn("Skipping native scaffold scenario: 07-native-benchmark", stdout.getvalue())
 
     def test_dockerfile_generate_round_trips_to_explain(self) -> None:
         with tempfile.TemporaryDirectory() as td:

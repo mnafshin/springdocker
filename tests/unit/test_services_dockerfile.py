@@ -10,6 +10,7 @@ from tests.test_support import add_src_to_path
 add_src_to_path()
 
 from springdocker.services.dockerfile_service import generate_dockerfile, parse_must_have_modules
+from springdocker.dockerfile import NATIVE_AOT_SCAFFOLD_WARNING
 
 
 class DockerfileServiceTests(unittest.TestCase):
@@ -83,6 +84,8 @@ class DockerfileServiceTests(unittest.TestCase):
             self.assertIn("native-image-community:21", rendered)
             self.assertIn("nativeCompile -x test", rendered)
             self.assertIn('ENTRYPOINT ["/app/app"]', rendered)
+            self.assertIn("scaffold: experimental native-image Dockerfile", rendered)
+            self.assertIn(NATIVE_AOT_SCAFFOLD_WARNING, generated.plugin_warnings)
 
     def test_generate_dockerfile_uses_recipe_plugin(self) -> None:
         with tempfile.TemporaryDirectory() as td:

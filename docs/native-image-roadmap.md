@@ -6,6 +6,16 @@
 
 `springdocker` does not ship a native-image workflow yet, but the current benchmark structure leaves a clear path for it.
 
+## Current CLI scaffold
+
+The CLI can generate **experimental scaffold output** for native-image exploration:
+
+- `springdocker dockerfile generate --recipe native-aot` writes a GraalVM native-image Dockerfile.
+- `springdocker benchmark generate` creates the `07-native-benchmark` scenario with that scaffold Dockerfile.
+- The internal benchmark runner skips native scenarios by default (`--skip-native`).
+
+This scaffold helps teams preview Dockerfile structure and benchmark layout. It is **not** a production-ready native-image workflow: build validation, reflection configuration, and benchmark execution remain out of scope until this roadmap is implemented.
+
 ## Feasibility
 
 - Treat native-image as an opt-in optimization strategy.

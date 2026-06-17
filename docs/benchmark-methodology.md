@@ -92,7 +92,7 @@ For the current checked-in reference snapshot, the high-level decision matrix is
 | 04 JEP 483 AOT cache | with-aot-cache | better startup and tail latency |
 | 05 JVM flags | workload-dependent | host sensitivity makes the winner variable |
 | 06 Base image choice | workload-dependent | compare configured runtime bases (default: alpine, debian-slim, ubuntu, distroless, temurin) |
-| 07 Native vs JVM | workload-dependent | cold-start vs throughput tradeoff |
+| 07 Native vs JVM | scaffold only | `native-aot` Dockerfile is generated for future comparison; the internal runner skips native scenarios |
 | 08 AppCDS | with-appcds | faster startup from shared class archive |
 
 Reference evidence files are versioned under:
@@ -136,5 +136,5 @@ use pre-built Java runtime images for a closer “stock image” comparison.
 ## Current limitations
 
 - The runner assumes Docker is available on the host.
-- Native scenarios are skipped by the internal runner.
+- Native scenarios are scaffold-only: the internal runner skips them because native-image execution is not a shipped workflow yet (see `docs/native-image-roadmap.md`).
 - The current reproducibility controls are opt-in and do not change defaults.

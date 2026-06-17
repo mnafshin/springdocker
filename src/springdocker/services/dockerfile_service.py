@@ -4,7 +4,13 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..dockerfile import JLINK_BASELINE_MODULES, DockerfileOptions, build_dockerfile
+from ..dockerfile import (
+    BUILTIN_RECIPES,
+    JLINK_BASELINE_MODULES,
+    NATIVE_AOT_SCAFFOLD_WARNING,
+    DockerfileOptions,
+    build_dockerfile,
+)
 from ..dockerfile_explain import explain_dockerfile_text
 from ..plugins import apply_dockerfile_mutators, render_recipe_from_plugins
 
@@ -91,7 +97,10 @@ def generate_dockerfile(
         healthcheck_path=actuator_healthcheck,
     )
     recipe_warnings: tuple[str, ...] = ()
-    if recipe in {"jvm-balanced", "spring-aot", "native-aot"}:
+    scaffold_warnings: tuple[str, ...] = ()
+    if recipe == "native-aot":
+        scaffold_warnings = (NATIVE_AOT_SCAFFOLD_WARNING,)
+    if recipe in BUILTIN_RECIPES:
         rendered = build_dockerfile(options)
     else:
         recipe_render = render_recipe_from_plugins(recipe=recipe, options=options)
@@ -111,7 +120,10 @@ def generate_dockerfile(
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(generated.dockerfile_text, encoding="utf-8")
     ensure_default_dockerignore(project_root)
-    return GeneratedDockerfile(path=destination, plugin_warnings=(*recipe_warnings, *generated.warnings))
+    return GeneratedDockerfile(
+        path=destination,
+        plugin_warnings=(*scaffold_warnings, *recipe_warnings, *generated.warnings),
+    )
 
 
 @dataclass(frozen=True)
