@@ -23,9 +23,26 @@ springdocker benchmark run --project-root samples/java-spring-docker --profile q
 | `*/results/raw.csv` (except scenario 06) | Generated — gitignored | Run output; regenerate with `benchmark run`. |
 | `07-native-benchmark/Dockerfile` | Generated — gitignored | Native scaffold output from the `native-aot` recipe. |
 | `07-native-benchmark/README.md` | Generated — gitignored | Scaffold notice written by the generator. |
-| `06-base-image-choice/results/raw.csv` | Versioned | Sample input for local analysis examples. |
-| `06-base-image-choice/results/baseline.json` | Versioned | CI regression gate baseline. |
+| `06-base-image-choice/results/raw.csv` | Versioned | Pinned sample input for the CI regression gate. |
+| `06-base-image-choice/results/baseline.json` | Versioned | Expected analyzer summary for that CSV (source of truth). |
+| `06-base-image-choice/results/baseline.manifest.json` | Versioned | Regeneration command and provenance. |
 | `reference/v1/*` | Versioned | Published reference evidence snapshots. |
+
+### CI regression baseline (scenario 06)
+
+The gate uses **committed** `raw.csv` + `baseline.json` — CI does not generate the baseline on each run.
+
+Refresh both files together after an intentional sample run or analyzer change:
+
+```bash
+springdocker benchmark analyze \
+  --project-root samples/java-spring-docker \
+  benchmarks/06-base-image-choice/results/raw.csv \
+  --format json \
+  --output benchmarks/06-base-image-choice/results/baseline.json
+```
+
+Full process: [`docs/benchmark-methodology.md`](../../../docs/benchmark-methodology.md#ci-regression-baseline-scenario-06).
 
 Do not commit generated variant Dockerfiles or local run CSVs. CI runs `benchmark generate` and asserts the benchmarks tree stays clean afterward.
 

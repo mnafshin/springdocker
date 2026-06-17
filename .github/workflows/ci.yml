@@ -96,6 +96,29 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
 
+      # Source of truth: committed raw.csv + baseline.json (see baseline.manifest.json).
+      # CI does not run Docker benchmarks here — it checks analyzer output stays aligned.
+      - name: Verify baseline.json matches pinned raw.csv
+        run: |
+          springdocker benchmark analyze \
+            --project-root samples/java-spring-docker \
+            benchmarks/06-base-image-choice/results/raw.csv \
+            --format json \
+            --output /tmp/current-summary.json
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          results = Path("samples/java-spring-docker/benchmarks/06-base-image-choice/results")
+          baseline = json.loads(results.joinpath("baseline.json").read_text(encoding="utf-8"))
+          current = json.loads(Path("/tmp/current-summary.json").read_text(encoding="utf-8"))
+          if baseline != current:
+              print("baseline.json is out of sync with raw.csv.")
+              print("Regenerate with the command in baseline.manifest.json, then commit both files.")
+              sys.exit(1)
+          PY
+
       - name: Benchmark regression gate
         run: |
           springdocker benchmark analyze \

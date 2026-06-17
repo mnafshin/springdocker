@@ -34,7 +34,9 @@ Generated benchmark assets are **not committed** except where CI or docs explici
 | `benchmarks/*/variants/` | No | Regenerate with `springdocker benchmark generate`. |
 | `benchmarks/*/results/raw.csv` | No (except scenario 06 sample file) | Local/CI run output. |
 | `benchmarks/07-native-benchmark/Dockerfile` | No | Native scaffold; generator-owned. |
-| `benchmarks/06-base-image-choice/results/baseline.json` | Yes | Regression gate in CI. |
+| `benchmarks/06-base-image-choice/results/raw.csv` | Yes | Pinned sample runs fed to the CI regression gate. |
+| `benchmarks/06-base-image-choice/results/baseline.json` | Yes | Expected `benchmark analyze` output for that CSV. |
+| `benchmarks/06-base-image-choice/results/baseline.manifest.json` | Yes | Documents how the baseline pair is regenerated. |
 | `benchmarks/reference/v1/` | Yes | Versioned evidence for comparisons and docs. |
 
 After `benchmark generate`, `git status` under `samples/java-spring-docker/benchmarks/` should be clean.
@@ -43,6 +45,48 @@ CI enforces this in the `benchmark-hygiene` job.
 CI does **not** run full Docker benchmark builds on every push — the regression gate validates analyzer output against a pinned baseline only. See [`POSITIONING.md`](POSITIONING.md#shipped-guarantees-ci-evidenced).
 
 See `samples/java-spring-docker/benchmarks/README.md` for the maintainer checklist.
+
+## CI regression baseline (scenario 06)
+
+**Decision:** the regression gate uses **committed, paired artifacts** — not a baseline generated fresh in CI on every push.
+
+| File | Role |
+|---|---|
+| `06-base-image-choice/results/raw.csv` | Pinned sample benchmark rows (input). |
+| `06-base-image-choice/results/baseline.json` | Expected `springdocker benchmark analyze` summary for that CSV (source of truth). |
+| `06-base-image-choice/results/baseline.manifest.json` | Regeneration command and provenance metadata. |
+
+### What CI does
+
+The `benchmark-regression` job in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
+
+1. Runs `benchmark analyze` on the committed `raw.csv`.
+2. Fails if the JSON summary is not **byte-identical** to committed `baseline.json` (catches drift when only one file is updated).
+3. Runs the regression comparator with `--fail-on-regression-above 20` (catches analyzer changes that shift metrics without a baseline refresh).
+
+CI does **not** execute Docker builds for this gate. The pinned CSV is sample evidence from a prior local `benchmark run`.
+
+### How to refresh the baseline
+
+After an intentional benchmark run or analyzer change:
+
+```bash
+# 1. Update raw.csv (typically from a local benchmark run)
+springdocker benchmark run --project-root samples/java-spring-docker --profile quick
+
+# 2. Regenerate baseline.json from the CSV
+springdocker benchmark analyze \
+  --project-root samples/java-spring-docker \
+  benchmarks/06-base-image-choice/results/raw.csv \
+  --format json \
+  --output benchmarks/06-base-image-choice/results/baseline.json
+
+# 3. Commit both files together
+git add samples/java-spring-docker/benchmarks/06-base-image-choice/results/raw.csv \
+        samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json
+```
+
+Do not commit `baseline.json` without the matching `raw.csv`. Other scenarios keep `results/` gitignored; scenario 06 is the sole CI regression anchor today.
 
 ## Run profiles
 
@@ -97,7 +141,7 @@ Confidence intervals use a 95% normal-approximation interval (`mean ± 1.96 * st
 
 For historical regression tracking, save a baseline summary with `--output baseline.json` and compare later runs with `--baseline baseline.json --fail-on-regression-above 20`.
 
-The CI workflow uses the checked-in sample baseline under `samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json` to fail fast when the sample report regresses beyond the configured threshold.
+The repository pins one such pair for CI — see [CI regression baseline (scenario 06)](#ci-regression-baseline-scenario-06).
 
 ## Current sample comparison snapshot
 

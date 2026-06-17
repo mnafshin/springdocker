@@ -7,7 +7,7 @@ from tests.test_support import add_src_to_path
 add_src_to_path()
 
 from springdocker.analyze import VariantSummary
-from springdocker.regression import detect_regressions, format_regression_json, format_regression_table
+from springdocker.regression import detect_regressions, format_regression_json, format_regression_table, load_summaries
 
 
 class RegressionTests(unittest.TestCase):
@@ -30,6 +30,21 @@ class RegressionTests(unittest.TestCase):
         current = [VariantSummary("s1", "v2", 1, 100.0, 200.0, 220.0, 100.0, 100.0)]
         violations = detect_regressions(baseline, current, threshold_pct=10.0)
         self.assertEqual(violations, [])
+
+    def test_scenario_06_baseline_matches_committed_raw_csv(self) -> None:
+        from tests.test_support import ROOT
+
+        from springdocker.analyze import format_json, summarize_csv
+
+        results = ROOT / "samples" / "java-spring-docker" / "benchmarks" / "06-base-image-choice" / "results"
+        raw_csv = results / "raw.csv"
+        baseline_path = results / "baseline.json"
+        self.assertTrue(raw_csv.exists(), "committed raw.csv required for CI regression gate")
+        self.assertTrue(baseline_path.exists(), "committed baseline.json required for CI regression gate")
+
+        current = summarize_csv(raw_csv)
+        baseline = load_summaries(baseline_path)
+        self.assertEqual(format_json(current), format_json(baseline))
 
 
 if __name__ == "__main__":
