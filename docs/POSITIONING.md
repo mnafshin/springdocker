@@ -32,11 +32,11 @@ These behaviors are enforced by [`.github/workflows/ci.yml`](../.github/workflow
 | **Dockerfile generation** | Snapshot and e2e tests on `tests/fixtures/{maven-only,gradle-only}` and `examples/spring-boot-{maven,gradle}` — output shape, flags, and explain/verify wiring |
 | **Benchmark generator** | `benchmark-hygiene` runs `benchmark generate` and asserts generated assets stay gitignored |
 | **Benchmark analyzer** | `benchmark-regression` verifies committed `06-base-image-choice/results/baseline.json` matches analyze output for the paired `raw.csv`, then runs the 20% regression comparator |
+| **Docker smoke build** | `docker-smoke` generates a Dockerfile for `samples/java-spring-docker`, runs `docker build`, and probes `/actuator/health/readiness` on port 8081 |
 | **Supply chain (repo)** | SPDX SBOM artifact, CRITICAL filesystem scan, and `digest-pins` job verifying registry manifests for `digest_pins.py` |
 
 What CI **does not** prove today:
 
-- Docker image builds or container startup in GitHub Actions (see [#79](https://github.com/mnafshin/springdocker/issues/79)).
 - Full benchmark suite execution against real Docker on every push.
 - `springdocker verify` with hadolint, trivy, dive, or cosign installed — verify tests mock or skip external tools.
 - Performance numbers in presentations or docs — those come from local/reference runs on the sample app.
@@ -63,7 +63,7 @@ The repository intentionally keeps three Spring Boot paths. They are not three p
 |---|---|---|
 | `examples/spring-boot-{maven,gradle}/` | Humans learning the CLI | e2e: doctor, generate, explain |
 | `tests/fixtures/{maven-only,gradle-only}/` | Fast minimal regression targets | unit, integration, e2e, benchmark tests |
-| `samples/java-spring-docker/` | Benchmark harness and reference evidence | generator hygiene + analyzer regression on pinned CSV |
+| `samples/java-spring-docker/` | Benchmark harness and reference evidence | generator hygiene + analyzer regression on pinned CSV + `docker-smoke` build/readiness |
 
 **Start with `examples/`** for Dockerfile workflows. Use **`samples/`** only when you need benchmark scenarios or reference datasets. Do not copy the full benchmark tree into every consumer repo.
 

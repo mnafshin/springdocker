@@ -39,6 +39,17 @@ Local `pytest` and the CI `coverage` job enforce the same gate: **≥80% line co
   counts toward the gate.
 - Add or extend tests when your change touches untested paths — do not lower the threshold to land code.
 
+## Docker smoke build (CI)
+
+The `docker-smoke` job runs `python scripts/docker_smoke_build.py` on Ubuntu with a real Docker daemon.
+It generates a Dockerfile for `samples/java-spring-docker`, builds the image, and probes actuator readiness
+on port 8081. Integration/e2e tests keep mocking Docker for fast PR feedback; use the smoke script locally
+when you change Dockerfile generation or runtime startup behavior:
+
+```bash
+python scripts/docker_smoke_build.py
+```
+
 ## Change shape
 
 - Keep commits small and focused.

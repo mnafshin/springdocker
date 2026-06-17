@@ -220,6 +220,30 @@ jobs:
       - name: Enforce package coverage gate
         run: pytest
 
+  docker-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install package and dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      # Real Docker daemon proof: generate Dockerfile for the reference sample, build, and probe readiness.
+      # Mocked integration/e2e tests stay fast; this job aligns CI with runtime evidence.
+      - name: Docker smoke build and readiness probe
+        env:
+          DOCKER_BUILDKIT: "1"
+        run: python scripts/docker_smoke_build.py
+
   supply-chain:
     runs-on: ubuntu-latest
     permissions:

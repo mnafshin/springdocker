@@ -33,5 +33,9 @@ The same E2E paths validate generated variant families that the benchmark genera
 
 The `examples/` walkthrough projects are additionally covered by e2e tests so README quick-start paths cannot drift from the CLI.
 
+Real Docker build evidence uses the full sample app under `samples/java-spring-docker/` (see the `docker-smoke`
+CI job and `scripts/docker_smoke_build.py`). The minimal fixtures above validate CLI output only — they do not
+ship application source and are not used for container builds.
+
 For how these paths relate to public guarantees vs benchmark evidence, see [`docs/POSITIONING.md`](../docs/POSITIONING.md).
 
