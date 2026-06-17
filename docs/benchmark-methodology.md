@@ -101,6 +101,8 @@ The CI workflow uses the checked-in sample baseline under `samples/java-spring-d
 
 ## Current sample comparison snapshot
 
+For decision guidance per scenario, see the [benchmark scenario index in README.md](../README.md#benchmark-scenario-index).
+
 For the current checked-in reference snapshot, the high-level decision matrix is:
 
 | Scenario | Preferred strategy | Why |
