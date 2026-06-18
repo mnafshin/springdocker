@@ -2,18 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Java Docker Decisions — Evidence from Benchmarks</title>
+  <title>Docker Steps with Evidence — Why Each Choice Matters</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" id="theme">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
-  <link rel="stylesheet" href="assets/jug-deck.css">
+  <link rel="stylesheet" href="assets/evidence-deck.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- benchmark-updated: 2026-06-18T01:29:16Z -->
 
 <div class="reveal">
 <div class="slides">
@@ -22,9 +23,9 @@
   <section>
     <section data-background-gradient="linear-gradient(135deg,#0a0d12 0%,#14201f 100%)">
       <span class="badge">JUG · Spring Boot containers</span>
-      <h1 class="hero-title">Java Docker<br><em>decisions</em> with evidence</h1>
-      <p class="muted">How to choose build, runtime, and JVM options — and defend each choice with numbers</p>
-      <p class="tiny" style="margin-top: 1.2em;">Press → · Speaker notes: <kbd>S</kbd></p>
+      <h1 class="hero-title">Docker steps<br><em>with evidence</em></h1>
+      <p class="muted">Why each Dockerfile decision exists — and what you gain from scenarios 01–08</p>
+      <p class="tiny" style="margin-top: 1.2em;">TALK 2 · STEPS &amp; BENEFITS · Press → · Speaker notes: <kbd>S</kbd></p>
       <aside class="notes">Frame the talk: most teams can build a container; fewer can explain why each line is there.</aside>
     </section>
 
@@ -116,8 +117,8 @@ springdocker benchmark analyze benchmarks/03-custom-jre-jlink/results/raw.csv</c
       <table>
         <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th></tr></thead>
         <tbody>
-          <tr><td>specialized-multi-stage</td><td class="good">100.40 MB</td><td class="good">645 ms</td><td>1,428 ms</td></tr>
-          <tr><td>simple-two-stage</td><td>131.54 MB</td><td class="risk">4,135 ms</td><td class="good">1,240 ms</td></tr>
+          <tr><td>specialized-multi-stage</td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg">167.82 MB</span></td><td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/build_avg_ms">616 ms</span></td><td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/startup_avg_ms">1,148 ms</span></td></tr>
+          <tr><td>simple-two-stage</td><td class="good"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/image_mb_avg">130.32 MB</span></td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/build_avg_ms">637 ms</span></td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/startup_avg_ms">1,367 ms</span></td></tr>
         </tbody>
       </table>
       <p class="scenario-foot">Spring Boot sample · Java 25 · full profile · readiness endpoint</p>
@@ -143,10 +144,10 @@ FROM gcr.io/distroless/java25-debian12:nonroot</code></pre>
       <span class="badge pink">Scenario 02 · highest ROI</span>
       <h2>BuildKit cache mounts</h2>
       <div class="grid grid-2" style="margin-top: 1em;">
-        <div class="stat bad"><span class="num">3,410 ms</span><span class="lbl">Without cache</span></div>
-        <div class="stat"><span class="num">622 ms</span><span class="lbl">With cache</span></div>
+        <div class="stat bad"><span class="num" data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">1,078 ms</span><span class="lbl">Without cache</span></div>
+        <div class="stat"><span class="num" data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">611 ms</span><span class="lbl">With cache</span></div>
       </div>
-      <p style="margin-top: 0.8em;" class="muted">~5.5× faster rebuild after touching one Java file</p>
+      <p style="margin-top: 0.8em;" class="muted"><span data-benchmark-computed="02-buildkit-gradle-cache/build_speedup">~1.8×</span> faster rebuild after touching one Java file</p>
       <pre><code class="language-dockerfile" data-trim data-noescape>RUN --mount=type=cache,target=/root/.m2 \
     ./mvnw package -DskipTests</code></pre>
     </section>
@@ -171,14 +172,14 @@ application/</code></pre>
       <span class="badge">Scenario 03</span>
       <h2>JLink custom runtime</h2>
       <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">without-jlink</span><div class="bar-wrap"><div class="bar bad" style="width:100%"></div></div><span class="val">144.38 MB</span></div>
-        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar" style="width:70%"></div></div><span class="val">100.40 MB</span></div>
+        <div class="bar-row"><span class="label">without-jlink</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:78%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">130.28 MB</span></div>
+        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:100%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">167.82 MB</span></div>
       </div>
       <table style="margin-top: 0.8em;">
         <thead><tr><th>Variant</th><th>Startup avg</th></tr></thead>
         <tbody>
-          <tr><td>with-jlink</td><td class="good">1,423 ms</td></tr>
-          <tr><td>without-jlink</td><td>1,446 ms</td></tr>
+          <tr><td>with-jlink</td><td class="risk"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,259 ms</span></td></tr>
+          <tr><td>without-jlink</td><td class="good"><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,189 ms</span></td></tr>
         </tbody>
       </table>
     </section>
@@ -203,8 +204,8 @@ application/</code></pre>
       <table>
         <thead><tr><th>Variant</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
         <tbody>
-          <tr><td>with-aot-cache</td><td class="good">1,429 ms</td><td class="good">1,462 ms</td></tr>
-          <tr><td>without-aot-cache</td><td>1,509 ms</td><td class="risk">1,730 ms</td></tr>
+          <tr><td>with-aot-cache</td><td class="good"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></td><td class="risk"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_p95_ms">1,369 ms</span></td></tr>
+          <tr><td>without-aot-cache</td><td class="risk"><span data-benchmark="04-jep483-aot-cache/without-aot-cache/startup_avg_ms">1,248 ms</span></td><td class="good"><span data-benchmark="04-jep483-aot-cache/without-aot-cache/startup_p95_ms">1,350 ms</span></td></tr>
         </tbody>
       </table>
       <p class="scenario-foot">Java 24+ · requires jlink runtime · mutually exclusive with AppCDS in generator</p>
@@ -250,13 +251,13 @@ application/</code></pre>
       <table>
         <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th></tr></thead>
         <tbody>
-          <tr><td>alpine</td><td class="good">66.08 MB</td><td>2,153 ms</td><td>1,519 ms</td></tr>
-          <tr><td>debian-bookworm-slim</td><td>87.64 MB</td><td class="good">1,429 ms</td><td class="good">1,450 ms</td></tr>
-          <tr><td>temurin-jre</td><td>131.37 MB</td><td class="good">945 ms</td><td>1,451 ms</td></tr>
-          <tr><td>distroless-nonroot</td><td>205.1 MB*</td><td>—</td><td>—</td></tr>
+          <tr><td>alpine</td><td class="good"><span data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></td><td><span data-benchmark="06-base-image-choice/alpine/build_avg_ms">923 ms</span></td><td class="good"><span data-benchmark="06-base-image-choice/alpine/startup_avg_ms">1,346 ms</span></td></tr>
+          <tr><td>debian-bookworm-slim</td><td><span data-benchmark="06-base-image-choice/debian-slim/image_mb_avg">85.94 MB</span></td><td class="good"><span data-benchmark="06-base-image-choice/debian-slim/build_avg_ms">745 ms</span></td><td><span data-benchmark="06-base-image-choice/debian-slim/startup_avg_ms">1,368 ms</span></td></tr>
+          <tr><td>temurin-jre</td><td class="risk"><span data-benchmark="06-base-image-choice/temurin/image_mb_avg">130.28 MB</span></td><td><span data-benchmark="06-base-image-choice/temurin/build_avg_ms">779 ms</span></td><td class="risk"><span data-benchmark="06-base-image-choice/temurin/startup_avg_ms">1,998 ms</span></td></tr>
+          <tr><td>distroless-nonroot</td><td><span data-benchmark="06-base-image-choice/distroless/image_mb_avg">89.41 MB</span></td><td class="risk"><span data-benchmark="06-base-image-choice/distroless/build_avg_ms">1,209 ms</span></td><td><span data-benchmark="06-base-image-choice/distroless/startup_avg_ms">1,832 ms</span></td></tr>
         </tbody>
       </table>
-      <p class="scenario-foot">* distroless row from reference snapshot; slim OS variants bundle jlink runtime</p>
+      <p class="scenario-foot">Slim OS variants bundle a jlink runtime; distroless uses the prebuilt Google runtime image (same scenario, different packaging path).</p>
     </section>
     <section>
       <span class="badge">Decision 06</span>
@@ -275,7 +276,7 @@ application/</code></pre>
       <span class="badge warn">Scenario 07</span>
       <h2>Native image vs JVM</h2>
       <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" style="width:100%"></div></div><span class="val">2,025 ms</span></div>
+        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:87%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,189 ms</span></div>
         <div class="bar-row"><span class="label">native-aot</span><div class="bar-wrap"><div class="bar" style="width:15%"></div></div><span class="val">308 ms</span></div>
       </div>
       <table style="margin-top: 0.8em;">
@@ -307,8 +308,8 @@ application/</code></pre>
       <table>
         <thead><tr><th>Micro-benchmark</th><th>Startup</th></tr></thead>
         <tbody>
-          <tr><td>Without CDS archive</td><td>1,450 ms</td></tr>
-          <tr><td>With AppCDS archive</td><td class="good">1,180 ms</td></tr>
+          <tr><td>Without CDS archive</td><td class="risk"><span data-benchmark="08-appcds/without-appcds/startup_avg_ms">1,281 ms</span></td></tr>
+          <tr><td>With AppCDS archive</td><td class="good"><span data-benchmark="08-appcds/with-appcds/startup_avg_ms">1,262 ms</span></td></tr>
         </tbody>
       </table>
       <pre><code data-trim data-noescape># Train at build
@@ -361,10 +362,10 @@ USER root</code></pre>
       <span class="badge pink">Combined impact</span>
       <h2>How decisions stack — image size</h2>
       <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">without-jlink</span><div class="bar-wrap"><div class="bar bad" style="width:100%"></div></div><span class="val">144.38 MB</span></div>
-        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar" style="width:70%"></div></div><span class="val">100.40 MB</span></div>
-        <div class="bar-row"><span class="label">debian-slim</span><div class="bar-wrap"><div class="bar" style="width:61%"></div></div><span class="val">87.64 MB</span></div>
-        <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" style="width:46%"></div></div><span class="val">66.08 MB</span></div>
+        <div class="bar-row"><span class="label">without-jlink</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:78%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">130.28 MB</span></div>
+        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:100%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">167.82 MB</span></div>
+        <div class="bar-row"><span class="label">debian-slim</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/debian-slim/image_mb_avg" style="width:51%"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/image_mb_avg">85.94 MB</span></div>
+        <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:37%"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
         <div class="bar-row"><span class="label">native-aot*</span><div class="bar-wrap"><div class="bar" style="width:39%"></div></div><span class="val">55.7 MB</span></div>
       </div>
       <p class="scenario-foot">* native reference only · scaffold recipe today</p>
@@ -373,10 +374,10 @@ USER root</code></pre>
       <span class="badge pink">Combined impact</span>
       <h2>How decisions stack — cold start</h2>
       <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" style="width:100%"></div></div><span class="val">2,025 ms</span></div>
-        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar warn" style="width:70%"></div></div><span class="val">1,423 ms</span></div>
-        <div class="bar-row"><span class="label">with AppCDS</span><div class="bar-wrap"><div class="bar" style="width:58%"></div></div><span class="val">1,180 ms</span></div>
-        <div class="bar-row"><span class="label">with-aot-cache</span><div class="bar-wrap"><div class="bar" style="width:71%"></div></div><span class="val">1,429 ms</span></div>
+        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:87%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,189 ms</span></div>
+        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:92%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,259 ms</span></div>
+        <div class="bar-row"><span class="label">with AppCDS</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="08-appcds/with-appcds/startup_avg_ms" style="width:100%"></div></div><span class="val" data-benchmark="08-appcds/with-appcds/startup_avg_ms">1,262 ms</span></div>
+        <div class="bar-row"><span class="label">with-aot-cache</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="04-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:71%"></div></div><span class="val" data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
         <div class="bar-row"><span class="label">native-aot*</span><div class="bar-wrap"><div class="bar" style="width:15%"></div></div><span class="val">308 ms</span></div>
       </div>
       <p class="muted" style="margin-top: 0.8em;">Each bar is a different scenario — not one cumulative Dockerfile. Use this to see which lever moves your goal metric.</p>
@@ -424,7 +425,7 @@ springdocker verify Dockerfile.generated --format table</code></pre>
     <p class="muted" style="margin-top: 0.8em;">Standardize policy · benchmark performance · choose deliberately</p>
     <div class="pill-row" style="margin-top: 1.2em;">
       <span class="pill">github.com/mnafshin/springdocker</span>
-      <span class="pill">docs/presentation/index.html</span>
+      <span class="pill">docs/presentation/docker-steps-evidence.html</span>
       <span class="pill">samples/java-spring-docker/benchmarks/</span>
     </div>
     <aside class="notes">Offer live demo: springdocker explain + analyze on one scenario CSV.</aside>

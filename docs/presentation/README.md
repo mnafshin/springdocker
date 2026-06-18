@@ -1,6 +1,6 @@
-# Docker Best Practices Presentation
+# Presentation decks
 
-This directory contains the Reveal.js deck for Java/Spring Dockerfile decision-making and benchmarking.
+Reveal.js slide decks for talks about **springdocker** (product/features) and **Dockerfile engineering** (step-by-step evidence).
 
 ## Open locally
 
@@ -9,24 +9,46 @@ cd /path/to/springdocker
 python3 -m http.server 8000
 ```
 
-Open:
+Then open:
 
-- `http://localhost:8000/docs/presentation/index.html` — evidence-based decision deck
-- `http://localhost:8000/docs/presentation/java-docker-decisions-jug.html` — JUG talk: Java Docker decisions with benchmark evidence (recommended)
-- `http://localhost:8000/docs/presentation/docker_optimizations_jug_revealjs_v3.html` — JUG talk (Docker + JVM optimization, ~40 min)
-- `http://localhost:8000/docs/presentation/pitch.html` — product pitch deck
+| Talk | File | Audience |
+|---|---|---|
+| **1 — springdocker features & workflow** | [`springdocker-features.html`](springdocker-features.html) | Teams evaluating the CLI: generate, explain, verify, plugins |
+| **2 — why each step & what you gain** | [`docker-steps-evidence.html`](docker-steps-evidence.html) | Engineers choosing build/runtime/JVM options with benchmark evidence |
+
+## Refresh benchmark numbers (automated)
+
+Presentation decks use `data-benchmark="scenario/variant/metric"` bindings. After a benchmark run, update HTML and markdown in one step:
+
+```bash
+export DOCKER_BUILDKIT=1
+
+springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
+springdocker benchmark run --project-root samples/java-spring-docker --profile full
+
+python scripts/update_presentation_benchmarks.py
+```
+
+This updates:
+
+- `docker-steps-evidence.html` — scenario tables (values + `good`/`risk` highlights), bar charts, cache stats
+- `springdocker-features.html` — evidence bar charts in Talk 1
+- `benchmark-summary.md` — paste-ready markdown tables (gitignored)
+
+Use `--check` to verify decks are current without writing files.
+
+Use `--profile full` for presentation-grade run counts (10 runs per scenario; 15 for scenario 04). Expect 1–3+ hours depending on host.
+
+Scenario **07 (native)** and static reference rows (e.g. native-aot bars) are not updated — the runner skips native scenarios by default.
 
 ## Files
 
-- `index.html`: main slide deck (benchmark scenarios)
-- `java-docker-decisions-jug.html`: JUG deck — decision framework + scenario evidence (uses `jug-deck.css`)
-- `docker_optimizations_jug_revealjs_v3.html`: JUG conference deck (Docker + JVM techniques)
-- `docker_optimizations_jug_revealjs_v2.html`: earlier JUG draft (flat slides)
-- `pitch.html`: springdocker product pitch
-- `newPresentation_idea.html`: alternate Reveal.js deck
-- `assets/custom.css`: styling for `index.html`
-- `assets/jug-deck.css`: shared styling for JUG v3 deck
+- `springdocker-features.html` — Talk 1 (features & workflow)
+- `docker-steps-evidence.html` — Talk 2 (scenarios 01–08 with benefits)
+- `benchmark-summary.md` — generated markdown summary (gitignored)
+- `assets/evidence-deck.css` — shared styling for `docker-steps-evidence.html`
 
 ## Notes
 
-- Reveal.js is loaded from CDN (no local npm setup required).
+- Reveal.js loads from CDN (no local npm setup required).
+- Numbers are sample evidence from `samples/java-spring-docker/` — reproduce on your machine before citing absolutes in a live talk.

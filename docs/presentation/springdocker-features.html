@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>springdocker — Production Dockerfiles for Spring Boot, Without the Guesswork</title>
+  <title>springdocker — Features &amp; Workflow</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
@@ -137,6 +137,7 @@
   </style>
 </head>
 <body>
+  <!-- benchmark-updated: 2026-06-18T01:29:16Z -->
   <div class="reveal">
     <div class="slides">
 
@@ -147,9 +148,9 @@
         <!-- 1.1 Title -->
         <section>
           <div class="hero-mark">$ springdocker init</div>
-          <h1 class="hero-title">Stop <em>guessing</em>.<br/>Ship the Dockerfile<br/>your Spring Boot app <em>deserves</em>.</h1>
-          <p class="hero-sub">An opinionated, explainable, benchmark‑backed Dockerfile generator for the JVM.</p>
-          <div class="footer-note">PRESS → TO BEGIN</div>
+          <h1 class="hero-title">springdocker<br/><em>features</em> &amp; workflow</h1>
+          <p class="hero-sub">Generate, explain, and verify production Spring Boot Dockerfiles — without giving up ownership of the Dockerfile.</p>
+          <div class="footer-note">TALK 1 · FEATURES · PRESS →</div>
         </section>
 
         <!-- 1.2 The Painful Truth -->
@@ -280,14 +281,14 @@
           <span class="badge">Image size · Spring Boot 4 · Java 25</span>
           <h3>Scenario evidence → final image size</h3>
           <div style="margin-top: 1em;">
-            <div class="bar-row"><span class="label">without‑jlink</span><div class="bar-wrap"><div class="bar bad" style="width: 100%;"></div></div><span class="val">144.38 MB</span></div>
-            <div class="bar-row"><span class="label">temurin‑jre</span><div class="bar-wrap"><div class="bar warn" style="width: 91%;"></div></div><span class="val">131.37 MB</span></div>
-            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" style="width: 70%;"></div></div><span class="val">100.40 MB</span></div>
-            <div class="bar-row"><span class="label">debian‑bookworm‑slim</span><div class="bar-wrap"><div class="bar" style="width: 61%;"></div></div><span class="val">87.64 MB</span></div>
-            <div class="bar-row"><span class="label">alpine</span><div class="bar-wrap"><div class="bar" style="width: 46%;"></div></div><span class="val">66.08 MB</span></div>
+            <div class="bar-row"><span class="label">without‑jlink</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:78%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">130.28 MB</span></div>
+            <div class="bar-row"><span class="label">temurin‑jre</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="06-base-image-choice/temurin/image_mb_avg" style="width:78%;"></div></div><span class="val" data-benchmark="06-base-image-choice/temurin/image_mb_avg">130.28 MB</span></div>
+            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:100%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">167.82 MB</span></div>
+            <div class="bar-row"><span class="label">debian‑bookworm‑slim</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/debian-slim/image_mb_avg" style="width:51%;"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/image_mb_avg">85.94 MB</span></div>
+            <div class="bar-row"><span class="label">alpine</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:37%;"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
             <div class="bar-row"><span class="label">native‑aot</span><div class="bar-wrap"><div class="bar" style="width: 39%;"></div></div><span class="val">55.7 MB</span></div>
           </div>
-          <p class="muted" style="margin-top: 1em;">Values mirror the benchmark tables in <code>docs/presentation/index.html</code>.</p>
+          <p class="muted" style="margin-top: 1em;">Values mirror the benchmark tables in <code>docs/presentation/docker-steps-evidence.html</code>.</p>
         </section>
 
         <!-- 3.3 Cold start -->
@@ -295,13 +296,13 @@
           <span class="badge">Cold start · ready for traffic</span>
           <h3>Time from <code>docker run</code> to <code>/actuator/health</code> = UP</h3>
           <div style="margin-top: 1em;">
-            <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" style="width: 100%;"></div></div><span class="val">2,025 ms</span></div>
-            <div class="bar-row"><span class="label">debian‑bookworm‑slim</span><div class="bar-wrap"><div class="bar warn" style="width: 72%;"></div></div><span class="val">1,450 ms</span></div>
-            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" style="width: 70%;"></div></div><span class="val">1,423 ms</span></div>
-            <div class="bar-row"><span class="label">with‑aot (avg)</span><div class="bar-wrap"><div class="bar" style="width: 71%;"></div></div><span class="val">1,429 ms</span></div>
+            <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:87%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,189 ms</span></div>
+            <div class="bar-row"><span class="label">debian‑bookworm‑slim</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="06-base-image-choice/debian-slim/startup_avg_ms" style="width:100%;"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/startup_avg_ms">1,368 ms</span></div>
+            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:92%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,259 ms</span></div>
+            <div class="bar-row"><span class="label">with‑aot (avg)</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="04-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:71%;"></div></div><span class="val" data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
             <div class="bar-row"><span class="label">native‑aot</span><div class="bar-wrap"><div class="bar" style="width: 15%;"></div></div><span class="val">308 ms</span></div>
           </div>
-          <p class="muted" style="margin-top: 1em;">Values mirror the benchmark tables in <code>docs/presentation/index.html</code>.</p>
+          <p class="muted" style="margin-top: 1em;">Values mirror the benchmark tables in <code>docs/presentation/docker-steps-evidence.html</code>.</p>
         </section>
 
         <!-- 3.4 Layer cache hit -->
@@ -309,8 +310,8 @@
           <span class="badge">Build cache · the silent productivity killer</span>
           <h3>Rebuild after touching one Java file</h3>
           <div class="grid grid-2" style="margin-top: 1em;">
-            <div class="stat bad"><span class="num">3,410 ms</span><span class="lbl">Without BuildKit cache</span></div>
-            <div class="stat"><span class="num">622 ms</span><span class="lbl">With BuildKit cache</span></div>
+            <div class="stat bad"><span class="num" data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">1,078 ms</span><span class="lbl">Without BuildKit cache</span></div>
+            <div class="stat"><span class="num" data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">611 ms</span><span class="lbl">With BuildKit cache</span></div>
           </div>
           <p style="margin-top: 1.2em;">Build caching and layered outputs reduce rebuild time significantly in repeated CI runs.</p>
         </section>

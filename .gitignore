@@ -56,4 +56,7 @@ samples/java-spring-docker/report.md
 samples/java-spring-docker/steps.adoc
 samples/java-spring-docker/Dockerfile.ci-smoke
 
+### generated presentation summaries ###
+docs/presentation/benchmark-summary.md
+
 *.egg-info/

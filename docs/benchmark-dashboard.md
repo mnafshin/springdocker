@@ -4,7 +4,7 @@
 >
 > This page is roadmap content and does not describe currently shipped `springdocker` functionality.
 
-`docs/presentation/index.html` is the generated benchmark dashboard for this repository.
+Benchmark numbers for talks are refreshed into `docs/presentation/docker-steps-evidence.html`, `docs/presentation/springdocker-features.html`, and the generated `docs/presentation/benchmark-summary.md` via `python scripts/update_presentation_benchmarks.py`.
 
 ## What it shows
 
