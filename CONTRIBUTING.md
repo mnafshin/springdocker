@@ -74,3 +74,5 @@ python scripts/docker_smoke_build.py
 - Release-please opens semantic version release PRs from `main`.
 - The tag-publish workflow only runs after a `vX.Y.Z` tag exists.
 - `CHANGELOG.md` is updated from the release process and published with each release.
+- Repository setting required: **Settings → Actions → General → Workflow permissions** must be **Read and write**, with **Allow GitHub Actions to create and approve pull requests** enabled (otherwise release-please fails with “not permitted to create or approve pull requests”).
+- Prefer [Conventional Commits](https://www.conventionalcommits.org/) on `main` (`feat:`, `fix:`, `docs:`, …) so release-please can infer version bumps and changelog entries.
