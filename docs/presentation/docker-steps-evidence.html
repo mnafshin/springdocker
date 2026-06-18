@@ -102,7 +102,7 @@ springdocker benchmark analyze benchmarks/03-custom-jre-jlink/results/raw.csv</c
           <tr><td>04 JEP 483 AOT cache</td><td class="warn">Conditional</td><td>Tail latency improvement varies</td></tr>
           <tr><td>05 JVM flags</td><td class="warn">Baseline first</td><td>Host/workload dependent</td></tr>
           <tr><td>06 Base image</td><td class="good">debian-bookworm-slim</td><td>Best overall tradeoff here</td></tr>
-          <tr><td>07 Native vs JVM</td><td class="warn">Scaffold / selective</td><td>Cold start vs build + throughput</td></tr>
+          <tr><td>07 Native vs JVM</td><td class="warn">Scaffold / selective</td><td>Cold start vs build time tradeoff</td></tr>
           <tr><td>08 AppCDS</td><td class="good">ON when layered JAR</td><td>Faster startup from shared archive</td></tr>
         </tbody>
       </table>
@@ -290,11 +290,11 @@ application/</code></pre>
       <table class="bench-table" style="margin-top: 0.8em;">
         <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th></tr></thead>
         <tbody>
-          <tr><td>native-aot</td><td class="good">55.7 MB</td><td class="risk">~635 s</td><td class="good">308 ms</td></tr>
-          <tr><td>JVM baseline</td><td>130.5 MB</td><td class="good">~9 s</td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></td></tr>
+          <tr><td>native-aot*</td><td>55.7 MB*</td><td>~635 s*</td><td>308 ms*</td></tr>
+          <tr><td>JVM baseline (scenario 03)</td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/build_avg_ms">625 ms</span></td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></td></tr>
         </tbody>
       </table>
-      <p class="scenario-foot">Reference measurements · native-aot recipe is scaffold-only in springdocker today</p>
+      <p class="scenario-foot">* native-aot row is published reference only (scaffold recipe; runner skips scenario 07) · JVM row from scenario 03 without-jlink-runtime</p>
     </section>
     <section>
       <span class="badge warn">Decision 07</span>

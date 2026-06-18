@@ -41,7 +41,7 @@ Use `--check` to verify decks are current without writing files.
 
 Use `--profile full` for presentation-grade run counts (10 runs per scenario; 15 for scenario 04). Expect 1–3+ hours depending on host.
 
-Scenario **07 (native)** and static reference rows (e.g. native-aot bars) are not updated — the runner skips native scenarios by default.
+Scenario **07 (native)** is not measured by the runner (`--skip-native` by default). The deck binds the JVM comparison row to scenario **03** `without-jlink-runtime`; native-aot table and bar rows stay as published reference values (marked with `*`).
 
 ## Files
 
