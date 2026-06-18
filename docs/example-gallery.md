@@ -13,7 +13,7 @@ This gallery collects representative generated outputs so you can see the main `
 | Baseline runtime | `docs/examples/baseline.Dockerfile` | A minimal single-stage runtime for comparison. |
 | Jlink runtime | `docs/examples/jlink.Dockerfile` | A multi-stage build with a custom jlink runtime. |
 | Layered build | `docs/examples/layered.Dockerfile` | A layered multi-stage build without jlink. |
-| Distroless runtime | `docs/examples/distroless.Dockerfile` | A minimal non-root distroless runtime. |
+| Distroless + jlink default | `docs/examples/distroless.Dockerfile` | `jvm-balanced` output: layered JAR, custom jlink runtime, distroless/base-debian13 non-root. |
 
 ## Benchmark report example
 

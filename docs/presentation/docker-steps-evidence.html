@@ -134,7 +134,11 @@ springdocker benchmark analyze benchmarks/03-custom-jre-jlink/results/raw.csv</c
       </div>
       <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk AS build
 # deps layer → source layer → package → layertools extract
-FROM gcr.io/distroless/java25-debian12:nonroot</code></pre>
+FROM … AS jre-builder
+# jdeps + jlink custom runtime
+FROM gcr.io/distroless/base-debian13:nonroot
+COPY --from=build /layers/… ./
+ENTRYPOINT ["java", …, "org.springframework.boot.loader.launch.JarLauncher"]</code></pre>
     </section>
   </section>
 
