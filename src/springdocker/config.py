@@ -77,7 +77,7 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         "java_version = 25\n"
         "legacy_scripts = false\n\n"
         "[benchmark.generate.base_image_choice]\n"
-        "variants = [\"alpine\", \"debian-slim\", \"ubuntu\", \"distroless\", \"temurin\"]\n\n"
+        "variants = [\"alpine\", \"debian-slim\", \"ubuntu\", \"distroless\"]\n\n"
         "[benchmark.run]\n"
         f'profile = "{profile}"\n'
         "runner_args = [\"--skip-native\"]\n"

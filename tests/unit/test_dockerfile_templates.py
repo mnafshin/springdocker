@@ -108,6 +108,20 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
         self.assertIn("COPY --from=vendor-jre /opt/java/openjdk /opt/java", rendered)
         self.assertNotIn("AS jre-builder", rendered)
 
+    def test_temurin_runtime_with_jlink_uses_debian_slim_carrier(self) -> None:
+        rendered = build_dockerfile(
+            DockerfileOptions(
+                build_tool="maven",
+                java_version=25,
+                runtime_image="temurin",
+                use_jlink=True,
+                enable_appcds=False,
+            )
+        )
+        self.assertIn("debian:bookworm-slim", rendered)
+        self.assertIn("COPY --from=jre-builder /jre/out /opt/java", rendered)
+        self.assertNotIn("FROM --platform=$TARGETPLATFORM eclipse-temurin:25-jre", rendered.split("AS jre-builder")[1])
+
     def test_jep483_aot_cache_stage_renders(self) -> None:
         rendered = build_dockerfile(
             DockerfileOptions(

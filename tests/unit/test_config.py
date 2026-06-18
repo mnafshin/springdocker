@@ -108,7 +108,7 @@ class ConfigTests(unittest.TestCase):
         self.assertTrue(bench_generate.use_legacy_scripts)
         self.assertEqual(
             bench_generate.base_image_variants,
-            ("alpine", "debian-slim", "ubuntu", "distroless", "temurin"),
+            ("alpine", "debian-slim", "ubuntu", "distroless"),
         )
 
     def test_resolve_jlink_baseline_modules_from_config(self) -> None:

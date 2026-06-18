@@ -20,7 +20,7 @@ java_version = 25
 legacy_scripts = false
 
 [benchmark.generate.base_image_choice]
-variants = ["alpine", "debian-slim", "ubuntu", "distroless", "temurin"]
+variants = ["alpine", "debian-slim", "ubuntu", "distroless"]
 
 [benchmark.run]
 profile = "quick"

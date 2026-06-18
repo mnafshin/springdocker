@@ -5,7 +5,6 @@ DEFAULT_BASE_IMAGE_VARIANTS: tuple[str, ...] = (
     "debian-slim",
     "ubuntu",
     "distroless",
-    "temurin",
 )
 
 _RUNTIME_ALIASES: dict[str, str] = {

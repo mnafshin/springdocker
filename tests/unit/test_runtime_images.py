@@ -18,7 +18,7 @@ class RuntimeImageConfigTests(unittest.TestCase):
     def test_default_variants(self) -> None:
         self.assertEqual(
             DEFAULT_BASE_IMAGE_VARIANTS,
-            ("alpine", "debian-slim", "ubuntu", "distroless", "temurin"),
+            ("alpine", "debian-slim", "ubuntu", "distroless"),
         )
 
     def test_normalize_aliases(self) -> None:

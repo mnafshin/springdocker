@@ -139,7 +139,7 @@
   </style>
 </head>
 <body>
-  <!-- benchmark-updated: 2026-06-18T01:51:23Z -->
+  <!-- benchmark-updated: 2026-06-18T02:07:17Z -->
   <div class="reveal">
     <div class="slides">
 
@@ -283,8 +283,8 @@
           <span class="badge">Image size · Spring Boot 4 · Java 25</span>
           <h3>Scenario evidence → final image size</h3>
           <div style="margin-top: 1em;">
-            <div class="bar-row"><span class="label">without‑jlink</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:82%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></div>
-            <div class="bar-row"><span class="label">temurin‑jre</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="06-base-image-choice/temurin/image_mb_avg" style="width:100%;"></div></div><span class="val" data-benchmark="06-base-image-choice/temurin/image_mb_avg">130.28 MB</span></div>
+            <div class="bar-row"><span class="label">temurin‑jre image</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/temurin-jre-image/image_mb_avg" style="width:100%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/temurin-jre-image/image_mb_avg">130.28 MB</span></div>
+            <div class="bar-row"><span class="label">vendor JRE on debian</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:82%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></div>
             <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:66%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">85.94 MB</span></div>
             <div class="bar-row"><span class="label">debian‑bookworm‑slim</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/debian-slim/image_mb_avg" style="width:66%;"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/image_mb_avg">85.94 MB</span></div>
             <div class="bar-row"><span class="label">alpine</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:48%;"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
@@ -298,10 +298,10 @@
           <span class="badge">Cold start · ready for traffic</span>
           <h3>Time from <code>docker run</code> to <code>/actuator/health</code> = UP</h3>
           <div style="margin-top: 1em;">
-            <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:92%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,265 ms</span></div>
-            <div class="bar-row"><span class="label">debian‑bookworm‑slim</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="06-base-image-choice/debian-slim/startup_avg_ms" style="width:100%;"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/startup_avg_ms">1,368 ms</span></div>
-            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:98%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,339 ms</span></div>
-            <div class="bar-row"><span class="label">with‑aot (avg)</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="04-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:71%;"></div></div><span class="val" data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
+            <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:98%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></div>
+            <div class="bar-row"><span class="label">debian‑bookworm‑slim</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="06-base-image-choice/debian-slim/startup_avg_ms" style="width:100%;"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/startup_avg_ms">1,584 ms</span></div>
+            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:86%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,367 ms</span></div>
+            <div class="bar-row"><span class="label">with‑aot (avg)</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="04-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:61%;"></div></div><span class="val" data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
             <div class="bar-row"><span class="label">native‑aot</span><div class="bar-wrap"><div class="bar" style="width: 15%;"></div></div><span class="val">308 ms</span></div>
           </div>
           <p class="muted" style="margin-top: 1em;">Values mirror the benchmark tables in <code>docs/presentation/docker-steps-evidence.html</code>.</p>

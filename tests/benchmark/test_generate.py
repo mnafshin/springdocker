@@ -52,10 +52,13 @@ class GenerateScenarioTests(unittest.TestCase):
 
         with_jlink = next(opts for name, opts in scenarios["03-custom-jre-jlink"].variants if name == "with-jlink-runtime")
         without_jlink = next(opts for name, opts in scenarios["03-custom-jre-jlink"].variants if name == "without-jlink-runtime")
+        temurin_jre = next(opts for name, opts in scenarios["03-custom-jre-jlink"].variants if name == "temurin-jre-image")
         self.assertTrue(with_jlink.use_jlink)
         self.assertEqual(with_jlink.runtime_image, "debian-slim")
         self.assertFalse(without_jlink.use_jlink)
         self.assertEqual(without_jlink.runtime_image, "debian-slim")
+        self.assertFalse(temurin_jre.use_jlink)
+        self.assertEqual(temurin_jre.runtime_image, "temurin")
 
         with_aot = next(opts for name, opts in scenarios["04-jep483-aot-cache"].variants if name == "with-aot-cache")
         without_aot = next(opts for name, opts in scenarios["04-jep483-aot-cache"].variants if name == "without-aot-cache")
@@ -76,14 +79,14 @@ class GenerateScenarioTests(unittest.TestCase):
         self.assertFalse(without_cds.enable_appcds)
 
         base_images = scenarios["06-base-image-choice"]
-        self.assertEqual(len(base_images.variants), 5)
+        self.assertEqual(len(base_images.variants), 4)
         names = {name for name, _ in base_images.variants}
-        self.assertEqual(names, {"alpine", "debian-slim", "ubuntu", "distroless", "temurin"})
+        self.assertEqual(names, {"alpine", "debian-slim", "ubuntu", "distroless"})
         debian = next(opts for name, opts in base_images.variants if name == "debian-slim")
         self.assertTrue(debian.use_jlink)
         self.assertEqual(debian.runtime_image, "debian-slim")
-        temurin = next(opts for name, opts in base_images.variants if name == "temurin")
-        self.assertFalse(temurin.use_jlink)
+        distroless = next(opts for name, opts in base_images.variants if name == "distroless")
+        self.assertTrue(distroless.use_jlink)
 
     def test_custom_base_image_variants_from_config(self) -> None:
         scenarios = default_scenarios(

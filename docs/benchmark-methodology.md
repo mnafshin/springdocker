@@ -158,7 +158,7 @@ For the current checked-in reference snapshot, the high-level decision matrix is
 | 03 JLink + JDeps | with-jlink | ~20% smaller image on same debian-slim base; startup within noise |
 | 04 JEP 483 AOT cache | with-aot-cache | better startup and tail latency |
 | 05 JVM flags | workload-dependent | host sensitivity makes the winner variable |
-| 06 Base image choice | workload-dependent | compare configured runtime bases (default: alpine, debian-slim, ubuntu, distroless, temurin) |
+| 06 Base image choice | workload-dependent | compare configured runtime bases with jlink (default: alpine, debian-slim, ubuntu, distroless) |
 | 07 Native vs JVM | scaffold only | `native-aot` Dockerfile is generated for future comparison; the internal runner skips native scenarios |
 | 08 AppCDS | with-appcds | faster startup from shared class archive |
 
@@ -193,14 +193,15 @@ Set runtime bases under `[benchmark.generate.base_image_choice]` in `.springdock
 
 ```toml
 [benchmark.generate.base_image_choice]
-variants = ["alpine", "debian-slim", "ubuntu", "distroless", "temurin"]
+variants = ["alpine", "debian-slim", "ubuntu", "distroless"]
 ```
 
 Aliases such as `debian-bookworm-slim`, `ubuntu-noble`, and `eclipse-temurin-jre` are accepted.
 Slim OS images (`alpine`, `debian-slim`, `ubuntu`) default to a jlink-built JVM when `use_jlink=True`.
 When `use_jlink=False` on those bases, springdocker copies a pinned vendor Temurin JRE into the OS
-runtime stage (scenario 03 `without-jlink-runtime`). `temurin` and `distroless` use pre-built Java
-runtime images for a closer “stock image” comparison (scenario 06).
+runtime stage (scenario 03 `without-jlink-runtime`). Scenario 03 `temurin-jre-image` uses the stock
+`eclipse-temurin` JRE container image as shipped. Scenario 06 enables jlink for every configured base
+(`distroless/base` + copied jlink runtime).
 
 ## Current limitations
 

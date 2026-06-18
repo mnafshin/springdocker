@@ -27,6 +27,7 @@ VARIANT_ALIASES: dict[str, str] = {
 }
 
 CROSS_CUTTING_ROWS: tuple[tuple[str, str, str], ...] = (
+    ("Image size", "03-custom-jre-jlink", "temurin-jre-image"),
     ("Image size", "03-custom-jre-jlink", "without-jlink-runtime"),
     ("Image size", "03-custom-jre-jlink", "with-jlink-runtime"),
     ("Image size", "06-base-image-choice", "debian-slim"),
@@ -42,10 +43,12 @@ CROSS_CUTTING_ROWS: tuple[tuple[str, str, str], ...] = (
 
 BAR_GROUPS: dict[str, tuple[str, ...]] = {
     "scenario-03-image": (
+        "03-custom-jre-jlink/temurin-jre-image/image_mb_avg",
         "03-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
         "03-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
     ),
     "cross-image-size": (
+        "03-custom-jre-jlink/temurin-jre-image/image_mb_avg",
         "03-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
         "03-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
         "06-base-image-choice/debian-slim/image_mb_avg",
@@ -58,8 +61,8 @@ BAR_GROUPS: dict[str, tuple[str, ...]] = {
         "04-jep483-aot-cache/with-aot-cache/startup_avg_ms",
     ),
     "features-image-size": (
+        "03-custom-jre-jlink/temurin-jre-image/image_mb_avg",
         "03-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
-        "06-base-image-choice/temurin/image_mb_avg",
         "03-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
         "06-base-image-choice/debian-slim/image_mb_avg",
         "06-base-image-choice/alpine/image_mb_avg",

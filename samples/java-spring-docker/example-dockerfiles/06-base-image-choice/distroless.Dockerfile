@@ -22,7 +22,17 @@ RUN java -Djarmode=layertools -jar /app/target/*.jar extract --destination /laye
 
 RUN install -d /tmp/sbom && printf '{"spdxVersion":"SPDX-2.3","name":"springdocker-generated-image"}' > /tmp/sbom/spdx.json
 
-FROM --platform=$TARGETPLATFORM gcr.io/distroless/java25-debian13:nonroot
+FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk@sha256:c2b7ea21649875fb9052237ac4e3cd4ef63968a2a389a0a1b1a72a5e53e5c93f AS jre-builder
+WORKDIR /jre
+COPY --from=build /app/target/*.jar app.jar
+RUN jdeps --ignore-missing-deps --recursive --multi-release 25 --print-module-deps app.jar > modules.txt
+ARG MUSTHAVE_MODULES="java.base,java.desktop,java.instrument,java.logging,java.sql,java.xml,java.naming,java.management,java.security.jgss,jdk.crypto.ec,jdk.unsupported"
+RUN set -eux; \
+    MODULES=$( (tr ',' '\n' < modules.txt; printf '%s\n' "$MUSTHAVE_MODULES" | tr ',' '\n') \
+      | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | sort -u | paste -sd, -); \
+    jlink --add-modules "$MODULES" --strip-debug --no-man-pages --no-header-files --compress=2 --output /jre/out
+
+FROM --platform=$TARGETPLATFORM gcr.io/distroless/base-debian13:nonroot
 WORKDIR /app
 VOLUME /tmp
 EXPOSE 8080
@@ -34,6 +44,9 @@ COPY --from=build /layers/application/ ./
 LABEL org.opencontainers.image.source="${OCI_SOURCE}" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}"
+COPY --from=jre-builder /jre/out /opt/java
+ENV JAVA_HOME=/opt/java
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 USER nonroot
 COPY --from=build /tmp/sbom/spdx.json /usr/share/sbom/spdx.json
 ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"

@@ -521,6 +521,10 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         if spec.supply_chain.include_reproducible_controls:
             distroless_lines.append('ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"')
         sections.append(_section(*distroless_lines))
+    elif spec.runtime.runtime_image == "temurin" and spec.build.use_jlink:
+        # jlink ships the runtime; a Temurin JRE base would only add unused layers.
+        tag, digest = OS_RUNTIME_IMAGES["debian-slim"]
+        sections.append(_compose_os_runtime_section(spec, jar_path, _pin_image(tag, digest)))
     elif spec.runtime.runtime_image in OS_RUNTIME_IMAGES:
         tag, digest = OS_RUNTIME_IMAGES[spec.runtime.runtime_image]
         sections.append(_compose_os_runtime_section(spec, jar_path, _pin_image(tag, digest)))

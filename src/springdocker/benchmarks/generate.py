@@ -67,12 +67,11 @@ def _base_image_variant_options(
     must_have_modules: tuple[str, ...],
     runtime_image: str,
 ) -> DockerfileOptions:
-    use_jlink = runtime_image in {"debian-slim", "ubuntu", "alpine"}
     return DockerfileOptions(
         build_tool=build_tool,
         java_version=java_version,
         must_have_modules=must_have_modules,
-        use_jlink=use_jlink,
+        use_jlink=True,
         use_layered_jar=True,
         tuned_jvm_flags=True,
         runtime_image=runtime_image,
@@ -143,6 +142,18 @@ def default_scenarios(
                         java_version=java_version,
                         must_have_modules=must_have_modules,
                         runtime_image="debian-slim",
+                        use_jlink=False,
+                        enable_appcds=False,
+                        enable_jep483_aot_cache=False,
+                    ),
+                ),
+                (
+                    "temurin-jre-image",
+                    DockerfileOptions(
+                        build_tool=build_tool,
+                        java_version=java_version,
+                        must_have_modules=must_have_modules,
+                        runtime_image="temurin",
                         use_jlink=False,
                         enable_appcds=False,
                         enable_jep483_aot_cache=False,
