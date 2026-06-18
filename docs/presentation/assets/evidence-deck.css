@@ -296,6 +296,10 @@ body {
   font-weight: 600;
 }
 
+.reveal table.bench-table td {
+  vertical-align: middle;
+}
+
 .scenario-foot {
   margin-top: 0.9em;
   font-size: 0.5em;

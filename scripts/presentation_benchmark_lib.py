@@ -89,8 +89,10 @@ AUTO_HIGHLIGHT_CLASSES: frozenset[str] = frozenset({"good", "risk", "warn"})
 TABLE_RE = re.compile(r"<table\b.*?</table>", re.DOTALL | re.IGNORECASE)
 TABLE_ROW_RE = re.compile(r"<tr\b.*?</tr>", re.DOTALL | re.IGNORECASE)
 BENCHMARK_CELL_RE = re.compile(
-    r"<td(?P<attrs>[^>]*)>\s*"
-    r"(?P<inner><span[^>]*\sdata-benchmark=\"(?P<key>[^\"]+)\"[^>]*>[^<]*</span>)\s*"
+    r"<td(?P<attrs>[^>]*)>"
+    r"(?P<prefix>(?:(?!</td>).)*?)"
+    r"(?P<inner><span[^>]*\sdata-benchmark=\"(?P<key>[^\"]+)\"[^>]*>[^<]*</span>)"
+    r"(?P<suffix>(?:(?!</td>).)*?)"
     r"</td>",
     re.DOTALL | re.IGNORECASE,
 )
@@ -279,11 +281,18 @@ def apply_table_cell_highlights(html: str, numeric: dict[str, float]) -> str:
         if not rows:
             return table_html
 
-        parsed_rows: list[list[tuple[str, str, str, str]]] = []
+        parsed_rows: list[list[tuple[str, str, str, str, str, str]]] = []
         max_columns = 0
         for row_html in rows:
             cells = [
-                (cell_match.group("attrs"), cell_match.group("inner"), cell_match.group("key"), cell_match.group(0))
+                (
+                    cell_match.group("attrs"),
+                    cell_match.group("prefix"),
+                    cell_match.group("inner"),
+                    cell_match.group("suffix"),
+                    cell_match.group("key"),
+                    cell_match.group(0),
+                )
                 for cell_match in BENCHMARK_CELL_RE.finditer(row_html)
             ]
             parsed_rows.append(cells)
@@ -294,16 +303,16 @@ def apply_table_cell_highlights(html: str, numeric: dict[str, float]) -> str:
 
         columns: list[list[str]] = [[] for _ in range(max_columns)]
         for cells in parsed_rows:
-            for index, (_, _, key, _) in enumerate(cells):
+            for index, (_, _, _, _, key, _) in enumerate(cells):
                 columns[index].append(key)
 
         updated_rows: list[str] = []
         for row_html, cells in zip(rows, parsed_rows, strict=False):
             updated_row = row_html
-            for index, (attrs, inner, key, original_cell) in enumerate(cells):
+            for index, (attrs, prefix, inner, suffix, key, original_cell) in enumerate(cells):
                 highlight = highlight_class_for_column(key, tuple(columns[index]), numeric)
                 new_attrs = set_td_highlight_class(attrs, highlight)
-                replacement = f"<td{new_attrs}>{inner}</td>"
+                replacement = f"<td{new_attrs}>{prefix}{inner}{suffix}</td>"
                 updated_row = updated_row.replace(original_cell, replacement, 1)
             updated_rows.append(updated_row)
 

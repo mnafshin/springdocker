@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- benchmark-updated: 2026-06-18T02:07:17Z -->
+  <!-- benchmark-updated: 2026-06-18T02:26:51Z -->
 
 <div class="reveal">
 <div class="slides">
@@ -115,10 +115,10 @@ springdocker benchmark analyze benchmarks/03-custom-jre-jlink/results/raw.csv</c
       <span class="badge">Scenario 01</span>
       <h2>Multi-stage build structure</h2>
       <table>
-        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th></tr></thead>
+        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
         <tbody>
-          <tr><td>specialized-multi-stage</td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg">167.82 MB</span></td><td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/build_avg_ms">616 ms</span></td><td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/startup_avg_ms">1,148 ms</span></td></tr>
-          <tr><td>simple-two-stage</td><td class="good"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/image_mb_avg">130.32 MB</span></td><td class="warn"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/build_avg_ms">637 ms</span></td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/startup_avg_ms">1,367 ms</span></td></tr>
+          <tr><td>specialized-multi-stage</td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg">167.82 MB</span></td><td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/build_avg_ms">616 ms</span></td><td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/startup_avg_ms">1,148 ms</span></td><td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/startup_p95_ms">1,339 ms</span></td></tr>
+          <tr><td>simple-two-stage</td><td class="good"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/image_mb_avg">130.32 MB</span></td><td class="warn"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/build_avg_ms">637 ms</span></td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/startup_avg_ms">1,367 ms</span></td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/startup_p95_ms">1,695 ms</span></td></tr>
         </tbody>
       </table>
       <p class="scenario-foot">Spring Boot sample · Java 25 · full profile · readiness endpoint</p>
@@ -148,6 +148,13 @@ FROM gcr.io/distroless/java25-debian12:nonroot</code></pre>
         <div class="stat"><span class="num" data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">611 ms</span><span class="lbl">With cache</span></div>
       </div>
       <p style="margin-top: 0.8em;" class="muted"><span data-benchmark-computed="02-buildkit-gradle-cache/build_speedup">~1.8×</span> faster rebuild after touching one Java file</p>
+      <table style="margin-top: 0.8em;">
+        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
+        <tbody>
+          <tr><td>with-buildkit-cache</td><td class="warn"><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/image_mb_avg">167.82 MB</span></td><td class="good"><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">611 ms</span></td><td><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/startup_avg_ms">1,151 ms</span></td><td><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/startup_p95_ms">1,342 ms</span></td></tr>
+          <tr><td>without-buildkit-cache</td><td class="good"><span data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/image_mb_avg">167.28 MB</span></td><td class="risk"><span data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">1,078 ms</span></td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
       <pre><code class="language-dockerfile" data-trim data-noescape>RUN --mount=type=cache,target=/root/.m2 \
     ./mvnw package -DskipTests</code></pre>
     </section>
@@ -171,18 +178,13 @@ application/</code></pre>
     <section>
       <span class="badge">Scenario 03</span>
       <h2>JLink custom runtime</h2>
-      <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">temurin-jre image</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/temurin-jre-image/image_mb_avg" style="width:100%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/temurin-jre-image/image_mb_avg">130.28 MB</span></div>
-        <div class="bar-row"><span class="label">vendor JRE on debian</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:82%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></div>
-        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:66%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">85.94 MB</span></div>
-      </div>
       <p class="scenario-foot">Layered JAR on three JVM paths: custom jlink, vendor JRE copied onto debian-slim, and stock Temurin JRE image.</p>
-      <table style="margin-top: 0.8em;">
-        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th></tr></thead>
+      <table class="bench-table" style="margin-top: 0.8em;">
+        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
         <tbody>
-          <tr><td>with-jlink</td><td class="good"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">85.94 MB</span></td><td class="good"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/build_avg_ms">610 ms</span></td><td class="good"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,367 ms</span></td></tr>
-          <tr><td>vendor JRE on debian</td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/build_avg_ms">625 ms</span></td><td class="risk"><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></td></tr>
-          <tr><td>temurin-jre image</td><td class="risk"><span data-benchmark="03-custom-jre-jlink/temurin-jre-image/image_mb_avg">130.28 MB</span></td><td class="risk"><span data-benchmark="03-custom-jre-jlink/temurin-jre-image/build_avg_ms">685 ms</span></td><td><span data-benchmark="03-custom-jre-jlink/temurin-jre-image/startup_avg_ms">1,385 ms</span></td></tr>
+          <tr><td>with-jlink</td><td class="good"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">85.94 MB</span></td><td class="good"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/build_avg_ms">610 ms</span></td><td class="good"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,367 ms</span></td><td><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_p95_ms">1,704 ms</span></td></tr>
+          <tr><td>vendor JRE on debian</td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/build_avg_ms">625 ms</span></td><td class="risk"><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></td><td class="good"><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_p95_ms">1,639 ms</span></td></tr>
+          <tr><td>temurin-jre image</td><td class="risk"><span data-benchmark="03-custom-jre-jlink/temurin-jre-image/image_mb_avg">130.28 MB</span></td><td class="risk"><span data-benchmark="03-custom-jre-jlink/temurin-jre-image/build_avg_ms">685 ms</span></td><td><span data-benchmark="03-custom-jre-jlink/temurin-jre-image/startup_avg_ms">1,385 ms</span></td><td class="risk"><span data-benchmark="03-custom-jre-jlink/temurin-jre-image/startup_p95_ms">2,093 ms</span></td></tr>
         </tbody>
       </table>
     </section>
@@ -205,10 +207,10 @@ application/</code></pre>
       <span class="badge">Scenario 04</span>
       <h2>JEP 483 AOT class-loading cache</h2>
       <table>
-        <thead><tr><th>Variant</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
+        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
         <tbody>
-          <tr><td>with-aot-cache</td><td class="good"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></td><td class="warn"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_p95_ms">1,369 ms</span></td></tr>
-          <tr><td>without-aot-cache</td><td class="risk"><span data-benchmark="04-jep483-aot-cache/without-aot-cache/startup_avg_ms">1,248 ms</span></td><td class="good"><span data-benchmark="04-jep483-aot-cache/without-aot-cache/startup_p95_ms">1,350 ms</span></td></tr>
+          <tr><td>with-aot-cache</td><td class="warn"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/image_mb_avg">180.63 MB</span></td><td class="warn"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/build_avg_ms">641 ms</span></td><td class="good"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></td><td class="warn"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_p95_ms">1,369 ms</span></td></tr>
+          <tr><td>without-aot-cache</td><td class="good"><span data-benchmark="04-jep483-aot-cache/without-aot-cache/image_mb_avg">167.82 MB</span></td><td class="good"><span data-benchmark="04-jep483-aot-cache/without-aot-cache/build_avg_ms">626 ms</span></td><td class="risk"><span data-benchmark="04-jep483-aot-cache/without-aot-cache/startup_avg_ms">1,248 ms</span></td><td class="good"><span data-benchmark="04-jep483-aot-cache/without-aot-cache/startup_p95_ms">1,350 ms</span></td></tr>
         </tbody>
       </table>
       <p class="scenario-foot">Java 24+ · requires jlink runtime · mutually exclusive with AppCDS in generator</p>
@@ -226,6 +228,13 @@ application/</code></pre>
     <section>
       <span class="badge">Scenario 05</span>
       <h2>JVM container flags</h2>
+      <table style="margin-top: 0.8em;">
+        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
+        <tbody>
+          <tr><td>tuned-flags</td><td class="warn"><span data-benchmark="05-jvm-container-flags/tuned-flags/image_mb_avg">167.82 MB</span></td><td class="good"><span data-benchmark="05-jvm-container-flags/tuned-flags/build_avg_ms">628 ms</span></td><td class="good"><span data-benchmark="05-jvm-container-flags/tuned-flags/startup_avg_ms">1,262 ms</span></td><td class="good"><span data-benchmark="05-jvm-container-flags/tuned-flags/startup_p95_ms">1,339 ms</span></td></tr>
+          <tr><td>defaults-like</td><td class="good"><span data-benchmark="05-jvm-container-flags/defaults-like/image_mb_avg">167.82 MB</span></td><td class="warn"><span data-benchmark="05-jvm-container-flags/defaults-like/build_avg_ms">636 ms</span></td><td class="warn"><span data-benchmark="05-jvm-container-flags/defaults-like/startup_avg_ms">1,285 ms</span></td><td class="warn"><span data-benchmark="05-jvm-container-flags/defaults-like/startup_p95_ms">1,348 ms</span></td></tr>
+        </tbody>
+      </table>
       <div class="grid grid-2" style="margin-top: 0.8em;">
         <div class="card warn"><h4>Quick profile</h4><p>One variant can look like a clear winner.</p></div>
         <div class="card warn"><h4>Full profile</h4><p>Different host sensitivity — winner can flip.</p></div>
@@ -252,12 +261,12 @@ application/</code></pre>
       <span class="badge">Scenario 06</span>
       <h2>Base image choice</h2>
       <table>
-        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th></tr></thead>
+        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
         <tbody>
-          <tr><td>alpine</td><td class="good"><span data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></td><td><span data-benchmark="06-base-image-choice/alpine/build_avg_ms">936 ms</span></td><td><span data-benchmark="06-base-image-choice/alpine/startup_avg_ms">1,583 ms</span></td></tr>
-          <tr><td>debian-bookworm-slim</td><td class="risk"><span data-benchmark="06-base-image-choice/debian-slim/image_mb_avg">85.94 MB</span></td><td class="good"><span data-benchmark="06-base-image-choice/debian-slim/build_avg_ms">616 ms</span></td><td><span data-benchmark="06-base-image-choice/debian-slim/startup_avg_ms">1,584 ms</span></td></tr>
-          <tr><td>ubuntu</td><td><span data-benchmark="06-base-image-choice/ubuntu/image_mb_avg">85.85 MB</span></td><td class="risk"><span data-benchmark="06-base-image-choice/ubuntu/build_avg_ms">984 ms</span></td><td class="risk"><span data-benchmark="06-base-image-choice/ubuntu/startup_avg_ms">1,673 ms</span></td></tr>
-          <tr><td>distroless-nonroot</td><td><span data-benchmark="06-base-image-choice/distroless/image_mb_avg">67.67 MB</span></td><td><span data-benchmark="06-base-image-choice/distroless/build_avg_ms">959 ms</span></td><td class="good"><span data-benchmark="06-base-image-choice/distroless/startup_avg_ms">1,511 ms</span></td></tr>
+          <tr><td>alpine</td><td class="good"><span data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></td><td><span data-benchmark="06-base-image-choice/alpine/build_avg_ms">936 ms</span></td><td><span data-benchmark="06-base-image-choice/alpine/startup_avg_ms">1,583 ms</span></td><td class="good"><span data-benchmark="06-base-image-choice/alpine/startup_p95_ms">1,586 ms</span></td></tr>
+          <tr><td>debian-bookworm-slim</td><td class="risk"><span data-benchmark="06-base-image-choice/debian-slim/image_mb_avg">85.94 MB</span></td><td class="good"><span data-benchmark="06-base-image-choice/debian-slim/build_avg_ms">616 ms</span></td><td><span data-benchmark="06-base-image-choice/debian-slim/startup_avg_ms">1,584 ms</span></td><td><span data-benchmark="06-base-image-choice/debian-slim/startup_p95_ms">1,596 ms</span></td></tr>
+          <tr><td>ubuntu</td><td><span data-benchmark="06-base-image-choice/ubuntu/image_mb_avg">85.85 MB</span></td><td class="risk"><span data-benchmark="06-base-image-choice/ubuntu/build_avg_ms">984 ms</span></td><td class="risk"><span data-benchmark="06-base-image-choice/ubuntu/startup_avg_ms">1,673 ms</span></td><td class="risk"><span data-benchmark="06-base-image-choice/ubuntu/startup_p95_ms">2,060 ms</span></td></tr>
+          <tr><td>distroless-nonroot</td><td><span data-benchmark="06-base-image-choice/distroless/image_mb_avg">67.67 MB</span></td><td><span data-benchmark="06-base-image-choice/distroless/build_avg_ms">959 ms</span></td><td class="good"><span data-benchmark="06-base-image-choice/distroless/startup_avg_ms">1,511 ms</span></td><td><span data-benchmark="06-base-image-choice/distroless/startup_p95_ms">1,611 ms</span></td></tr>
         </tbody>
       </table>
       <p class="scenario-foot">All variants use the same jlink runtime; the table compares OS base and hardening tradeoffs (size, build time, startup).</p>
@@ -278,16 +287,11 @@ application/</code></pre>
     <section>
       <span class="badge warn">Scenario 07</span>
       <h2>Native image vs JVM</h2>
-      <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:98%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></div>
-        <div class="bar-row"><span class="label">native-aot</span><div class="bar-wrap"><div class="bar" style="width:15%"></div></div><span class="val">308 ms</span></div>
-      </div>
-      <table style="margin-top: 0.8em;">
-        <thead><tr><th>Metric</th><th>Native</th><th>JVM</th></tr></thead>
+      <table class="bench-table" style="margin-top: 0.8em;">
+        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th><th>Throughput</th></tr></thead>
         <tbody>
-          <tr><td>Image size</td><td class="good">55.7 MB</td><td>130.5 MB</td></tr>
-          <tr><td>Build time</td><td class="risk">~635 s</td><td class="good">~9 s</td></tr>
-          <tr><td>Throughput (CPU-heavy)</td><td>~1.0 req/s</td><td class="good">~27.7 req/s</td></tr>
+          <tr><td>native-aot</td><td class="good">55.7 MB</td><td class="risk">~635 s</td><td class="good">308 ms</td><td>~1.0 req/s</td></tr>
+          <tr><td>JVM baseline</td><td>130.5 MB</td><td class="good">~9 s</td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></td><td class="good">~27.7 req/s</td></tr>
         </tbody>
       </table>
       <p class="scenario-foot">Reference measurements · native-aot recipe is scaffold-only in springdocker today</p>
@@ -309,10 +313,10 @@ application/</code></pre>
       <span class="badge">Scenario 08</span>
       <h2>AppCDS class archive</h2>
       <table>
-        <thead><tr><th>Micro-benchmark</th><th>Startup</th></tr></thead>
+        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
         <tbody>
-          <tr><td>Without CDS archive</td><td class="warn"><span data-benchmark="08-appcds/without-appcds/startup_avg_ms">1,281 ms</span></td></tr>
-          <tr><td>With AppCDS archive</td><td class="good"><span data-benchmark="08-appcds/with-appcds/startup_avg_ms">1,262 ms</span></td></tr>
+          <tr><td>with-appcds</td><td class="warn"><span data-benchmark="08-appcds/with-appcds/image_mb_avg">167.89 MB</span></td><td class="good"><span data-benchmark="08-appcds/with-appcds/build_avg_ms">614 ms</span></td><td class="good"><span data-benchmark="08-appcds/with-appcds/startup_avg_ms">1,262 ms</span></td><td class="warn"><span data-benchmark="08-appcds/with-appcds/startup_p95_ms">1,350 ms</span></td></tr>
+          <tr><td>without-appcds</td><td class="good"><span data-benchmark="08-appcds/without-appcds/image_mb_avg">167.82 MB</span></td><td class="warn"><span data-benchmark="08-appcds/without-appcds/build_avg_ms">622 ms</span></td><td class="warn"><span data-benchmark="08-appcds/without-appcds/startup_avg_ms">1,281 ms</span></td><td class="good"><span data-benchmark="08-appcds/without-appcds/startup_p95_ms">1,337 ms</span></td></tr>
         </tbody>
       </table>
       <pre><code data-trim data-noescape># Train at build

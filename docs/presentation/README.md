@@ -32,6 +32,8 @@ python scripts/update_presentation_benchmarks.py
 This updates:
 
 - `docker-steps-evidence.html` — scenario tables (values + `good`/`warn`/`risk` highlights), bar charts, cache stats
+
+Benchmark scenario tables use a shared column layout when CSV data exists: **Variant · Image · Build avg · Startup avg · Startup p95**. Cells without measured startup data (e.g. failed runs) show `—`. Standalone bar charts remain on cross-cutting summary slides that have no table.
 - `springdocker-features.html` — evidence bar charts in Talk 1
 - `benchmark-summary.md` — paste-ready markdown tables (gitignored)
 
