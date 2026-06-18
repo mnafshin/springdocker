@@ -4,7 +4,7 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
-from springdocker.dockerfile import DockerfileOptions, build_dockerfile
+from springdocker.dockerfile import BUILTIN_RECIPES, DockerfileOptions, build_dockerfile
 from springdocker.runtime_images import DEFAULT_BASE_IMAGE_VARIANTS, variant_slug
 
 EXPECTED_CSV_HEADER = (
@@ -35,7 +35,37 @@ Regenerate together with benchmark assets:
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 ```
 
-Each `*.Dockerfile` matches the corresponding variant under `benchmarks/<scenario>/variants/` (those variant trees are gitignored and reproduced by the same command).
+Each `*.Dockerfile` under a scenario folder matches the corresponding variant under
+`benchmarks/<scenario>/variants/` (those variant trees are gitignored and reproduced by the same command).
+
+The `recipes/` folder shows the three built-in generation presets (`jvm-balanced`, `spring-aot`, `native-aot`)
+for the configured build tool — use `springdocker generate --recipe <name>` to select one interactively.
+
+Source: https://github.com/mnafshin/springdocker
+"""
+
+EXAMPLE_RECIPE_DOCKERFILES_README = """\
+# Recipe presets
+
+Reference Dockerfiles for each built-in `springdocker` recipe on the sample project's build tool.
+
+| File | Recipe | Purpose |
+|---|---|---|
+| `jvm-balanced.Dockerfile` | `jvm-balanced` | Default layered-JAR multi-stage JVM image |
+| `spring-aot.Dockerfile` | `spring-aot` | Spring AOT processing in the build stage |
+| `native-aot.Dockerfile` | `native-aot` | GraalVM native-image scaffold (experimental) |
+
+Regenerate with:
+
+```bash
+springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
+```
+
+Select a recipe when generating ad hoc output:
+
+```bash
+springdocker generate --project-root samples/java-spring-docker --recipe spring-aot
+```
 
 Source: https://github.com/mnafshin/springdocker
 """
@@ -301,6 +331,31 @@ def generate_benchmark_assets(
     )
 
 
+def _write_example_recipe_dockerfiles(
+    example_root: Path,
+    build_tool: str,
+    java_version: int,
+    must_have_modules: tuple[str, ...],
+    expected_paths: set[Path],
+) -> None:
+    recipes_dir = example_root / "recipes"
+    recipes_dir.mkdir(parents=True, exist_ok=True)
+    (recipes_dir / "README.md").write_text(EXAMPLE_RECIPE_DOCKERFILES_README, encoding="utf-8")
+
+    for recipe in BUILTIN_RECIPES:
+        opts = DockerfileOptions(
+            build_tool=build_tool,
+            java_version=java_version,
+            recipe=recipe,
+            must_have_modules=must_have_modules,
+            enable_appcds=False,
+            enable_jep483_aot_cache=False,
+        )
+        dockerfile_path = recipes_dir / f"{recipe}.Dockerfile"
+        dockerfile_path.write_text(build_dockerfile(opts), encoding="utf-8")
+        expected_paths.add(dockerfile_path)
+
+
 def generate_example_dockerfiles(
     project_root: Path,
     build_tool: str,
@@ -341,6 +396,14 @@ def generate_example_dockerfiles(
             expected_paths.add(dockerfile_path)
         else:  # pragma: no cover - defensive guard for future extensions
             raise TypeError(f"unsupported scenario definition: {type(scenario)}")
+
+    _write_example_recipe_dockerfiles(
+        example_root=example_root,
+        build_tool=build_tool,
+        java_version=java_version,
+        must_have_modules=must_have_modules,
+        expected_paths=expected_paths,
+    )
 
     for existing in example_root.rglob("*"):
         if not existing.is_file() or existing.name == "README.md":

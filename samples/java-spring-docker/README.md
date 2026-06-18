@@ -22,7 +22,7 @@ cd /path/to/your-repo/samples/java-spring-docker
 
 - `benchmarks/README.md`
 - `benchmarks/common/README.md`
-- `example-dockerfiles/` — versioned `springdocker` output per benchmark scenario (regenerated with `springdocker benchmark generate`)
+- `example-dockerfiles/` — versioned `springdocker` output per benchmark scenario and recipe preset (regenerated with `springdocker benchmark generate`)
 - `tools/README.md`
 
 ## Kubernetes sample

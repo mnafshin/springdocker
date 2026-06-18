@@ -43,6 +43,14 @@ class GenerateScenarioTests(unittest.TestCase):
             example = root / "example-dockerfiles" / "01-multi-stage-build-structure" / "specialized-multi-stage.Dockerfile"
             self.assertTrue(example.exists())
             self.assertIn("https://github.com/mnafshin/springdocker", example.read_text("utf-8"))
+            jvm_balanced = root / "example-dockerfiles" / "recipes" / "jvm-balanced.Dockerfile"
+            spring_aot = root / "example-dockerfiles" / "recipes" / "spring-aot.Dockerfile"
+            native_aot = root / "example-dockerfiles" / "recipes" / "native-aot.Dockerfile"
+            self.assertTrue(jvm_balanced.exists())
+            self.assertTrue(spring_aot.exists())
+            self.assertTrue(native_aot.exists())
+            self.assertIn("process-aot", spring_aot.read_text("utf-8"))
+            self.assertIn("native:compile", native_aot.read_text("utf-8"))
 
     def test_scenario_variants_match_intended_optimizations(self) -> None:
         scenarios = {scenario.id: scenario for scenario in default_scenarios(build_tool="maven", java_version=25)}

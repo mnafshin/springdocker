@@ -8,6 +8,10 @@ Regenerate together with benchmark assets:
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 ```
 
-Each `*.Dockerfile` matches the corresponding variant under `benchmarks/<scenario>/variants/` (those variant trees are gitignored and reproduced by the same command).
+Each `*.Dockerfile` under a scenario folder matches the corresponding variant under
+`benchmarks/<scenario>/variants/` (those variant trees are gitignored and reproduced by the same command).
+
+The `recipes/` folder shows the three built-in generation presets (`jvm-balanced`, `spring-aot`, `native-aot`)
+for the configured build tool — use `springdocker generate --recipe <name>` to select one interactively.
 
 Source: https://github.com/mnafshin/springdocker
