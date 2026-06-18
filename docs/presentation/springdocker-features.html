@@ -139,7 +139,7 @@
   </style>
 </head>
 <body>
-  <!-- benchmark-updated: 2026-06-18T02:26:51Z -->
+  <!-- benchmark-updated: 2026-06-18T03:09:06Z -->
   <div class="reveal">
     <div class="slides">
 
@@ -286,25 +286,25 @@
             <div class="bar-row"><span class="label">temurin‑jre image</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/temurin-jre-image/image_mb_avg" style="width:100%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/temurin-jre-image/image_mb_avg">130.28 MB</span></div>
             <div class="bar-row"><span class="label">vendor JRE on debian</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:82%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></div>
             <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:66%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">85.94 MB</span></div>
-            <div class="bar-row"><span class="label">debian‑bookworm‑slim</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/debian-slim/image_mb_avg" style="width:66%;"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/image_mb_avg">85.94 MB</span></div>
-            <div class="bar-row"><span class="label">alpine</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:48%;"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
-            <div class="bar-row"><span class="label">native‑aot</span><div class="bar-wrap"><div class="bar" style="width: 39%;"></div></div><span class="val">55.7 MB</span></div>
+            <div class="bar-row"><span class="label">distroless + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/distroless/image_mb_avg" style="width:52%;"></div></div><span class="val" data-benchmark="06-base-image-choice/distroless/image_mb_avg">67.67 MB</span></div>
+            <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:48%;"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
+            <div class="bar-row"><span class="label">native‑aot*</span><div class="bar-wrap"><div class="bar" style="width:39%;"></div></div><span class="val">55.7 MB</span></div>
           </div>
-          <p class="muted" style="margin-top: 1em;">Values mirror the benchmark tables in <code>docs/presentation/docker-steps-evidence.html</code>.</p>
+          <p class="muted" style="margin-top: 1em;"><code>jvm-balanced</code> defaults to distroless + jlink (scenario 06). Values mirror <code>docker-steps-evidence.html</code>. * native reference only · scaffold recipe today.</p>
         </section>
 
         <!-- 3.3 Cold start -->
         <section>
           <span class="badge">Cold start · ready for traffic</span>
-          <h3>Time from <code>docker run</code> to <code>/actuator/health</code> = UP</h3>
+          <h3>Time from <code>docker run</code> to actuator readiness</h3>
           <div style="margin-top: 1em;">
-            <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:98%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></div>
-            <div class="bar-row"><span class="label">debian‑bookworm‑slim</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="06-base-image-choice/debian-slim/startup_avg_ms" style="width:100%;"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/startup_avg_ms">1,584 ms</span></div>
-            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:86%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,367 ms</span></div>
-            <div class="bar-row"><span class="label">with‑aot (avg)</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="04-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:61%;"></div></div><span class="val" data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
-            <div class="bar-row"><span class="label">native‑aot</span><div class="bar-wrap"><div class="bar" style="width: 15%;"></div></div><span class="val">308 ms</span></div>
+            <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:100%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></div>
+            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:88%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,367 ms</span></div>
+            <div class="bar-row"><span class="label">with AppCDS</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="08-appcds/with-appcds/startup_avg_ms" style="width:81%;"></div></div><span class="val" data-benchmark="08-appcds/with-appcds/startup_avg_ms">1,262 ms</span></div>
+            <div class="bar-row"><span class="label">with‑aot‑cache</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="04-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:62%;"></div></div><span class="val" data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
+            <div class="bar-row"><span class="label">native‑aot*</span><div class="bar-wrap"><div class="bar" style="width:15%;"></div></div><span class="val">308 ms</span></div>
           </div>
-          <p class="muted" style="margin-top: 1em;">Values mirror the benchmark tables in <code>docs/presentation/docker-steps-evidence.html</code>.</p>
+          <p class="muted" style="margin-top: 1em;">Each bar is a different scenario lever — same cross-cutting view as the evidence deck. * native reference only · scaffold recipe today.</p>
         </section>
 
         <!-- 3.4 Layer cache hit -->
@@ -315,7 +315,8 @@
             <div class="stat bad"><span class="num" data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">1,078 ms</span><span class="lbl">Without BuildKit cache</span></div>
             <div class="stat"><span class="num" data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">611 ms</span><span class="lbl">With BuildKit cache</span></div>
           </div>
-          <p style="margin-top: 1.2em;">Build caching and layered outputs reduce rebuild time significantly in repeated CI runs.</p>
+          <p style="margin-top: 0.8em;" class="muted"><span data-benchmark-computed="02-buildkit-gradle-cache/build_speedup">~1.8×</span> faster rebuild after touching one Java file</p>
+          <p style="margin-top: 0.8em;">Build caching and layered outputs reduce rebuild time significantly in repeated CI runs.</p>
         </section>
 
         <!-- 3.5 Security -->
@@ -327,7 +328,8 @@
             <tbody>
               <tr><td>Runs as non‑root</td><td class="good">✓ non‑root user</td><td class="bad">✗ root</td></tr>
               <tr><td>Base image pinned by digest</td><td class="good">✓ <code>@sha256:…</code></td><td class="bad">✗ floating tag</td></tr>
-              <tr><td>HEALTHCHECK support</td><td class="good">✓ Actuator-aware when applicable</td><td class="bad">✗ often missing</td></tr>
+              <tr><td>HEALTHCHECK in Dockerfile</td><td class="good">✓ OS runtimes when actuator present</td><td class="bad">✗ often missing</td></tr>
+              <tr><td>Distroless default runtime</td><td class="good">✓ jlink on distroless/base</td><td class="bad">✗ full OS + root</td></tr>
               <tr><td>SBOM embedded in image</td><td class="good">✓ SPDX SBOM</td><td class="bad">✗ missing</td></tr>
               <tr><td>OCI source/revision labels</td><td class="good">✓ supported via build args</td><td class="bad">✗ often missing</td></tr>
               <tr><td>Signature verification</td><td class="good">✓ via <code>verify</code> when image is provided</td><td class="bad">✗ rarely integrated</td></tr>
@@ -362,9 +364,9 @@
           <table>
             <thead><tr><th>Recipe</th><th>Best for</th><th>Image trend</th><th>Cold-start trend</th></tr></thead>
             <tbody>
-              <tr><td><code>jvm-balanced</code></td><td>General-purpose default</td><td>balanced</td><td>balanced</td></tr>
-              <tr><td><code>spring-aot</code></td><td>AOT-optimized JVM startup</td><td>similar</td><td>faster startup-oriented</td></tr>
-              <tr><td><code>native-aot</code></td><td>Cold-start critical workloads</td><td>smallest</td><td>fastest</td></tr>
+              <tr><td><code>jvm-balanced</code></td><td>General-purpose default</td><td>distroless + jlink (~68 MB)</td><td>~1.5 s startup</td></tr>
+              <tr><td><code>spring-aot</code></td><td>AOT-optimized JVM startup</td><td>similar</td><td>faster (AOT build)</td></tr>
+              <tr><td><code>native-aot</code></td><td>Cold-start critical workloads</td><td>smallest (~56 MB ref)</td><td>fastest (scaffold)</td></tr>
             </tbody>
           </table>
           <p class="muted" style="margin-top: 1em;">Tune behavior via config and CLI options. Recipes can be extended through plugins.</p>
@@ -374,46 +376,29 @@
         <section>
           <span class="badge">What you get</span>
           <h3>A Dockerfile you'd write — if you had three days and a security team.</h3>
-          <pre><code class="language-dockerfile" data-trim data-noescape>
-# springdocker · recipe: jvm-balanced · benchmark evidence included
-# Java 21 · Spring Boot 3.3 · build-tool: maven · layered-jar: true
+          <pre><code class="language-dockerfile" data-trim data-noescape># Generated by springdocker — https://github.com/mnafshin/springdocker
+# Java 25 | build-tool: maven
 
-ARG BASE_BUILD=eclipse-temurin:21.0.5_11-jdk-jammy@sha256:7e2c…
-ARG BASE_RUN=gcr.io/distroless/java21-debian12:nonroot@sha256:c9a1…
-
-# ── build stage ─────────────────────────────────────────────────
-FROM --platform=$BUILDPLATFORM ${BASE_BUILD} AS build
+FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk@sha256:… AS build
 WORKDIR /app
-COPY --link pom.xml mvnw ./
-COPY --link .mvn ./.mvn
-RUN --mount=type=cache,target=/root/.m2 ./mvnw -q dependency:go-offline
-COPY --link src ./src
-RUN --mount=type=cache,target=/root/.m2 ./mvnw -q -DskipTests package spring-boot:process-aot
-RUN java -Djarmode=layertools -jar target/*.jar extract --destination /layers
+COPY mvnw pom.xml ./
+COPY .mvn ./.mvn
+RUN --mount=type=cache,sharing=locked,target=/root/.m2 ./mvnw -B -q package -DskipTests
+RUN java -Djarmode=layertools -jar /app/target/*.jar extract --destination /layers
 
-# ── AppCDS training run ─────────────────────────────────────────
-RUN java -XX:ArchiveClassesAtExit=/layers/app.jsa \
-         -Dspring.context.exit=onRefresh \
-         -cp /layers/application/BOOT-INF/classes:/layers/dependencies/BOOT-INF/lib/* \
-         org.springframework.boot.loader.JarLauncher || true
+FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk@sha256:… AS jre-builder
+RUN jdeps … && jlink --add-modules "$MODULES" … --output /jre/out
 
-# ── runtime stage ───────────────────────────────────────────────
-FROM ${BASE_RUN}
-LABEL org.opencontainers.image.source="$SOURCE" \
-      org.opencontainers.image.revision="$REVISION" \
-      org.opencontainers.image.created="$CREATED"
-ENV TZ=UTC LANG=C.UTF-8
-COPY --from=build --chown=nonroot:nonroot /layers/ /app/
+FROM --platform=$TARGETPLATFORM gcr.io/distroless/base-debian13:nonroot
+WORKDIR /app
+COPY --from=build /layers/… ./
+COPY --from=jre-builder /jre/out /opt/java
+ENV JAVA_HOME=/opt/java PATH="${JAVA_HOME}/bin:${PATH}"
 USER nonroot
 STOPSIGNAL SIGTERM
-EXPOSE 8080
-HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=3 \
-  CMD ["/busybox/wget","-qO-","http://localhost:8080/actuator/health/readiness"]
-ENTRYPOINT ["java","-XX:+UseZGC","-XX:+ZGenerational",\
-  "-XX:MaxRAMPercentage=75","-XX:+ExitOnOutOfMemoryError",\
-  "-XX:SharedArchiveFile=/app/app.jsa",\
-  "org.springframework.boot.loader.JarLauncher"]
-          </code></pre>
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", \
+  "-Djava.io.tmpdir=/tmp", "org.springframework.boot.loader.launch.JarLauncher"]</code></pre>
+          <p class="muted" style="margin-top: 0.8em;">Abbreviated from <code>example-dockerfiles/recipes/jvm-balanced.Dockerfile</code>. Probe readiness in Kubernetes — no shell HEALTHCHECK on distroless.</p>
         </section>
 
         <!-- 4.4 Verify -->
@@ -475,7 +460,7 @@ ENTRYPOINT ["java","-XX:+UseZGC","-XX:+ZGenerational",\
           <span class="badge">When do we call it "professional"?</span>
           <h3 style="margin-bottom: 0.35em;">All gates green, or it's still early-stage.</h3>
           <ol style="columns: 2; column-gap: 1.8em; font-size: 0.62em; line-height: 1.25; margin-top: 0.2em;">
-            <li>One command → digest‑pinned, non‑root, healthcheck, SBOM, layered.</li>
+            <li>One command → digest‑pinned, non‑root, layered JAR + jlink; OS runtime HEALTHCHECK when applicable.</li>
             <li><code>explain</code> works on any Dockerfile.</li>
             <li><code>verify</code> covers lint, vuln, layer, signature.</li>
             <li>README answers "why not Jib / Buildpacks" briefly and clearly.</li>
@@ -523,7 +508,7 @@ ENTRYPOINT ["java","-XX:+UseZGC","-XX:+ZGenerational",\
           <h1 class="hero-title" style="margin-top: 0.3em;">Build the Dockerfile<br/>your app <em>deserves</em>.</h1>
           <p class="hero-sub" style="margin-top: 1.0em;">Generate. Explain. Verify. Repeat.</p>
           <div class="pill-row" style="margin-top: 1.5em;">
-            <span class="pill">github.com/your‑org/springdocker</span>
+            <span class="pill">github.com/mnafshin/springdocker</span>
             <span class="pill">docs.springdocker.dev</span>
             <span class="pill">public benchmark dataset</span>
           </div>

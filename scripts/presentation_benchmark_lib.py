@@ -64,13 +64,13 @@ BAR_GROUPS: dict[str, tuple[str, ...]] = {
         "03-custom-jre-jlink/temurin-jre-image/image_mb_avg",
         "03-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
         "03-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
-        "06-base-image-choice/debian-slim/image_mb_avg",
+        "06-base-image-choice/distroless/image_mb_avg",
         "06-base-image-choice/alpine/image_mb_avg",
     ),
     "features-cold-start": (
         "03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms",
-        "06-base-image-choice/debian-slim/startup_avg_ms",
         "03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms",
+        "08-appcds/with-appcds/startup_avg_ms",
         "04-jep483-aot-cache/with-aot-cache/startup_avg_ms",
     ),
 }

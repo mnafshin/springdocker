@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- benchmark-updated: 2026-06-18T02:26:51Z -->
+  <!-- benchmark-updated: 2026-06-18T03:09:06Z -->
 
 <div class="reveal">
 <div class="slides">
@@ -288,10 +288,10 @@ application/</code></pre>
       <span class="badge warn">Scenario 07</span>
       <h2>Native image vs JVM</h2>
       <table class="bench-table" style="margin-top: 0.8em;">
-        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th><th>Throughput</th></tr></thead>
+        <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th></tr></thead>
         <tbody>
-          <tr><td>native-aot</td><td class="good">55.7 MB</td><td class="risk">~635 s</td><td class="good">308 ms</td><td>~1.0 req/s</td></tr>
-          <tr><td>JVM baseline</td><td>130.5 MB</td><td class="good">~9 s</td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></td><td class="good">~27.7 req/s</td></tr>
+          <tr><td>native-aot</td><td class="good">55.7 MB</td><td class="risk">~635 s</td><td class="good">308 ms</td></tr>
+          <tr><td>JVM baseline</td><td>130.5 MB</td><td class="good">~9 s</td><td><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></td></tr>
         </tbody>
       </table>
       <p class="scenario-foot">Reference measurements · native-aot recipe is scaffold-only in springdocker today</p>
@@ -381,10 +381,10 @@ USER root</code></pre>
       <span class="badge pink">Combined impact</span>
       <h2>How decisions stack — cold start</h2>
       <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:98%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></div>
-        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:86%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,367 ms</span></div>
+        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:100%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></div>
+        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:88%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,367 ms</span></div>
         <div class="bar-row"><span class="label">with AppCDS</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="08-appcds/with-appcds/startup_avg_ms" style="width:81%"></div></div><span class="val" data-benchmark="08-appcds/with-appcds/startup_avg_ms">1,262 ms</span></div>
-        <div class="bar-row"><span class="label">with-aot-cache</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="04-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:61%"></div></div><span class="val" data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
+        <div class="bar-row"><span class="label">with-aot-cache</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="04-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:62%"></div></div><span class="val" data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
         <div class="bar-row"><span class="label">native-aot*</span><div class="bar-wrap"><div class="bar" style="width:15%"></div></div><span class="val">308 ms</span></div>
       </div>
       <p class="muted" style="margin-top: 0.8em;">Each bar is a different scenario — not one cumulative Dockerfile. Use this to see which lever moves your goal metric.</p>
