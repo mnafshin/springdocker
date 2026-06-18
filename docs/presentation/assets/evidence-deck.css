@@ -241,14 +241,16 @@ body {
   font-weight: 600;
 }
 
-.reveal table td.bad,
-.reveal .risk {
-  color: var(--danger);
+.reveal table td.warn,
+.reveal .warn {
+  color: var(--accent-2);
   font-weight: 600;
 }
 
-.reveal .warn {
-  color: var(--accent-2);
+.reveal table td.bad,
+.reveal table td.risk,
+.reveal .risk {
+  color: var(--danger);
   font-weight: 600;
 }
 

@@ -80,7 +80,9 @@ PRESENTATION_HTML_FILES: tuple[Path, ...] = (
 LOWER_IS_BETTER_METRICS: frozenset[str] = frozenset(
     {"image_mb_avg", "build_avg_ms", "startup_avg_ms", "startup_p95_ms"}
 )
-HIGHLIGHT_CLASSES: frozenset[str] = frozenset({"good", "risk"})
+# Relative spread below this threshold is treated as noise — use warn, not risk.
+SIGNIFICANT_RELATIVE_SPREAD = 0.10
+AUTO_HIGHLIGHT_CLASSES: frozenset[str] = frozenset({"good", "risk", "warn"})
 TABLE_RE = re.compile(r"<table\b.*?</table>", re.DOTALL | re.IGNORECASE)
 TABLE_ROW_RE = re.compile(r"<tr\b.*?</tr>", re.DOTALL | re.IGNORECASE)
 BENCHMARK_CELL_RE = re.compile(
@@ -217,10 +219,16 @@ def metric_from_benchmark_key(key: str) -> str:
     return key.rsplit("/", 1)[-1]
 
 
+def relative_spread(best: float, worst: float) -> float:
+    if best <= 0:
+        return 0.0
+    return (worst - best) / best
+
+
 def set_td_highlight_class(attrs: str, highlight: str | None) -> str:
     class_match = re.search(r'\sclass="([^"]*)"', attrs)
     if class_match:
-        classes = [item for item in class_match.group(1).split() if item not in HIGHLIGHT_CLASSES]
+        classes = [item for item in class_match.group(1).split() if item not in AUTO_HIGHLIGHT_CLASSES]
         if highlight:
             classes.append(highlight)
         attrs = re.sub(r'\sclass="[^"]*"', f' class="{" ".join(classes)}"' if classes else "", attrs, count=1)
@@ -248,11 +256,14 @@ def highlight_class_for_column(key: str, column_keys: tuple[str, ...], numeric: 
     worst = max(numbers)
     if best == worst:
         return None
+
+    significant = relative_spread(best, worst) >= SIGNIFICANT_RELATIVE_SPREAD
+
     if measured == best:
         return "good"
     if measured == worst:
-        return "risk"
-    return None
+        return "risk" if significant else "warn"
+    return "warn" if not significant else None
 
 
 def apply_table_cell_highlights(html: str, numeric: dict[str, float]) -> str:

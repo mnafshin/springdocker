@@ -91,9 +91,29 @@ class PresentationBenchmarkLibTests(unittest.TestCase):
         self.assertIn('<td class="good"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/image_mb_avg">', updated)
         self.assertIn('<td class="risk"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg">', updated)
         self.assertIn('<td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/build_avg_ms">', updated)
-        self.assertIn('<td class="risk"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/build_avg_ms">', updated)
+        self.assertIn('<td class="warn"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/build_avg_ms">', updated)
         self.assertIn('<td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/startup_avg_ms">', updated)
         self.assertIn('<td class="risk"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/startup_avg_ms">', updated)
+
+    def test_apply_table_cell_highlights_small_spread_uses_warn_not_risk(self) -> None:
+        html = (
+            "<table><tbody>"
+            '<tr><td>with-jlink</td>'
+            '<td class="risk"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">X</span></td></tr>'
+            '<tr><td>without-jlink</td>'
+            '<td class="good"><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">X</span></td></tr>'
+            "</tbody></table>"
+        )
+        numeric = {
+            "03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms": 1339.0,
+            "03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms": 1265.0,
+        }
+
+        updated = apply_benchmark_bindings(html, {}, numeric, {})
+
+        self.assertIn('<td class="good"><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">', updated)
+        self.assertIn('<td class="warn"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">', updated)
+        self.assertNotIn('class="risk"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">', updated)
 
     def test_apply_table_cell_highlights_clears_stale_classes(self) -> None:
         html = (

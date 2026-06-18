@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- benchmark-updated: 2026-06-18T01:47:53Z -->
+  <!-- benchmark-updated: 2026-06-18T01:51:23Z -->
 
 <div class="reveal">
 <div class="slides">
@@ -118,7 +118,7 @@ springdocker benchmark analyze benchmarks/03-custom-jre-jlink/results/raw.csv</c
         <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th></tr></thead>
         <tbody>
           <tr><td>specialized-multi-stage</td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg">167.82 MB</span></td><td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/build_avg_ms">616 ms</span></td><td class="good"><span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/startup_avg_ms">1,148 ms</span></td></tr>
-          <tr><td>simple-two-stage</td><td class="good"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/image_mb_avg">130.32 MB</span></td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/build_avg_ms">637 ms</span></td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/startup_avg_ms">1,367 ms</span></td></tr>
+          <tr><td>simple-two-stage</td><td class="good"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/image_mb_avg">130.32 MB</span></td><td class="warn"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/build_avg_ms">637 ms</span></td><td class="risk"><span data-benchmark="01-multi-stage-build-structure/simple-two-stage/startup_avg_ms">1,367 ms</span></td></tr>
         </tbody>
       </table>
       <p class="scenario-foot">Spring Boot sample · Java 25 · full profile · readiness endpoint</p>
@@ -179,7 +179,7 @@ application/</code></pre>
       <table style="margin-top: 0.8em;">
         <thead><tr><th>Variant</th><th>Startup avg</th></tr></thead>
         <tbody>
-          <tr><td>with-jlink</td><td class="risk"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,339 ms</span></td></tr>
+          <tr><td>with-jlink</td><td class="warn"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,339 ms</span></td></tr>
           <tr><td>without-jlink</td><td class="good"><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,265 ms</span></td></tr>
         </tbody>
       </table>
@@ -205,7 +205,7 @@ application/</code></pre>
       <table>
         <thead><tr><th>Variant</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
         <tbody>
-          <tr><td>with-aot-cache</td><td class="good"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></td><td class="risk"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_p95_ms">1,369 ms</span></td></tr>
+          <tr><td>with-aot-cache</td><td class="good"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></td><td class="warn"><span data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_p95_ms">1,369 ms</span></td></tr>
           <tr><td>without-aot-cache</td><td class="risk"><span data-benchmark="04-jep483-aot-cache/without-aot-cache/startup_avg_ms">1,248 ms</span></td><td class="good"><span data-benchmark="04-jep483-aot-cache/without-aot-cache/startup_p95_ms">1,350 ms</span></td></tr>
         </tbody>
       </table>
@@ -309,7 +309,7 @@ application/</code></pre>
       <table>
         <thead><tr><th>Micro-benchmark</th><th>Startup</th></tr></thead>
         <tbody>
-          <tr><td>Without CDS archive</td><td class="risk"><span data-benchmark="08-appcds/without-appcds/startup_avg_ms">1,281 ms</span></td></tr>
+          <tr><td>Without CDS archive</td><td class="warn"><span data-benchmark="08-appcds/without-appcds/startup_avg_ms">1,281 ms</span></td></tr>
           <tr><td>With AppCDS archive</td><td class="good"><span data-benchmark="08-appcds/with-appcds/startup_avg_ms">1,262 ms</span></td></tr>
         </tbody>
       </table>

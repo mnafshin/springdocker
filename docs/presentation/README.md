@@ -31,7 +31,7 @@ python scripts/update_presentation_benchmarks.py
 
 This updates:
 
-- `docker-steps-evidence.html` — scenario tables (values + `good`/`risk` highlights), bar charts, cache stats
+- `docker-steps-evidence.html` — scenario tables (values + `good`/`warn`/`risk` highlights), bar charts, cache stats
 - `springdocker-features.html` — evidence bar charts in Talk 1
 - `benchmark-summary.md` — paste-ready markdown tables (gitignored)
 
