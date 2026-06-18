@@ -1,6 +1,6 @@
 # Extension model
 
-`springdocker` supports runtime plugins through Python entry points.
+`springdocker` supports runtime plugins through six Python entry-point groups. Architecture decision record: [`adr/0001-plugin-architecture.md`](adr/0001-plugin-architecture.md).
 
 ## Extension points
 
@@ -8,12 +8,12 @@
 |---|---|---|
 | `springdocker.dockerfile_mutators` | `mutate_dockerfile(dockerfile_text, options) -> str` | Post-process generated Dockerfiles |
 | `springdocker.project_detectors` | `detect_build_tool(project_root) -> "maven" \| "gradle" \| None` | Build-tool detection override for exotic monorepos |
-
-For multi-module Maven reactors and Gradle composites, start with [`project-detection.md`](project-detection.md) — built-in inspect reports `layout` and `spring_boot_modules`, and plugins cover layouts static parsing cannot handle.
 | `springdocker.recipes` | entry-point name is recipe name; callable returns Dockerfile text | Custom `dockerfile generate --recipe ...` |
 | `springdocker.verifiers` | `verify(context) -> (status, detail)` or dict payload | Extra checks in `verify` command |
 | `springdocker.verify_renderers` | entry-point name is output format; callable `render(outcome) -> str` | Custom `verify --format ...` renderers |
 | `springdocker.commands` | `register(subparsers)` and parser `set_defaults(_plugin_handler=...)` | Add top-level CLI commands |
+
+For multi-module Maven reactors and Gradle composites, start with [`project-detection.md`](project-detection.md) — built-in inspect reports `layout` and `spring_boot_modules`, and `project_detectors` plugins cover layouts static parsing cannot handle.
 
 ## Failure handling
 
