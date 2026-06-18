@@ -81,12 +81,12 @@ Runbook: [`docs/digest-pin-runbook.md`](docs/digest-pin-runbook.md) · Renovate 
 
 | Path | Role | Use when |
 |---|---|---|
-| `examples/spring-boot-maven/` | Human walkthrough (Maven) | Learning the CLI or trying Dockerfile generation |
-| `examples/spring-boot-gradle/` | Human walkthrough (Gradle) | Same, for Gradle projects |
-| `tests/fixtures/{maven-only,gradle-only}/` | CI golden samples | Running or extending automated tests ([`docs/golden-samples.md`](docs/golden-samples.md)) |
+| `tests/fixtures/{maven-only,gradle-only}/` | Minimal Spring Boot apps for CLI walkthroughs and CI | Learning the CLI, trying Dockerfile generation, or extending tests ([`docs/golden-samples.md`](docs/golden-samples.md)) |
 | `samples/java-spring-docker/` | Benchmark harness + evidence | Running benchmark scenarios and comparing `raw.csv` results |
 
-Gradle walkthroughs use `examples/spring-boot-gradle/` with the same commands below.
+Gradle walkthroughs use `tests/fixtures/gradle-only/` with the same commands below (Maven: `tests/fixtures/maven-only/`).
+
+See [`docs/decisions/95-sample-project-strategy.md`](docs/decisions/95-sample-project-strategy.md) for why the former `examples/` walkthrough tree was removed.
 
 ## Quick start
 
@@ -97,13 +97,13 @@ python3 -m venv .venv
 python3 -m pip install -e .
 python3 -m pip install -e '.[benchmark]'
 
-# Dockerfile workflow — start with examples/
-springdocker doctor --project-root examples/spring-boot-maven
-springdocker init --project-root examples/spring-boot-maven --build-tool maven
-springdocker inspect --project-root examples/spring-boot-maven --format json
-springdocker dockerfile generate --project-root examples/spring-boot-maven --output Dockerfile.generated --recipe jvm-balanced
-springdocker explain --project-root examples/spring-boot-maven Dockerfile.generated --format json
-springdocker verify --project-root examples/spring-boot-maven Dockerfile.generated
+# Dockerfile workflow — start with tests/fixtures/
+springdocker doctor --project-root tests/fixtures/maven-only
+springdocker init --project-root tests/fixtures/maven-only --build-tool maven
+springdocker inspect --project-root tests/fixtures/maven-only --format json
+springdocker dockerfile generate --project-root tests/fixtures/maven-only --output Dockerfile.generated --recipe jvm-balanced
+springdocker explain --project-root tests/fixtures/maven-only Dockerfile.generated --format json
+springdocker verify --project-root tests/fixtures/maven-only Dockerfile.generated
 
 # Benchmark workflow — use the full sample app under samples/
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
@@ -225,8 +225,7 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 
 ## Sample project docs
 
-- `examples/README.md` - walkthrough projects by build tool
-- `docs/golden-samples.md` - CI fixtures and variant coverage
+- `docs/golden-samples.md` - fixture walkthroughs, CI coverage, and variant coverage
 - `samples/java-spring-docker/README.md` - full benchmark sample app
 - `samples/java-spring-docker/HELP.md`
 - `samples/java-spring-docker/k8s/kustomization.yaml`

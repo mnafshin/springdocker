@@ -4,9 +4,10 @@
 
 | Path | Role |
 |---|---|
-| `examples/spring-boot-{maven,gradle}/` | Human walkthroughs — see [`examples/README.md`](../examples/README.md) |
-| `tests/fixtures/{maven-only,gradle-only}/` | CI golden samples (this document) |
+| `tests/fixtures/{maven-only,gradle-only}/` | Minimal CLI walkthroughs and CI golden samples (this document) |
 | `samples/java-spring-docker/` | Benchmark harness and versioned evidence |
+
+Decision record for removing the former `examples/` walkthrough tree: [`docs/decisions/95-sample-project-strategy.md`](decisions/95-sample-project-strategy.md).
 
 The repository keeps two canonical golden sample project paths for end-to-end CLI coverage:
 
@@ -31,7 +32,7 @@ The same E2E paths validate generated variant families that the benchmark genera
 - They are representative of the two supported build-tool paths.
 - They avoid duplicating sample apps in multiple directories.
 
-The `examples/` walkthrough projects are additionally covered by e2e tests so README quick-start paths cannot drift from the CLI.
+The fixture projects below are also the README quick-start targets — copy or point `--project-root` at them when trying the CLI locally.
 
 Real Docker build evidence uses the full sample app under `samples/java-spring-docker/` (see the `docker-smoke`
 CI job and `scripts/docker_smoke_build.py`). The minimal fixtures above validate CLI output only — they do not

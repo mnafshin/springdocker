@@ -29,7 +29,7 @@ These behaviors are enforced by [`.github/workflows/ci.yml`](../.github/workflow
 |---|---|
 | **CLI quality** | `ruff` lint, `mypy` on `src/`, pytest suites (`unit`, `integration`, `e2e`, `benchmark`) on Ubuntu/macOS/Windows and Python 3.10–3.12 |
 | **Package coverage** | ≥80% line coverage on the entire `springdocker` package (same gate as local `pytest`; see `pyproject.toml`) |
-| **Dockerfile generation** | Snapshot and e2e tests on `tests/fixtures/{maven-only,gradle-only}` and `examples/spring-boot-{maven,gradle}` — output shape, flags, and explain/verify wiring |
+| **Dockerfile generation** | Snapshot and e2e tests on `tests/fixtures/{maven-only,gradle-only}` — output shape, flags, and explain/verify wiring |
 | **Benchmark generator** | `benchmark-hygiene` runs `benchmark generate` and asserts generated assets stay gitignored |
 | **Benchmark analyzer** | `benchmark-regression` verifies committed `06-base-image-choice/results/baseline.json` matches analyze output for the paired `raw.csv`, then runs the 20% regression comparator |
 | **Docker smoke build** | `docker-smoke` generates a Dockerfile for `samples/java-spring-docker`, runs `docker build`, and probes `/actuator/health/readiness` on port 8081 |
@@ -55,19 +55,18 @@ Use benchmarks to **inform** Dockerfile and JVM decisions on your service. They 
 
 See [`benchmark-methodology.md`](benchmark-methodology.md) and [`samples/java-spring-docker/benchmarks/README.md`](../samples/java-spring-docker/benchmarks/README.md) for artifact policy.
 
-## Sample project strategy (three trees)
+## Sample project strategy (two trees)
 
-The repository intentionally keeps three Spring Boot paths. They are not three products — they split **human onboarding**, **automated regression**, and **evidence depth**:
+The repository keeps two Spring Boot paths. They are not two products — they split **CLI onboarding/regression** from **evidence depth**:
 
 | Path | Audience | Validated in CI |
 |---|---|---|
-| `examples/spring-boot-{maven,gradle}/` | Humans learning the CLI | e2e: doctor, generate, explain |
-| `tests/fixtures/{maven-only,gradle-only}/` | Fast minimal regression targets | unit, integration, e2e, benchmark tests |
+| `tests/fixtures/{maven-only,gradle-only}/` | Humans learning the CLI and automated regression | unit, integration, e2e, benchmark tests |
 | `samples/java-spring-docker/` | Benchmark harness and reference evidence | generator hygiene + analyzer regression on pinned CSV + `docker-smoke` build/readiness |
 
-**Start with `examples/`** for Dockerfile workflows. Use **`samples/`** only when you need benchmark scenarios or reference datasets. Do not copy the full benchmark tree into every consumer repo.
+**Start with `tests/fixtures/…`** for Dockerfile workflows. Use **`samples/`** when you need benchmark scenarios or reference datasets. Do not copy the full benchmark tree into every consumer repo.
 
-Consolidation options are tracked in [#95](https://github.com/mnafshin/springdocker/issues/95).
+Resolved in [#95](https://github.com/mnafshin/springdocker/issues/95) — see [`docs/decisions/95-sample-project-strategy.md`](decisions/95-sample-project-strategy.md).
 
 ## Reference stack vs compatibility
 

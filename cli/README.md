@@ -187,8 +187,8 @@ Use `--format json` when you want stable structured output.
 `springdocker verify` runs a battery of checks against a generated Dockerfile and optional runtime context. It is designed to work in CI without installing every external tool.
 
 ```bash
-springdocker verify --project-root examples/spring-boot-maven Dockerfile.generated
-springdocker verify --project-root examples/spring-boot-maven Dockerfile.generated \
+springdocker verify --project-root tests/fixtures/maven-only Dockerfile.generated
+springdocker verify --project-root tests/fixtures/maven-only Dockerfile.generated \
   --image demo:latest \
   --smoke-url http://127.0.0.1:8081/actuator/health \
   --format junit \

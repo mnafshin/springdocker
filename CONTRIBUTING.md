@@ -65,7 +65,7 @@ python scripts/docker_smoke_build.py
 - `tests/integration/` for command and flow coverage
 - `tests/e2e/` for end-to-end CLI flows
 - `tests/benchmark/` for benchmark and snapshot coverage
-- `examples/spring-boot-maven/` and `examples/spring-boot-gradle/` for human walkthroughs (README quick start)
+- `tests/fixtures/maven-only/` and `tests/fixtures/gradle-only/` for README quick-start Dockerfile workflows
 - `tests/fixtures/` for minimal CI/e2e golden samples ([`docs/golden-samples.md`](docs/golden-samples.md))
 - `samples/java-spring-docker/` for the full benchmark sample app and evidence assets
 
