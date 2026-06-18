@@ -132,7 +132,7 @@ Benchmarks are an optional evidence subsystem and require benchmark extras (`spr
 
 The sample project keeps benchmark scenarios under `samples/java-spring-docker/benchmarks/`.
 Generated variant Dockerfiles and most run output are **gitignored** — regenerate with `springdocker benchmark generate` and `springdocker benchmark run`.
-Versioned reference datasets and the scenario 06 CI regression baseline live under `samples/java-spring-docker/benchmarks/reference/` and `06-base-image-choice/results/`.
+The scenario 06 CI regression baseline lives under `samples/java-spring-docker/benchmarks/06-base-image-choice/results/`.
 See `samples/java-spring-docker/benchmarks/README.md` for the full artifact policy.
 
 ### Benchmark scenario index

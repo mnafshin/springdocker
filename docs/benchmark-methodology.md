@@ -23,7 +23,7 @@ Each benchmark run records one row per build-and-startup attempt with these fiel
 If available, the analyzer also reports RSS memory and CPU usage columns.
 
 The runner writes rows into `results/raw.csv` next to each scenario.
-Versioned reference evidence snapshots are published under `samples/java-spring-docker/benchmarks/reference/`.
+The CI regression gate uses a pinned sample pair under `benchmarks/06-base-image-choice/results/`.
 
 ## Repository artifact policy
 
@@ -37,7 +37,6 @@ Generated benchmark assets are **not committed** except where CI or docs explici
 | `benchmarks/06-base-image-choice/results/raw.csv` | Yes | Pinned sample runs fed to the CI regression gate. |
 | `benchmarks/06-base-image-choice/results/baseline.json` | Yes | Expected `benchmark analyze` output for that CSV. |
 | `benchmarks/06-base-image-choice/results/baseline.manifest.json` | Yes | Documents how the baseline pair is regenerated. |
-| `benchmarks/reference/v1/` | Yes | Versioned evidence for comparisons and docs. |
 
 After `benchmark generate`, `git status` under `samples/java-spring-docker/benchmarks/` should be clean.
 CI enforces this in the `benchmark-hygiene` job.
@@ -162,10 +161,10 @@ For the current checked-in reference snapshot, the high-level decision matrix is
 | 07 Native vs JVM | scaffold only | `native-aot` Dockerfile is generated for future comparison; the internal runner skips native scenarios |
 | 08 AppCDS | with-appcds | faster startup from shared class archive |
 
-Reference evidence files are versioned under:
+Pinned CI regression evidence (scenario 06 base-image choice):
 
-- `samples/java-spring-docker/benchmarks/reference/v1/raw.csv`
-- `samples/java-spring-docker/benchmarks/reference/v1/summary.json`
+- `samples/java-spring-docker/benchmarks/06-base-image-choice/results/raw.csv`
+- `samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json`
 
 ## Reproducibility controls
 

@@ -28,7 +28,6 @@ springdocker benchmark run --project-root samples/java-spring-docker --profile q
 | `06-base-image-choice/results/raw.csv` | Versioned | Pinned sample input for the CI regression gate. |
 | `06-base-image-choice/results/baseline.json` | Versioned | Expected analyzer summary for that CSV (source of truth). |
 | `06-base-image-choice/results/baseline.manifest.json` | Versioned | Regeneration command and provenance. |
-| `reference/v1/*` | Versioned | Published reference evidence snapshots. |
 
 ### CI regression baseline (scenario 06)
 

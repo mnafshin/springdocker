@@ -56,7 +56,7 @@ springdocker benchmark analyze --project-root samples/java-spring-docker benchma
 ```
 
 Benchmark commands are optional evidence workflows and require benchmark extras.
-Use `samples/java-spring-docker/benchmarks/reference/v1/summary.json` as a versioned baseline example.
+Use `samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json` as the versioned CI regression baseline example (paired with committed `raw.csv`).
 Scenario index: [README.md](../README.md#benchmark-scenario-index).
 
 ## Dockerfile recipes
