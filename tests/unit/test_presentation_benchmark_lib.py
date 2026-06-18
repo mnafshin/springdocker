@@ -9,7 +9,7 @@ SCRIPTS = str(ROOT / "scripts")
 if SCRIPTS not in sys.path:
     sys.path.insert(0, SCRIPTS)
 
-from presentation_benchmark_lib import apply_benchmark_bindings
+from presentation_benchmark_lib import apply_benchmark_bindings, apply_benchmark_data, touch_benchmark_stamp
 
 
 class PresentationBenchmarkLibTests(unittest.TestCase):
@@ -131,3 +131,58 @@ class PresentationBenchmarkLibTests(unittest.TestCase):
 
         self.assertIn('<td class="good"><span data-benchmark="08-appcds/without-appcds/startup_avg_ms">', updated)
         self.assertIn('<td class="risk"><span data-benchmark="08-appcds/with-appcds/startup_avg_ms">', updated)
+
+    def test_apply_benchmark_bindings_skips_stamp_when_data_unchanged(self) -> None:
+        html = (
+            "<body>\n"
+            "  <!-- benchmark-updated: 2026-01-01T00:00:00Z -->\n"
+            '<span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg">'
+            "164.56 MB</span></body>"
+        )
+        formatted = {
+            "01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg": "164.56 MB",
+        }
+
+        updated = apply_benchmark_bindings(html, formatted, {}, {})
+
+        self.assertEqual(updated, html)
+
+    def test_apply_benchmark_bindings_updates_stamp_only_when_data_changes(self) -> None:
+        html = (
+            "<body>\n"
+            "  <!-- benchmark-updated: 2026-01-01T00:00:00Z -->\n"
+            '<span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg">'
+            "100.40 MB</span></body>"
+        )
+        formatted = {
+            "01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg": "164.56 MB",
+        }
+
+        updated = apply_benchmark_bindings(html, formatted, {}, {})
+
+        self.assertIn("164.56 MB</span>", updated)
+        self.assertNotIn("2026-01-01T00:00:00Z", updated)
+        self.assertRegex(updated, r"<!-- benchmark-updated: \d{4}-\d{2}-\d{2}T")
+
+    def test_apply_benchmark_data_ignores_stamp(self) -> None:
+        html = (
+            "<body>\n"
+            "  <!-- benchmark-updated: 2026-01-01T00:00:00Z -->\n"
+            '<span data-benchmark="01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg">'
+            "164.56 MB</span></body>"
+        )
+        formatted = {
+            "01-multi-stage-build-structure/specialized-multi-stage/image_mb_avg": "164.56 MB",
+        }
+
+        updated = apply_benchmark_data(html, formatted, {}, {})
+
+        self.assertEqual(updated, html)
+
+    def test_touch_benchmark_stamp_replaces_existing_stamp(self) -> None:
+        html = "<body>\n  <!-- benchmark-updated: 2026-01-01T00:00:00Z -->\n</body>"
+
+        updated = touch_benchmark_stamp(html)
+
+        self.assertNotIn("2026-01-01T00:00:00Z", updated)
+        self.assertRegex(updated, r"<!-- benchmark-updated: \d{4}-\d{2}-\d{2}T")

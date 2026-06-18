@@ -37,7 +37,7 @@ Benchmark scenario tables use a shared column layout when CSV data exists: **Var
 - `springdocker-features.html` — evidence bar charts in Talk 1
 - `benchmark-summary.md` — paste-ready markdown tables (gitignored)
 
-Use `--check` to verify decks are current without writing files.
+Use `--check` to verify deck benchmark values are current without writing files. The `benchmark-updated` HTML comment is refreshed only when values change, so timestamp-only drift does not fail the check.
 
 Use `--profile full` for presentation-grade run counts (10 runs per scenario; 15 for scenario 04). Expect 1–3+ hours depending on host.
 

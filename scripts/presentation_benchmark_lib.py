@@ -106,6 +106,7 @@ BENCHMARK_COMPUTED_RE = re.compile(
 BENCHMARK_BAR_RE = re.compile(
     r'(<[^>]+\sdata-benchmark-bar="(?P<key>[^"]+)"[^>]*\sstyle=")(?P<style>[^"]*)(")'
 )
+BENCHMARK_STAMP_RE = re.compile(r"<!-- benchmark-updated: [^>]+ -->")
 
 
 @dataclass(frozen=True)
@@ -330,7 +331,7 @@ def update_bar_width(style: str, width_pct: int) -> str:
     return f"{style};width:{width_pct}%" if style else f"width:{width_pct}%"
 
 
-def apply_benchmark_bindings(html: str, formatted: dict[str, str], numeric: dict[str, float], computed: dict[str, str]) -> str:
+def apply_benchmark_data(html: str, formatted: dict[str, str], numeric: dict[str, float], computed: dict[str, str]) -> str:
     def replace_span(match: re.Match[str]) -> str:
         key = match.group("key")
         if key not in formatted:
@@ -366,15 +367,21 @@ def apply_benchmark_bindings(html: str, formatted: dict[str, str], numeric: dict
 
         updated = BENCHMARK_BAR_RE.sub(replace_bar, updated)
 
-    updated = apply_table_cell_highlights(updated, numeric)
+    return apply_table_cell_highlights(updated, numeric)
 
+
+def touch_benchmark_stamp(html: str) -> str:
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     stamp_line = f"<!-- benchmark-updated: {stamp} -->"
-    if "benchmark-updated:" in updated:
-        updated = re.sub(r"<!-- benchmark-updated: [^>]+ -->", stamp_line, updated, count=1)
-    else:
-        updated = updated.replace("<body>", f"<body>\n  {stamp_line}", 1)
+    if BENCHMARK_STAMP_RE.search(html):
+        return BENCHMARK_STAMP_RE.sub(stamp_line, html, count=1)
+    return html.replace("<body>", f"<body>\n  {stamp_line}", 1)
 
+
+def apply_benchmark_bindings(html: str, formatted: dict[str, str], numeric: dict[str, float], computed: dict[str, str]) -> str:
+    updated = apply_benchmark_data(html, formatted, numeric, computed)
+    if updated != html:
+        updated = touch_benchmark_stamp(updated)
     return updated
 
 

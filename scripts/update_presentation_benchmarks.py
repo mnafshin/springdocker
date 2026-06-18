@@ -11,6 +11,7 @@ from presentation_benchmark_lib import (
     DEFAULT_PROJECT_ROOT,
     PRESENTATION_HTML_FILES,
     apply_benchmark_bindings,
+    apply_benchmark_data,
     build_formatted_values,
     load_reports,
     render_markdown,
@@ -33,7 +34,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Write markdown summary to this path (use '-' to skip)",
     )
     parser.add_argument("--json", action="store_true", help="Include JSON blocks in markdown summary")
-    parser.add_argument("--check", action="store_true", help="Exit non-zero if HTML would change")
+    parser.add_argument("--check", action="store_true", help="Exit non-zero if benchmark data in HTML would change")
     args = parser.parse_args(argv)
 
     repo_root = Path.cwd()
@@ -66,11 +67,11 @@ def main(argv: list[str] | None = None) -> int:
         if "data-benchmark=" not in original and "data-benchmark-bar=" not in original:
             skipped_files.append(path)
             continue
-        updated = apply_benchmark_bindings(original, formatted, numeric, computed)
+        updated = apply_benchmark_data(original, formatted, numeric, computed)
         if updated != original:
             changed_files.append(path)
             if not args.check:
-                path.write_text(updated, encoding="utf-8")
+                path.write_text(apply_benchmark_bindings(original, formatted, numeric, computed), encoding="utf-8")
 
     if args.summary_output != Path("-"):
         summary_path = args.summary_output if args.summary_output.is_absolute() else repo_root / args.summary_output
