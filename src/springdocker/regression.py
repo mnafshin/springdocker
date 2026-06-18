@@ -35,7 +35,13 @@ def _pct_change(current: float, baseline: float) -> float:
 def _optional_metric(value: object) -> float | None:
     if value is None:
         return None
-    return round_metric(float(value))
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return round_metric(float(value))
+    if isinstance(value, str):
+        return round_metric(float(value))
+    return None
 
 
 def load_summaries(path: Path) -> list[VariantSummary]:

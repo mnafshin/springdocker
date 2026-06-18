@@ -50,7 +50,7 @@ class DockerfileServiceTests(unittest.TestCase):
             self.assertIn("FROM --platform=$BUILDPLATFORM eclipse-temurin:21-jdk@", destination.read_text("utf-8"))
             self.assertTrue((root / ".dockerignore").exists())
 
-    def test_generate_dockerfile_adds_healthcheck_when_actuator_present(self) -> None:
+    def test_generate_dockerfile_omits_healthcheck_on_distroless_default(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             (root / "pom.xml").write_text(
@@ -66,8 +66,8 @@ class DockerfileServiceTests(unittest.TestCase):
                 must_have_modules_file=None,
             )
             rendered = generated.path.read_text("utf-8")
-            self.assertIn("HEALTHCHECK --interval=15s", rendered)
-            self.assertIn("/actuator/health/readiness", rendered)
+            self.assertIn("gcr.io/distroless/base-debian", rendered)
+            self.assertNotIn("HEALTHCHECK --interval=15s", rendered)
 
     def test_generate_dockerfile_native_aot_recipe(self) -> None:
         with tempfile.TemporaryDirectory() as td:

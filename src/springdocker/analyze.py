@@ -207,7 +207,7 @@ def summarize_csv(path: Path, scenario: str | None = None, variant: str | None =
                 image_mb_avg=round_metric(statistics.mean(image) / (1024 * 1024)) if image else None,
                 rss_mb_avg=round_metric(statistics.mean(rss) / (1024 * 1024)) if rss else None,
                 cpu_pct_avg=_mean_float(cpu),
-                success_rate_pct=round_metric((ok / total) * 100.0) if total else 0.0,
+                success_rate_pct=(round_metric((ok / total) * 100.0) or 0.0) if total else 0.0,
                 host=first.get("host") or None,
                 docker_version=first.get("docker_version") or None,
                 run_profile=first.get("run_profile") or None,
