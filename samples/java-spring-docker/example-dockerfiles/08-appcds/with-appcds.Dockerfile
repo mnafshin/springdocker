@@ -26,7 +26,7 @@ FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk@sha256:c2b7ea21649875fb905
 WORKDIR /jre
 COPY --from=build /app/target/*.jar app.jar
 RUN jdeps --ignore-missing-deps --recursive --multi-release 25 --print-module-deps app.jar > modules.txt
-ARG MUSTHAVE_MODULES="java.desktop,java.logging,java.naming"
+ARG MUSTHAVE_MODULES="java.base,java.desktop,java.instrument,java.logging,java.sql,java.xml,java.naming,java.management,java.security.jgss,jdk.crypto.ec,jdk.unsupported"
 RUN set -eux; \
     MODULES=$( (tr ',' '\n' < modules.txt; printf '%s\n' "$MUSTHAVE_MODULES" | tr ',' '\n') \
       | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | sort -u | paste -sd, -); \

@@ -40,6 +40,9 @@ class GenerateScenarioTests(unittest.TestCase):
             self.assertIn("experimental scaffold output only", native_readme.read_text("utf-8"))
             native_variants_dir = root / "benchmarks" / "07-native-benchmark" / "variants"
             self.assertFalse(native_variants_dir.exists())
+            example = root / "example-dockerfiles" / "01-multi-stage-build-structure" / "specialized-multi-stage.Dockerfile"
+            self.assertTrue(example.exists())
+            self.assertIn("https://github.com/mnafshin/springdocker", example.read_text("utf-8"))
 
     def test_scenario_variants_match_intended_optimizations(self) -> None:
         scenarios = {scenario.id: scenario for scenario in default_scenarios(build_tool="maven", java_version=25)}

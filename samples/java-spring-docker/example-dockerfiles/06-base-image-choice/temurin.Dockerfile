@@ -19,18 +19,8 @@ RUN chmod +x mvnw
 COPY src ./src
 RUN --mount=type=cache,sharing=locked,target=/root/.m2 ./mvnw -B -q package -DskipTests
 RUN java -Djarmode=layertools -jar /app/target/*.jar extract --destination /layers
-RUN cd /layers && java -XX:ArchiveClassesAtExit=/layers/app.jsa -Dspring.context.exit=onRefresh org.springframework.boot.loader.launch.JarLauncher || true
-RUN install -d /tmp/sbom && printf '{"spdxVersion":"SPDX-2.3","name":"springdocker-generated-image"}' > /tmp/sbom/spdx.json
 
-FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk@sha256:c2b7ea21649875fb9052237ac4e3cd4ef63968a2a389a0a1b1a72a5e53e5c93f AS jre-builder
-WORKDIR /jre
-COPY --from=build /app/target/*.jar app.jar
-RUN jdeps --ignore-missing-deps --recursive --multi-release 25 --print-module-deps app.jar > modules.txt
-ARG MUSTHAVE_MODULES="java.desktop,java.logging,java.naming"
-RUN set -eux; \
-    MODULES=$( (tr ',' '\n' < modules.txt; printf '%s\n' "$MUSTHAVE_MODULES" | tr ',' '\n') \
-      | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | sort -u | paste -sd, -); \
-    jlink --add-modules "$MODULES" --strip-debug --no-man-pages --no-header-files --compress=2 --output /jre/out
+RUN install -d /tmp/sbom && printf '{"spdxVersion":"SPDX-2.3","name":"springdocker-generated-image"}' > /tmp/sbom/spdx.json
 
 FROM --platform=$TARGETPLATFORM eclipse-temurin:25-jre@sha256:04262e8782d6b034ee5d7c1c5d4e8938fcf2063a76b4bfcd84e5d994d09c27bc
 RUN groupadd --system --gid 1001 javauser && useradd --system --uid 1001 --gid 1001 --no-create-home --shell /usr/sbin/nologin javauser
@@ -43,16 +33,12 @@ COPY --from=build --chown=1001:1001 /layers/dependencies/ ./
 COPY --from=build --chown=1001:1001 /layers/spring-boot-loader/ ./
 COPY --from=build --chown=1001:1001 /layers/snapshot-dependencies/ ./
 COPY --from=build --chown=1001:1001 /layers/application/ ./
-COPY --from=build --chown=1001:1001 /layers/app.jsa /app/app.jsa
 LABEL org.opencontainers.image.source="${OCI_SOURCE}" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}"
 COPY --from=build /tmp/sbom/spdx.json /usr/share/sbom/spdx.json
 ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"
-COPY --from=jre-builder /jre/out /opt/java
-ENV JAVA_HOME=/opt/java
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
 USER 1001
 STOPSIGNAL SIGTERM
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "-Djava.io.tmpdir=/tmp", "-XX:SharedArchiveFile=/app/app.jsa", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "-Djava.io.tmpdir=/tmp", "org.springframework.boot.loader.launch.JarLauncher"]
 # Runtime hardening tip: run with --read-only --cap-drop=ALL --security-opt=no-new-privileges --tmpfs /tmp

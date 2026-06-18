@@ -24,6 +24,22 @@ This scenario is generated as **experimental scaffold output only**.
 See `docs/native-image-roadmap.md` in the springdocker repository for the planned workflow.
 """
 
+EXAMPLE_DOCKERFILES_README = """\
+# Example generated Dockerfiles
+
+Versioned reference output from `springdocker` for each benchmark scenario in this sample project.
+
+Regenerate together with benchmark assets:
+
+```bash
+springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
+```
+
+Each `*.Dockerfile` matches the corresponding variant under `benchmarks/<scenario>/variants/` (those variant trees are gitignored and reproduced by the same command).
+
+Source: https://github.com/mnafshin/springdocker
+"""
+
 
 @dataclass(frozen=True)
 class ScenarioDefinition:
@@ -242,3 +258,59 @@ def generate_benchmark_assets(
         csv = results_dir / "raw.csv"
         if not csv.exists():
             csv.write_text(EXPECTED_CSV_HEADER, encoding="utf-8")
+
+    generate_example_dockerfiles(
+        project_root=project_root,
+        build_tool=build_tool,
+        java_version=java_version,
+        must_have_modules=must_have_modules,
+        base_image_variants=base_image_variants,
+    )
+
+
+def generate_example_dockerfiles(
+    project_root: Path,
+    build_tool: str,
+    java_version: int,
+    must_have_modules: tuple[str, ...] = (),
+    base_image_variants: tuple[str, ...] | None = None,
+) -> None:
+    example_root = project_root / "example-dockerfiles"
+    example_root.mkdir(parents=True, exist_ok=True)
+    (example_root / "README.md").write_text(EXAMPLE_DOCKERFILES_README, encoding="utf-8")
+
+    expected_paths: set[Path] = set()
+    for scenario in default_scenarios(
+        build_tool=build_tool,
+        java_version=java_version,
+        must_have_modules=must_have_modules,
+        base_image_variants=base_image_variants,
+    ):
+        scenario_dir = example_root / scenario.id
+        scenario_dir.mkdir(parents=True, exist_ok=True)
+
+        if isinstance(scenario, StandardScenarioDefinition):
+            for name, opts in scenario.variants:
+                dockerfile_path = scenario_dir / f"{name}.Dockerfile"
+                dockerfile_path.write_text(build_dockerfile(opts), encoding="utf-8")
+                expected_paths.add(dockerfile_path)
+        elif isinstance(scenario, NativeScenarioDefinition):
+            native_opts = DockerfileOptions(
+                build_tool=build_tool,
+                recipe="native-aot",
+                java_version=java_version,
+                must_have_modules=must_have_modules,
+                enable_appcds=False,
+                enable_jep483_aot_cache=False,
+            )
+            dockerfile_path = scenario_dir / "Dockerfile"
+            dockerfile_path.write_text(build_dockerfile(native_opts), encoding="utf-8")
+            expected_paths.add(dockerfile_path)
+        else:  # pragma: no cover - defensive guard for future extensions
+            raise TypeError(f"unsupported scenario definition: {type(scenario)}")
+
+    for existing in example_root.rglob("*"):
+        if not existing.is_file() or existing.name == "README.md":
+            continue
+        if existing not in expected_paths:
+            existing.unlink()
