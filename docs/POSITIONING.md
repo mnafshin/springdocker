@@ -66,7 +66,7 @@ The repository keeps two Spring Boot paths. They are not two products — they s
 
 **Start with `tests/fixtures/…`** for Dockerfile workflows. Use **`samples/`** when you need benchmark scenarios or reference datasets. Do not copy the full benchmark tree into every consumer repo.
 
-Resolved in [#95](https://github.com/mnafshin/springdocker/issues/95) — see [`docs/decisions/95-sample-project-strategy.md`](decisions/95-sample-project-strategy.md).
+Resolved in [#95](https://github.com/mnafshin/springdocker/issues/95) — see [`adr/0004-sample-project-strategy.md`](adr/0004-sample-project-strategy.md).
 
 ## Reference stack vs compatibility
 

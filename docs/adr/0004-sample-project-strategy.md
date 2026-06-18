@@ -1,7 +1,8 @@
-# Decision: sample project end state (#95)
+# ADR 0004: Sample project strategy
 
-**Status:** Accepted  
-**Issue:** [#95](https://github.com/mnafshin/springdocker/issues/95)
+## Status
+
+Accepted (closes [#95](https://github.com/mnafshin/springdocker/issues/95))
 
 ## Context
 
@@ -28,6 +29,8 @@ Maintaining separate walkthrough copies under `examples/` duplicated the minimal
 - One less tree to keep in sync with generator output.
 - README and CONTRIBUTING point walkthrough commands at `tests/fixtures/…` instead of `examples/…`.
 - Benchmark evidence, presentations, and `docker-smoke` CI continue to use `samples/java-spring-docker/`.
+
+See also [`docs/POSITIONING.md`](../POSITIONING.md#sample-project-strategy-two-trees) and [`docs/golden-samples.md`](../golden-samples.md).
 
 ## Non-goals
 

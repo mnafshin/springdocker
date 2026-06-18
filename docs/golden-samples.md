@@ -7,7 +7,7 @@
 | `tests/fixtures/{maven-only,gradle-only}/` | Minimal CLI walkthroughs and CI golden samples (this document) |
 | `samples/java-spring-docker/` | Benchmark harness and versioned evidence |
 
-Decision record for removing the former `examples/` walkthrough tree: [`docs/decisions/95-sample-project-strategy.md`](decisions/95-sample-project-strategy.md).
+Decision record for removing the former `examples/` walkthrough tree: [`adr/0004-sample-project-strategy.md`](adr/0004-sample-project-strategy.md).
 
 The repository keeps two canonical golden sample project paths for end-to-end CLI coverage:
 

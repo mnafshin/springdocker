@@ -86,7 +86,7 @@ Runbook: [`docs/digest-pin-runbook.md`](docs/digest-pin-runbook.md) · Renovate 
 
 Gradle walkthroughs use `tests/fixtures/gradle-only/` with the same commands below (Maven: `tests/fixtures/maven-only/`).
 
-See [`docs/decisions/95-sample-project-strategy.md`](docs/decisions/95-sample-project-strategy.md) for why the former `examples/` walkthrough tree was removed.
+See [`docs/adr/0004-sample-project-strategy.md`](docs/adr/0004-sample-project-strategy.md) for why the former `examples/` walkthrough tree was removed.
 
 ## Quick start
 
