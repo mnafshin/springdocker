@@ -219,8 +219,6 @@ def _validate_options(options: DockerfileOptions) -> None:
     if options.runtime_image not in SUPPORTED_RUNTIME_IMAGES:
         supported = ", ".join(sorted(SUPPORTED_RUNTIME_IMAGES))
         raise ValueError(f"runtime_image must be one of: {supported}")
-    if options.runtime_image in {"debian-slim", "ubuntu", "alpine"} and not options.use_jlink:
-        raise ValueError(f"runtime_image '{options.runtime_image}' requires use_jlink=True")
     if options.recipe not in BUILTIN_RECIPES:
         supported = ", ".join(BUILTIN_RECIPES)
         raise ValueError(f"recipe must be one of: {supported}")
@@ -243,6 +241,18 @@ def _jlink_build_base(spec: DockerfileSpec, default_build_base: str) -> str:
     if spec.runtime.runtime_image == "alpine":
         return f"eclipse-temurin:{spec.java_version}-jdk-alpine"
     return default_build_base
+
+
+def _uses_os_runtime(spec: DockerfileSpec) -> bool:
+    return spec.runtime.runtime_image in OS_RUNTIME_IMAGES
+
+
+def _bundles_vendor_jre_on_os_runtime(spec: DockerfileSpec) -> bool:
+    return _uses_os_runtime(spec) and not spec.build.use_jlink
+
+
+def _vendor_jre_image(java_version: int) -> str:
+    return _pin_image(f"eclipse-temurin:{java_version}-jre", TEMURIN_JRE_DIGESTS.get(java_version))
 
 
 def _os_runtime_user_setup(runtime_image: str) -> list[str]:
@@ -400,6 +410,9 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         native_runtime_lines.append("")
         sections.append(_section(*native_runtime_lines))
         return DockerfileDocument(sections=tuple(sections))
+
+    if _bundles_vendor_jre_on_os_runtime(spec):
+        sections.append(_section(f"FROM {_vendor_jre_image(spec.java_version)} AS vendor-jre", ""))
 
     if spec.build.use_jlink:
         must_have = merge_jlink_must_have_modules(
@@ -567,7 +580,15 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
             temurin_lines.append('ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"')
         sections.append(_section(*temurin_lines))
 
-    if spec.build.use_jlink and spec.runtime.runtime_image != "distroless":
+    if _bundles_vendor_jre_on_os_runtime(spec):
+        sections.append(
+            _section(
+                "COPY --from=vendor-jre /opt/java/openjdk /opt/java",
+                "ENV JAVA_HOME=/opt/java",
+                'ENV PATH="${JAVA_HOME}/bin:${PATH}"',
+            )
+        )
+    elif spec.build.use_jlink and spec.runtime.runtime_image != "distroless":
         sections.append(
             _section(
                 "COPY --from=jre-builder /jre/out /opt/java",

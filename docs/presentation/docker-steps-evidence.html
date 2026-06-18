@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- benchmark-updated: 2026-06-18T01:29:16Z -->
+  <!-- benchmark-updated: 2026-06-18T01:47:53Z -->
 
 <div class="reveal">
 <div class="slides">
@@ -172,14 +172,15 @@ application/</code></pre>
       <span class="badge">Scenario 03</span>
       <h2>JLink custom runtime</h2>
       <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">without-jlink</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:78%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">130.28 MB</span></div>
-        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:100%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">167.82 MB</span></div>
+        <div class="bar-row"><span class="label">without-jlink</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:82%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></div>
+        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:66%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">85.94 MB</span></div>
       </div>
+      <p class="scenario-foot">Same debian-bookworm-slim base: custom jlink runtime vs bundled vendor Temurin JRE (both use layered JAR).</p>
       <table style="margin-top: 0.8em;">
         <thead><tr><th>Variant</th><th>Startup avg</th></tr></thead>
         <tbody>
-          <tr><td>with-jlink</td><td class="risk"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,259 ms</span></td></tr>
-          <tr><td>without-jlink</td><td class="good"><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,189 ms</span></td></tr>
+          <tr><td>with-jlink</td><td class="risk"><span data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,339 ms</span></td></tr>
+          <tr><td>without-jlink</td><td class="good"><span data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,265 ms</span></td></tr>
         </tbody>
       </table>
     </section>
@@ -189,7 +190,7 @@ application/</code></pre>
       <pre><code class="language-bash" data-trim data-noescape>jlink --add-modules java.base,java.logging,… \
   --strip-debug --compress=2 --output /customjre</code></pre>
       <ul>
-        <li class="good">~30% smaller image with similar startup in our sample</li>
+        <li class="good">Smaller runtime image vs full vendor JRE on the same OS base (similar startup in our sample)</li>
         <li class="warn">Merge <code>must-have.txt</code> modules jdeps misses (JNDI, logging, desktop APIs)</li>
         <li>Skip only when compatibility or tooling blockers are proven on your app</li>
       </ul>
@@ -276,7 +277,7 @@ application/</code></pre>
       <span class="badge warn">Scenario 07</span>
       <h2>Native image vs JVM</h2>
       <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:87%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,189 ms</span></div>
+        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:92%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,265 ms</span></div>
         <div class="bar-row"><span class="label">native-aot</span><div class="bar-wrap"><div class="bar" style="width:15%"></div></div><span class="val">308 ms</span></div>
       </div>
       <table style="margin-top: 0.8em;">
@@ -362,10 +363,10 @@ USER root</code></pre>
       <span class="badge pink">Combined impact</span>
       <h2>How decisions stack — image size</h2>
       <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">without-jlink</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:78%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">130.28 MB</span></div>
-        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:100%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">167.82 MB</span></div>
-        <div class="bar-row"><span class="label">debian-slim</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/debian-slim/image_mb_avg" style="width:51%"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/image_mb_avg">85.94 MB</span></div>
-        <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:37%"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
+        <div class="bar-row"><span class="label">without-jlink</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:82%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></div>
+        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:66%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">85.94 MB</span></div>
+        <div class="bar-row"><span class="label">debian-slim</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/debian-slim/image_mb_avg" style="width:66%"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/image_mb_avg">85.94 MB</span></div>
+        <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:48%"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
         <div class="bar-row"><span class="label">native-aot*</span><div class="bar-wrap"><div class="bar" style="width:39%"></div></div><span class="val">55.7 MB</span></div>
       </div>
       <p class="scenario-foot">* native reference only · scaffold recipe today</p>
@@ -374,9 +375,9 @@ USER root</code></pre>
       <span class="badge pink">Combined impact</span>
       <h2>How decisions stack — cold start</h2>
       <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:87%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,189 ms</span></div>
-        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:92%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,259 ms</span></div>
-        <div class="bar-row"><span class="label">with AppCDS</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="08-appcds/with-appcds/startup_avg_ms" style="width:100%"></div></div><span class="val" data-benchmark="08-appcds/with-appcds/startup_avg_ms">1,262 ms</span></div>
+        <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:92%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,265 ms</span></div>
+        <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:98%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,339 ms</span></div>
+        <div class="bar-row"><span class="label">with AppCDS</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="08-appcds/with-appcds/startup_avg_ms" style="width:94%"></div></div><span class="val" data-benchmark="08-appcds/with-appcds/startup_avg_ms">1,262 ms</span></div>
         <div class="bar-row"><span class="label">with-aot-cache</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="04-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:71%"></div></div><span class="val" data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
         <div class="bar-row"><span class="label">native-aot*</span><div class="bar-wrap"><div class="bar" style="width:15%"></div></div><span class="val">308 ms</span></div>
       </div>

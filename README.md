@@ -144,7 +144,7 @@ Regenerate directories with `springdocker benchmark generate`. Scenario **07** i
 |---|---|---|---|---|
 | 01 | `01-multi-stage-build-structure` | Multi-stage Dockerfile layout vs a simpler two-stage build | `specialized-multi-stage`, `simple-two-stage` | [`benchmark-methodology.md`](docs/benchmark-methodology.md#current-sample-comparison-snapshot) |
 | 02 | `02-buildkit-gradle-cache` | BuildKit cache mount on dependency rebuilds | `with-buildkit-cache`, `without-buildkit-cache` | [`benchmark-methodology.md`](docs/benchmark-methodology.md#current-sample-comparison-snapshot) |
-| 03 | `03-custom-jre-jlink` | jlink custom runtime vs stock JRE image | `with-jlink-runtime`, `without-jlink-runtime` | [`jvm-optimization.md`](docs/jvm-optimization.md), [`golden-samples.md`](docs/golden-samples.md) |
+| 03 | `03-custom-jre-jlink` | jlink custom runtime vs full vendor JRE on same debian-slim base | `with-jlink-runtime`, `without-jlink-runtime` | [`jvm-optimization.md`](docs/jvm-optimization.md), [`golden-samples.md`](docs/golden-samples.md) |
 | 04 | `04-jep483-aot-cache` | JEP 483 ahead-of-time class-loading cache (Java 24+) | `with-aot-cache`, `without-aot-cache` | [`jvm-optimization.md`](docs/jvm-optimization.md) · extra runs: 8 (`quick`) / 15 (`full`) |
 | 05 | `05-jvm-container-flags` | Tuned vs baseline JVM container flags | `tuned-flags`, `defaults-like` | [`jvm-optimization.md`](docs/jvm-optimization.md) |
 | 06 | `06-base-image-choice` | Runtime base image tradeoffs | `alpine`, `debian-slim`, `ubuntu`, `distroless`, `temurin` (configurable) | [`benchmark-methodology.md`](docs/benchmark-methodology.md#configuring-base-image-variants-scenario-06) · CI regression baseline |

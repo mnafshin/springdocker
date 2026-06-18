@@ -124,8 +124,30 @@ def default_scenarios(
         StandardScenarioDefinition(
             id="03-custom-jre-jlink",
             variants=(
-                ("with-jlink-runtime", base),
-                ("without-jlink-runtime", DockerfileOptions(build_tool=build_tool, java_version=java_version, use_jlink=False, enable_appcds=False, enable_jep483_aot_cache=False)),
+                (
+                    "with-jlink-runtime",
+                    DockerfileOptions(
+                        build_tool=build_tool,
+                        java_version=java_version,
+                        must_have_modules=must_have_modules,
+                        runtime_image="debian-slim",
+                        use_jlink=True,
+                        enable_appcds=False,
+                        enable_jep483_aot_cache=False,
+                    ),
+                ),
+                (
+                    "without-jlink-runtime",
+                    DockerfileOptions(
+                        build_tool=build_tool,
+                        java_version=java_version,
+                        must_have_modules=must_have_modules,
+                        runtime_image="debian-slim",
+                        use_jlink=False,
+                        enable_appcds=False,
+                        enable_jep483_aot_cache=False,
+                    ),
+                ),
             ),
         ),
         StandardScenarioDefinition(

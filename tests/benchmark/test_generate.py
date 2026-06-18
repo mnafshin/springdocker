@@ -50,6 +50,13 @@ class GenerateScenarioTests(unittest.TestCase):
         self.assertFalse(simple.use_jlink)
         self.assertFalse(simple.use_layered_jar)
 
+        with_jlink = next(opts for name, opts in scenarios["03-custom-jre-jlink"].variants if name == "with-jlink-runtime")
+        without_jlink = next(opts for name, opts in scenarios["03-custom-jre-jlink"].variants if name == "without-jlink-runtime")
+        self.assertTrue(with_jlink.use_jlink)
+        self.assertEqual(with_jlink.runtime_image, "debian-slim")
+        self.assertFalse(without_jlink.use_jlink)
+        self.assertEqual(without_jlink.runtime_image, "debian-slim")
+
         with_aot = next(opts for name, opts in scenarios["04-jep483-aot-cache"].variants if name == "with-aot-cache")
         without_aot = next(opts for name, opts in scenarios["04-jep483-aot-cache"].variants if name == "without-aot-cache")
         self.assertTrue(with_aot.enable_jep483_aot_cache)
