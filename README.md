@@ -69,7 +69,7 @@ See [Sample project map](#sample-project-map) for which Spring Boot path to use.
 
 - Detects Maven or Gradle projects.
 - Writes a starter `.springdocker.toml` config.
-- Generates Dockerfiles with opinionated Spring Boot defaults.
+- Generates Dockerfiles with opinionated Spring Boot defaults (`jvm-balanced`: **distroless** runtime + custom **jlink** runtime + layered JAR).
 - Pins generated base images by digest when known.
 - Creates benchmark variants and runs benchmark suites (requires Docker and `[benchmark]` extra).
 - Summarizes benchmark CSV output as a table or JSON.
@@ -113,11 +113,13 @@ springdocker benchmark compare --project-root samples/java-spring-docker samples
 springdocker benchmark analyze --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/06-base-image-choice/results/raw.csv --baseline samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json
 ```
 
+**Default runtime:** `dockerfile generate` with `--recipe jvm-balanced` (the default) uses **`runtime_image = distroless`**: a digest-pinned `gcr.io/distroless/base-*:nonroot` stage plus a jlink-built JVM and layered Spring Boot JAR — not a full OS image. Distroless images have no shell, so generated Dockerfiles **omit `HEALTHCHECK`**; configure readiness probes in Kubernetes or your orchestrator. OS runtime bases are compared in benchmark scenario **06** — see [`cli/README.md`](cli/README.md#dockerfile-recipes).
+
 ## CLI workflow
 
 1. `doctor` checks the project root and build tool.
 2. `init` writes a starter config file.
-3. `dockerfile generate` writes a Dockerfile to the requested path.
+3. `dockerfile generate` writes a Dockerfile to the requested path (default recipe: distroless + jlink layered JAR).
 4. `benchmark generate` creates benchmark scenarios.
 5. `benchmark run` executes the benchmark runner.
 6. `benchmark analyze` turns `raw.csv` into a table or JSON summary.

@@ -61,11 +61,22 @@ Scenario index: [README.md](../README.md#benchmark-scenario-index).
 
 ## Dockerfile recipes
 
-| Recipe | Status | Notes |
-|---|---|---|
-| `jvm-balanced` | Supported | Default production-oriented JVM Dockerfile. |
-| `spring-aot` | Supported | Spring Boot AOT processing on a JVM runtime. |
-| `native-aot` | Scaffold only | Experimental GraalVM native-image Dockerfile output. Not a production-ready workflow; see `docs/native-image-roadmap.md`. |
+| Recipe | Status | Default runtime | Notes |
+|---|---|---|---|
+| `jvm-balanced` | Supported | **distroless** + jlink | Default production-oriented JVM Dockerfile. |
+| `spring-aot` | Supported | **distroless** + jlink | Spring Boot AOT processing on a JVM runtime. |
+| `native-aot` | Scaffold only | **distroless** base (static binary) | Experimental GraalVM native-image Dockerfile output. Not a production-ready workflow; see `docs/native-image-roadmap.md`. |
+
+The generator sets `runtime_image = "distroless"` internally for JVM recipes. That means `distroless/base-debian*` plus a copied jlink runtime — not the prebuilt `distroless/java*` image and not a full OS layer unless you change generator options (benchmark scenario **06** compares OS bases).
+
+### Runtime bases and HEALTHCHECK
+
+| Runtime | Generator behavior |
+|---|---|
+| `distroless` (default) | Non-root, minimal base + jlink; **no `HEALTHCHECK`** (no shell/`wget` in the image). Probe readiness from the orchestrator (e.g. Kubernetes `readinessProbe` on `/actuator/health/readiness`). |
+| `debian-slim`, `alpine`, `ubuntu`, `temurin` | Full OS or vendor JRE paths; **`HEALTHCHECK` is emitted** when Spring Boot Actuator is on the classpath. |
+
+Supported runtime names: `distroless`, `debian-slim`, `alpine`, `ubuntu`, `temurin` (plus aliases such as `debian-bookworm-slim`, `eclipse-temurin-jre`). Today these are generator/benchmark options — not yet a `[dockerfile]` config key.
 
 The `07-native-benchmark` scenario is generated with the `native-aot` scaffold recipe. The internal benchmark runner skips native scenarios by default (`--skip-native`).
 
@@ -90,6 +101,8 @@ build_tool = "maven"
 output = "Dockerfile.generated"
 java_version = 25
 recipe = "jvm-balanced"
+# Generator default runtime (not a config key yet): runtime_image = "distroless"
+# → distroless/base + jlink + layered JAR. Alternatives for benchmarks: debian-slim, alpine, ubuntu, temurin.
 must_have_modules_file = "must-have.txt"
 legacy_scripts = false
 wizard_args = []

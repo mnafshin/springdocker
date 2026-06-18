@@ -128,6 +128,8 @@ class ConfigTests(unittest.TestCase):
         text = render_default_config("maven")
         self.assertIn("jlink_baseline_modules", text)
         self.assertIn("java.desktop", text)
+        self.assertIn("Default generator runtime: distroless", text)
+        self.assertIn("HEALTHCHECK is omitted", text)
 
     def test_resolve_base_image_variants_from_config(self) -> None:
         loaded = {
