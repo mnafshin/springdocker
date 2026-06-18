@@ -122,6 +122,12 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
         self.assertIn("COPY --from=jre-builder /jre/out /opt/java", rendered)
         self.assertNotIn("FROM --platform=$TARGETPLATFORM eclipse-temurin:25-jre", rendered.split("AS jre-builder")[1])
 
+    def test_default_jvm_recipe_uses_distroless_runtime(self) -> None:
+        rendered = build_dockerfile(DockerfileOptions(build_tool="maven", java_version=25, enable_appcds=False))
+        self.assertIn("gcr.io/distroless/base-debian", rendered)
+        self.assertIn("COPY --from=jre-builder /jre/out /opt/java", rendered)
+        self.assertNotIn("debian:bookworm-slim", rendered)
+
     def test_jep483_aot_cache_stage_renders(self) -> None:
         rendered = build_dockerfile(
             DockerfileOptions(
@@ -140,6 +146,7 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
         rendered = build_dockerfile(
             DockerfileOptions(
                 build_tool="maven",
+                runtime_image="debian-slim",
                 include_oci_labels=False,
                 include_stopsignal=False,
                 include_embedded_sbom=False,

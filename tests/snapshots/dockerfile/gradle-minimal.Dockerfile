@@ -19,8 +19,7 @@ RUN java -Djarmode=layertools -jar /app/build/libs/*-SNAPSHOT.jar extract --dest
 RUN cd /layers && java -XX:ArchiveClassesAtExit=/layers/app.jsa -Dspring.context.exit=onRefresh org.springframework.boot.loader.launch.JarLauncher || true
 RUN install -d /tmp/sbom && printf '{"spdxVersion":"SPDX-2.3","name":"springdocker-generated-image"}' > /tmp/sbom/spdx.json
 
-FROM --platform=$TARGETPLATFORM eclipse-temurin:21-jre@sha256:010e0a06bd4e0184dec58626afb3ba727b42c56c91b977e2f0a9e0837e0fa3fb
-RUN install -d -m 755 /app && install -d -m 1777 /tmp
+FROM --platform=$TARGETPLATFORM gcr.io/distroless/java21-debian12:nonroot@sha256:7e37784d94dccbf5ccb195c73b295f5ad00cd266512dfbac12eb9c3c28f8077d
 WORKDIR /app
 VOLUME /tmp
 EXPOSE 8080

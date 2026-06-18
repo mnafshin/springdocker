@@ -132,7 +132,7 @@ class DockerfileOptions:
     tuned_jvm_flags: bool = True
     must_have_modules: tuple[str, ...] = ()
     jlink_baseline_modules: tuple[str, ...] = JLINK_BASELINE_MODULES
-    runtime_image: str = "temurin"
+    runtime_image: str = "distroless"
     platform_aware: bool = True
     healthcheck_path: str | None = None
     include_oci_labels: bool = True

@@ -27,7 +27,7 @@ See `docs/native-image-roadmap.md` in the springdocker repository for the planne
 EXAMPLE_DOCKERFILES_README = """\
 # Example generated Dockerfiles
 
-Versioned reference output from `springdocker` for each benchmark scenario in this sample project.
+Versioned reference output from `springdocker` for the three built-in recipe presets on this sample project.
 
 Regenerate together with benchmark assets:
 
@@ -35,11 +35,7 @@ Regenerate together with benchmark assets:
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 ```
 
-Each `*.Dockerfile` under a scenario folder matches the corresponding variant under
-`benchmarks/<scenario>/variants/` (those variant trees are gitignored and reproduced by the same command).
-
-The `recipes/` folder shows the three built-in generation presets (`jvm-balanced`, `spring-aot`, `native-aot`)
-for the configured build tool — use `springdocker generate --recipe <name>` to select one interactively.
+Scenario variant Dockerfiles live under `benchmarks/<scenario>/variants/` (gitignored, same command).
 
 Source: https://github.com/mnafshin/springdocker
 """
@@ -54,6 +50,21 @@ Reference Dockerfiles for each built-in `springdocker` recipe on the sample proj
 | `jvm-balanced.Dockerfile` | `jvm-balanced` | Default layered-JAR multi-stage JVM image |
 | `spring-aot.Dockerfile` | `spring-aot` | Spring AOT processing in the build stage |
 | `native-aot.Dockerfile` | `native-aot` | GraalVM native-image scaffold (experimental) |
+
+## Runtime default (scenario 06 evidence)
+
+Pinned sample results for jlink on each OS base (`benchmarks/06-base-image-choice/results/baseline.json`):
+
+| Base | Image avg | Build avg | Startup avg |
+|---|---:|---:|---:|
+| alpine | 62.4 MB | 936 ms | 1,583 ms |
+| **distroless** | **67.7 MB** | 959 ms | **1,511 ms** |
+| debian-slim | 85.9 MB | **616 ms** | 1,584 ms |
+| ubuntu | 85.9 MB | 984 ms | 1,673 ms |
+
+`jvm-balanced` and `spring-aot` default to **distroless**: smaller than debian-slim (~21%) with faster startup,
+at the cost of slower image builds. Pick alpine when every MB counts (verify musl). Pick debian-slim when build
+speed matters most.
 
 Regenerate with:
 
@@ -363,40 +374,17 @@ def generate_example_dockerfiles(
     must_have_modules: tuple[str, ...] = (),
     base_image_variants: tuple[str, ...] | None = None,
 ) -> None:
+    del base_image_variants  # recipe examples use generator defaults, not scenario matrices
     example_root = project_root / "example-dockerfiles"
     example_root.mkdir(parents=True, exist_ok=True)
+    if example_root.exists():
+        for child in example_root.iterdir():
+            if child.is_dir() and child.name != "recipes":
+                shutil.rmtree(child)
+
     (example_root / "README.md").write_text(EXAMPLE_DOCKERFILES_README, encoding="utf-8")
 
     expected_paths: set[Path] = set()
-    for scenario in default_scenarios(
-        build_tool=build_tool,
-        java_version=java_version,
-        must_have_modules=must_have_modules,
-        base_image_variants=base_image_variants,
-    ):
-        scenario_dir = example_root / scenario.id
-        scenario_dir.mkdir(parents=True, exist_ok=True)
-
-        if isinstance(scenario, StandardScenarioDefinition):
-            for name, opts in scenario.variants:
-                dockerfile_path = scenario_dir / f"{name}.Dockerfile"
-                dockerfile_path.write_text(build_dockerfile(opts), encoding="utf-8")
-                expected_paths.add(dockerfile_path)
-        elif isinstance(scenario, NativeScenarioDefinition):
-            native_opts = DockerfileOptions(
-                build_tool=build_tool,
-                recipe="native-aot",
-                java_version=java_version,
-                must_have_modules=must_have_modules,
-                enable_appcds=False,
-                enable_jep483_aot_cache=False,
-            )
-            dockerfile_path = scenario_dir / "Dockerfile"
-            dockerfile_path.write_text(build_dockerfile(native_opts), encoding="utf-8")
-            expected_paths.add(dockerfile_path)
-        else:  # pragma: no cover - defensive guard for future extensions
-            raise TypeError(f"unsupported scenario definition: {type(scenario)}")
-
     _write_example_recipe_dockerfiles(
         example_root=example_root,
         build_tool=build_tool,

@@ -40,17 +40,18 @@ class GenerateScenarioTests(unittest.TestCase):
             self.assertIn("experimental scaffold output only", native_readme.read_text("utf-8"))
             native_variants_dir = root / "benchmarks" / "07-native-benchmark" / "variants"
             self.assertFalse(native_variants_dir.exists())
-            example = root / "example-dockerfiles" / "01-multi-stage-build-structure" / "specialized-multi-stage.Dockerfile"
-            self.assertTrue(example.exists())
-            self.assertIn("https://github.com/mnafshin/springdocker", example.read_text("utf-8"))
-            jvm_balanced = root / "example-dockerfiles" / "recipes" / "jvm-balanced.Dockerfile"
-            spring_aot = root / "example-dockerfiles" / "recipes" / "spring-aot.Dockerfile"
-            native_aot = root / "example-dockerfiles" / "recipes" / "native-aot.Dockerfile"
+            recipes = root / "example-dockerfiles" / "recipes"
+            jvm_balanced = recipes / "jvm-balanced.Dockerfile"
+            spring_aot = recipes / "spring-aot.Dockerfile"
+            native_aot = recipes / "native-aot.Dockerfile"
             self.assertTrue(jvm_balanced.exists())
             self.assertTrue(spring_aot.exists())
             self.assertTrue(native_aot.exists())
+            self.assertIn("https://github.com/mnafshin/springdocker", jvm_balanced.read_text("utf-8"))
+            self.assertIn("gcr.io/distroless/base-debian", jvm_balanced.read_text("utf-8"))
             self.assertIn("process-aot", spring_aot.read_text("utf-8"))
             self.assertIn("native:compile", native_aot.read_text("utf-8"))
+            self.assertFalse((root / "example-dockerfiles" / "01-multi-stage-build-structure").exists())
 
     def test_scenario_variants_match_intended_optimizations(self) -> None:
         scenarios = {scenario.id: scenario for scenario in default_scenarios(build_tool="maven", java_version=25)}

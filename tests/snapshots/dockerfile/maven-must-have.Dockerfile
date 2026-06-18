@@ -32,27 +32,25 @@ RUN set -eux; \
       | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | sort -u | paste -sd, -); \
     jlink --add-modules "$MODULES" --strip-debug --no-man-pages --no-header-files --compress=2 --output /jre/out
 
-FROM --platform=$TARGETPLATFORM eclipse-temurin:25-jre@sha256:04262e8782d6b034ee5d7c1c5d4e8938fcf2063a76b4bfcd84e5d994d09c27bc
-RUN groupadd --system --gid 1001 javauser && useradd --system --uid 1001 --gid 1001 --no-create-home --shell /usr/sbin/nologin javauser
-RUN install -d -o 1001 -g 1001 -m 755 /app && install -d -o 1001 -g 1001 -m 1777 /tmp
+FROM --platform=$TARGETPLATFORM gcr.io/distroless/base-debian13:nonroot
 WORKDIR /app
 VOLUME /tmp
 EXPOSE 8080
 EXPOSE 8081
-COPY --from=build --chown=1001:1001 /layers/dependencies/ ./
-COPY --from=build --chown=1001:1001 /layers/spring-boot-loader/ ./
-COPY --from=build --chown=1001:1001 /layers/snapshot-dependencies/ ./
-COPY --from=build --chown=1001:1001 /layers/application/ ./
-COPY --from=build --chown=1001:1001 /layers/app.jsa /app/app.jsa
+COPY --from=build /layers/dependencies/ ./
+COPY --from=build /layers/spring-boot-loader/ ./
+COPY --from=build /layers/snapshot-dependencies/ ./
+COPY --from=build /layers/application/ ./
+COPY --from=build /layers/app.jsa /app/app.jsa
 LABEL org.opencontainers.image.source="${OCI_SOURCE}" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}"
-COPY --from=build /tmp/sbom/spdx.json /usr/share/sbom/spdx.json
-ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"
 COPY --from=jre-builder /jre/out /opt/java
 ENV JAVA_HOME=/opt/java
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
-USER 1001
+USER nonroot
+COPY --from=build /tmp/sbom/spdx.json /usr/share/sbom/spdx.json
+ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "-Djava.io.tmpdir=/tmp", "-XX:SharedArchiveFile=/app/app.jsa", "org.springframework.boot.loader.launch.JarLauncher"]
 # Runtime hardening tip: run with --read-only --cap-drop=ALL --security-opt=no-new-privileges --tmpfs /tmp

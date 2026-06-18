@@ -32,4 +32,3 @@ Maintaining separate walkthrough copies under `examples/` duplicated the minimal
 ## Non-goals
 
 - Extracting the benchmark workload to a separate repository (may be revisited later; tracked separately from this decision).
-- Removing `samples/java-spring-docker/example-dockerfiles/` (versioned browseable generator output for the benchmark sample).

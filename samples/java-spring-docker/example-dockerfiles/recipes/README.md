@@ -8,6 +8,21 @@ Reference Dockerfiles for each built-in `springdocker` recipe on the sample proj
 | `spring-aot.Dockerfile` | `spring-aot` | Spring AOT processing in the build stage |
 | `native-aot.Dockerfile` | `native-aot` | GraalVM native-image scaffold (experimental) |
 
+## Runtime default (scenario 06 evidence)
+
+Pinned sample results for jlink on each OS base (`benchmarks/06-base-image-choice/results/baseline.json`):
+
+| Base | Image avg | Build avg | Startup avg |
+|---|---:|---:|---:|
+| alpine | 62.4 MB | 936 ms | 1,583 ms |
+| **distroless** | **67.7 MB** | 959 ms | **1,511 ms** |
+| debian-slim | 85.9 MB | **616 ms** | 1,584 ms |
+| ubuntu | 85.9 MB | 984 ms | 1,673 ms |
+
+`jvm-balanced` and `spring-aot` default to **distroless**: smaller than debian-slim (~21%) with faster startup,
+at the cost of slower image builds. Pick alpine when every MB counts (verify musl). Pick debian-slim when build
+speed matters most.
+
 Regenerate with:
 
 ```bash
