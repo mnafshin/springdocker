@@ -51,7 +51,7 @@ BAR_GROUPS: dict[str, tuple[str, ...]] = {
         "03-custom-jre-jlink/temurin-jre-image/image_mb_avg",
         "03-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
         "03-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
-        "06-base-image-choice/debian-slim/image_mb_avg",
+        "06-base-image-choice/distroless/image_mb_avg",
         "06-base-image-choice/alpine/image_mb_avg",
     ),
     "cross-startup": (

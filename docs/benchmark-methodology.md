@@ -157,7 +157,7 @@ For the current checked-in reference snapshot, the high-level decision matrix is
 | 03 JLink + JDeps | with-jlink | ~20% smaller image on same debian-slim base; startup within noise |
 | 04 JEP 483 AOT cache | with-aot-cache | better startup and tail latency |
 | 05 JVM flags | workload-dependent | host sensitivity makes the winner variable |
-| 06 Base image choice | workload-dependent | compare configured runtime bases with jlink (default: alpine, debian-slim, ubuntu, distroless) |
+| 06 Base image choice | distroless + jlink | `jvm-balanced` generator default; scenario 06 benchmarks alpine, debian-slim, ubuntu, and distroless when tuning |
 | 07 Native vs JVM | scaffold only | `native-aot` Dockerfile is generated for future comparison; the internal runner skips native scenarios |
 | 08 AppCDS | with-appcds | faster startup from shared class archive |
 

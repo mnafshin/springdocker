@@ -290,7 +290,7 @@
             <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:48%;"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
             <div class="bar-row"><span class="label">native‑aot*</span><div class="bar-wrap"><div class="bar" style="width:39%;"></div></div><span class="val">55.7 MB</span></div>
           </div>
-          <p class="muted" style="margin-top: 1em;"><code>jvm-balanced</code> defaults to distroless + jlink (scenario 06). Values mirror <code>docker-steps-evidence.html</code>. * native reference only · scaffold recipe today.</p>
+          <p class="muted" style="margin-top: 1em;">Same image-size ladder as Talk 2 (<code>docker-steps-evidence.html</code>) — each bar is an independent scenario lever, not one Dockerfile. <code>jvm-balanced</code> defaults to distroless + jlink. * native reference only · scaffold recipe today.</p>
         </section>
 
         <!-- 3.3 Cold start -->
@@ -509,7 +509,7 @@ ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", \
           <p class="hero-sub" style="margin-top: 1.0em;">Generate. Explain. Verify. Repeat.</p>
           <div class="pill-row" style="margin-top: 1.5em;">
             <span class="pill">github.com/mnafshin/springdocker</span>
-            <span class="pill">docs.springdocker.dev</span>
+            <span class="pill">github.com/mnafshin/springdocker/tree/main/docs</span>
             <span class="pill">public benchmark dataset</span>
           </div>
         </section>

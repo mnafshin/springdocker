@@ -43,6 +43,8 @@ Use `--profile full` for presentation-grade run counts (10 runs per scenario; 15
 
 Scenario **07 (native)** is not measured by the runner (`--skip-native` by default). The deck binds the JVM comparison row to scenario **03** `without-jlink-runtime`; native-aot table and bar rows stay as published reference values (marked with `*`).
 
+**Cross-cutting bar charts:** Talk 1 and Talk 2 share the same **image-size** ladder (temurin → vendor JRE → jlink → distroless → alpine). Cold-start bars list startup levers across scenarios 03/04/08 — also independent levers, not one Dockerfile.
+
 ## Files
 
 - `springdocker-features.html` — Talk 1 (features & workflow)

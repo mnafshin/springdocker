@@ -101,7 +101,7 @@ springdocker benchmark analyze benchmarks/03-custom-jre-jlink/results/raw.csv</c
           <tr><td>03 JLink + jdeps</td><td class="good">ON (+ must-have modules)</td><td>Major size win, stable startup</td></tr>
           <tr><td>04 JEP 483 AOT cache</td><td class="warn">Conditional</td><td>Tail latency improvement varies</td></tr>
           <tr><td>05 JVM flags</td><td class="warn">Baseline first</td><td>Host/workload dependent</td></tr>
-          <tr><td>06 Base image</td><td class="good">debian-bookworm-slim</td><td>Best overall tradeoff here</td></tr>
+          <tr><td>06 Base image</td><td class="good">Distroless + jlink</td><td><code>jvm-balanced</code> default; scenario 06 compares OS bases</td></tr>
           <tr><td>07 Native vs JVM</td><td class="warn">Scaffold / selective</td><td>Cold start vs build time tradeoff</td></tr>
           <tr><td>08 AppCDS</td><td class="good">ON when layered JAR</td><td>Faster startup from shared archive</td></tr>
         </tbody>
@@ -278,7 +278,7 @@ application/</code></pre>
     <section>
       <span class="badge">Decision 06</span>
       <h2>Smallest image ≠ best production choice</h2>
-      <p><span class="good">debian-bookworm-slim</span> still balances build time and operability; <strong>distroless</strong> wins on size when you accept slower jlink builds.</p>
+      <p><span class="good">distroless + jlink</span> is the <code>jvm-balanced</code> generator default — strong size and startup in scenario 06 evidence. <strong>debian-slim</strong> still wins on build time when CI speed matters most.</p>
       <div class="grid grid-2" style="margin-top: 0.8em;">
         <div class="card"><h4>Pick alpine</h4><p>When every MB counts and musl compatibility is verified.</p></div>
         <div class="card"><h4>Pick distroless</h4><p>When non-root hardening and smaller pulls matter more than build speed.</p></div>
@@ -373,13 +373,14 @@ USER root</code></pre>
       <span class="badge pink">Combined impact</span>
       <h2>How decisions stack — image size</h2>
       <div style="margin-top: 0.8em;">
-        <div class="bar-row"><span class="label">without-jlink</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:82%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></div>
+        <div class="bar-row"><span class="label">temurin-jre image</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/temurin-jre-image/image_mb_avg" style="width:100%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/temurin-jre-image/image_mb_avg">130.28 MB</span></div>
+        <div class="bar-row"><span class="label">vendor JRE on debian</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:82%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></div>
         <div class="bar-row"><span class="label">with-jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:66%"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">85.94 MB</span></div>
-        <div class="bar-row"><span class="label">debian-slim</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/debian-slim/image_mb_avg" style="width:66%"></div></div><span class="val" data-benchmark="06-base-image-choice/debian-slim/image_mb_avg">85.94 MB</span></div>
+        <div class="bar-row"><span class="label">distroless + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/distroless/image_mb_avg" style="width:52%"></div></div><span class="val" data-benchmark="06-base-image-choice/distroless/image_mb_avg">67.67 MB</span></div>
         <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:48%"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
         <div class="bar-row"><span class="label">native-aot*</span><div class="bar-wrap"><div class="bar" style="width:39%"></div></div><span class="val">55.7 MB</span></div>
       </div>
-      <p class="scenario-foot">* native reference only · scaffold recipe today</p>
+      <p class="scenario-foot">Same image-size ladder as Talk 1 — each bar is an independent scenario lever, not one cumulative Dockerfile. * native reference only · scaffold recipe today</p>
     </section>
     <section>
       <span class="badge pink">Combined impact</span>
