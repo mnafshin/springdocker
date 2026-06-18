@@ -124,9 +124,18 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
 
     def test_default_jvm_recipe_uses_distroless_runtime(self) -> None:
         rendered = build_dockerfile(DockerfileOptions(build_tool="maven", java_version=25, enable_appcds=False))
-        self.assertIn("gcr.io/distroless/base-debian", rendered)
+        self.assertIn("gcr.io/distroless/base-debian13:nonroot@sha256:", rendered)
         self.assertIn("COPY --from=jre-builder /jre/out /opt/java", rendered)
         self.assertNotIn("debian:bookworm-slim", rendered)
+
+    def test_native_aot_recipe_uses_pinned_debian13_base(self) -> None:
+        rendered = build_dockerfile(DockerfileOptions(build_tool="maven", java_version=25, recipe="native-aot"))
+        self.assertIn("gcr.io/distroless/base-debian13:nonroot@sha256:", rendered)
+        self.assertNotIn("base-debian12", rendered)
+
+    def test_java21_jlink_uses_pinned_debian12_base(self) -> None:
+        rendered = build_dockerfile(DockerfileOptions(build_tool="maven", java_version=21, enable_appcds=False))
+        self.assertIn("gcr.io/distroless/base-debian12:nonroot@sha256:", rendered)
 
     def test_jep483_aot_cache_stage_renders(self) -> None:
         rendered = build_dockerfile(

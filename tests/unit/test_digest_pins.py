@@ -25,7 +25,7 @@ class DigestPinCatalogTests(unittest.TestCase):
     def test_catalog_covers_temurin_and_distroless_maps(self) -> None:
         self.assertEqual(set(TEMURIN_JDK_DIGESTS), {17, 21, 25})
         self.assertEqual(set(TEMURIN_JRE_DIGESTS), {17, 21, 25})
-        self.assertIn(12, DISTROLESS_BASE_DIGESTS)
+        self.assertEqual(set(DISTROLESS_BASE_DIGESTS), {12, 13})
         debian_digest = next(pin.digest for pin in IMAGE_PINS if pin.label == "debian-bookworm-slim")
         self.assertEqual(OS_RUNTIME_IMAGES["debian-slim"], ("debian:bookworm-slim", debian_digest))
         self.assertIsNone(OS_RUNTIME_IMAGES["ubuntu"][1])
@@ -36,8 +36,8 @@ class DigestPinCatalogTests(unittest.TestCase):
             pin.image_ref,
             "eclipse-temurin:21-jdk@sha256:b9142586f9712700c6c9e07adcedfb18608b1a3a056e4001423a3354adfa9d80",
         )
-        distroless = next(item for item in IMAGE_PINS if item.label == "distroless-base-debian12")
-        self.assertTrue(distroless.image_ref.startswith("gcr.io/distroless/base-debian12:nonroot@sha256:"))
+        distroless = next(item for item in IMAGE_PINS if item.label == "distroless-base-debian13")
+        self.assertTrue(distroless.image_ref.startswith("gcr.io/distroless/base-debian13:nonroot@sha256:"))
 
     def test_invalid_digest_rejected(self) -> None:
         with self.assertRaises(ValueError):

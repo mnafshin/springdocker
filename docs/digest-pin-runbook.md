@@ -10,10 +10,13 @@ Generated Dockerfiles and snapshot tests inherit those pins through `dockerfile.
 | `temurin-jdk-{17,21,25}` | `eclipse-temurin:<version>-jdk` | Docker Hub |
 | `temurin-jre-{17,21,25}` | `eclipse-temurin:<version>-jre` | Docker Hub |
 | `distroless-java-{17,21}` | `gcr.io/distroless/java<version>-debian12:nonroot` | Google Container Registry |
-| `distroless-base-debian12` | `gcr.io/distroless/base-debian12:nonroot` | Google Container Registry |
+| `distroless-base-debian12` | `gcr.io/distroless/base-debian12:nonroot` | Google Container Registry (Java < 25 jlink/native runtime) |
+| `distroless-base-debian13` | `gcr.io/distroless/base-debian13:nonroot` | Google Container Registry (Java 25+ jlink/native runtime) |
 | `debian-bookworm-slim` | `debian:bookworm-slim` | Docker Hub |
 
 OS runtime variants `ubuntu` and `alpine` intentionally use floating tags (no digest in catalog).
+
+**Debian release line:** `dockerfile.py` selects `distroless/base-debian13` for Java 25+ and `distroless/base-debian12` (or `java*-debian12` without jlink) for older Java versions.
 
 ## Automation
 

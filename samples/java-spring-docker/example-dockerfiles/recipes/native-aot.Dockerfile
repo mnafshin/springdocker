@@ -21,10 +21,10 @@ RUN chmod +x mvnw
 COPY src ./src
 RUN --mount=type=cache,sharing=locked,target=/root/.m2 ./mvnw -B -q -Pnative -DskipTests native:compile
 RUN java -Djarmode=layertools -jar /app/target/* extract --destination /layers
-
+RUN cd /layers && java -XX:ArchiveClassesAtExit=/layers/app.jsa -Dspring.context.exit=onRefresh org.springframework.boot.loader.launch.JarLauncher || true
 RUN install -d /tmp/sbom && printf '{"spdxVersion":"SPDX-2.3","name":"springdocker-generated-image"}' > /tmp/sbom/spdx.json
 
-FROM --platform=$TARGETPLATFORM gcr.io/distroless/base-debian12:nonroot@sha256:7a75a36f4bec82a7542c64195e402907486f9a4dd2f8797a976aa0cf31cfb470
+FROM --platform=$TARGETPLATFORM gcr.io/distroless/base-debian13:nonroot@sha256:ab7554b6d07ad354fad31957f8a1a813e65dfb93a8ad160568c79c3f2be6884f
 WORKDIR /app
 COPY --from=build /app/target/* /app/app
 LABEL org.opencontainers.image.source="${OCI_SOURCE}" \

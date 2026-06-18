@@ -32,7 +32,7 @@ RUN set -eux; \
       | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | sort -u | paste -sd, -); \
     jlink --add-modules "$MODULES" --strip-debug --no-man-pages --no-header-files --compress=2 --output /jre/out
 
-FROM --platform=$TARGETPLATFORM gcr.io/distroless/base-debian13:nonroot
+FROM --platform=$TARGETPLATFORM gcr.io/distroless/base-debian13:nonroot@sha256:ab7554b6d07ad354fad31957f8a1a813e65dfb93a8ad160568c79c3f2be6884f
 WORKDIR /app
 VOLUME /tmp
 EXPOSE 8080

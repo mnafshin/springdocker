@@ -45,8 +45,13 @@ def merge_jlink_must_have_modules(
     return tuple(merged)
 
 
+def _distroless_debian_release_number(java_version: int) -> int:
+    """Java 25+ uses distroless debian13; older supported Java versions use debian12."""
+    return 13 if java_version >= 25 else 12
+
+
 def _distroless_debian_release(java_version: int) -> str:
-    return "debian13" if java_version >= 25 else "debian12"
+    return f"debian{_distroless_debian_release_number(java_version)}"
 
 
 def _distroless_java_image(java_version: int) -> str:
@@ -54,8 +59,11 @@ def _distroless_java_image(java_version: int) -> str:
 
 
 def _distroless_base_image(java_version: int) -> str:
-    release = _distroless_debian_release(java_version)
-    return f"gcr.io/distroless/base-{release}:nonroot"
+    return f"gcr.io/distroless/base-{_distroless_debian_release(java_version)}:nonroot"
+
+
+def _distroless_base_digest(java_version: int) -> str | None:
+    return DISTROLESS_BASE_DIGESTS.get(_distroless_debian_release_number(java_version))
 
 
 @dataclass(frozen=True)
@@ -388,7 +396,7 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
 
     if spec.build.recipe == "native-aot":
         native_runtime_lines = [
-            f"FROM --platform=$TARGETPLATFORM {_pin_image('gcr.io/distroless/base-debian12:nonroot', DISTROLESS_BASE_DIGESTS.get(12))}",
+            f"FROM --platform=$TARGETPLATFORM {_pin_image(_distroless_base_image(spec.java_version), _distroless_base_digest(spec.java_version))}",
             "WORKDIR /app",
             "COPY --from=build /app/" + jar_path + " /app/app",
         ]
@@ -465,12 +473,10 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         )
 
     if spec.runtime.runtime_image == "distroless":
-        debian_release = _distroless_debian_release(spec.java_version)
-        distroless_base_digest = DISTROLESS_BASE_DIGESTS.get(12) if debian_release == "debian12" else None
         runtime_base = (
             _pin_image(
                 _distroless_base_image(spec.java_version),
-                distroless_base_digest,
+                _distroless_base_digest(spec.java_version),
             )
             if spec.build.use_jlink
             else _pin_image(

@@ -48,6 +48,7 @@ IMAGE_PINS: tuple[ImagePin, ...] = (
     ImagePin("distroless-java-17", "gcr.io", "distroless/java17-debian12", "nonroot", "sha256:06484c2a9dcc9070aeafbc0fe752cb9f73bc0cea5c311f6a516e9010061998ad"),
     ImagePin("distroless-java-21", "gcr.io", "distroless/java21-debian12", "nonroot", "sha256:7e37784d94dccbf5ccb195c73b295f5ad00cd266512dfbac12eb9c3c28f8077d"),
     ImagePin("distroless-base-debian12", "gcr.io", "distroless/base-debian12", "nonroot", "sha256:7a75a36f4bec82a7542c64195e402907486f9a4dd2f8797a976aa0cf31cfb470"),
+    ImagePin("distroless-base-debian13", "gcr.io", "distroless/base-debian13", "nonroot", "sha256:ab7554b6d07ad354fad31957f8a1a813e65dfb93a8ad160568c79c3f2be6884f"),
     ImagePin("debian-bookworm-slim", "registry-1.docker.io", "library/debian", "bookworm-slim", "sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c"),
 )
 
@@ -68,7 +69,9 @@ DISTROLESS_JAVA_DIGESTS: dict[int, str] = {
     if pin.label.startswith("distroless-java-")
 }
 DISTROLESS_BASE_DIGESTS: dict[int, str] = {
-    12: next(pin.digest for pin in IMAGE_PINS if pin.label == "distroless-base-debian12"),
+    int(pin.label.removeprefix("distroless-base-debian")): pin.digest
+    for pin in IMAGE_PINS
+    if pin.label.startswith("distroless-base-debian")
 }
 DEBIAN_BOOKWORM_SLIM_DIGEST: str = next(pin.digest for pin in IMAGE_PINS if pin.label == "debian-bookworm-slim")
 OS_RUNTIME_IMAGES: dict[str, tuple[str, str | None]] = {

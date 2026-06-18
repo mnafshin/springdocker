@@ -9,6 +9,7 @@
         "FROM --platform=\\$BUILDPLATFORM (?<depName>eclipse-temurin):(?<currentValue>\\d+-jdk)@(?<currentDigest>sha256:[a-f0-9]{64})",
         "FROM --platform=\\$TARGETPLATFORM (?<depName>eclipse-temurin):(?<currentValue>\\d+-jre)@(?<currentDigest>sha256:[a-f0-9]{64})",
         "FROM --platform=\\$TARGETPLATFORM (?<depName>gcr\\.io/distroless/base-debian12):(?<currentValue>nonroot)@(?<currentDigest>sha256:[a-f0-9]{64})",
+        "FROM --platform=\\$TARGETPLATFORM (?<depName>gcr\\.io/distroless/base-debian13):(?<currentValue>nonroot)@(?<currentDigest>sha256:[a-f0-9]{64})",
         "FROM --platform=\\$TARGETPLATFORM (?<depName>gcr\\.io/distroless/java\\d+-debian12):(?<currentValue>nonroot)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
       "datasourceTemplate": "docker"
@@ -44,13 +45,23 @@
       "currentValueTemplate": "nonroot"
     },
     {
-      "description": "Distroless base digests in digest_pins.py",
+      "description": "Distroless base debian12 digests in digest_pins.py",
       "fileMatch": ["^src/springdocker/digest_pins\\.py$"],
       "matchStrings": [
         "ImagePin\\(\"distroless-base-debian12\", \"gcr.io\", \"distroless/base-debian12\", \"nonroot\", \"(?<currentDigest>sha256:[a-f0-9]{64})\"\\)"
       ],
       "datasourceTemplate": "docker",
       "depNameTemplate": "gcr.io/distroless/base-debian12",
+      "currentValueTemplate": "nonroot"
+    },
+    {
+      "description": "Distroless base debian13 digests in digest_pins.py",
+      "fileMatch": ["^src/springdocker/digest_pins\\.py$"],
+      "matchStrings": [
+        "ImagePin\\(\"distroless-base-debian13\", \"gcr.io\", \"distroless/base-debian13\", \"nonroot\", \"(?<currentDigest>sha256:[a-f0-9]{64})\"\\)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "gcr.io/distroless/base-debian13",
       "currentValueTemplate": "nonroot"
     },
     {
