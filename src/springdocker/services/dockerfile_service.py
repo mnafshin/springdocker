@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from ..config import HEALTHCHECK_AUTO, DockerfileGenerateConfig
 from ..dockerfile import (
     BUILTIN_RECIPES,
     JLINK_BASELINE_MODULES,
@@ -77,6 +78,49 @@ def ensure_default_dockerignore(project_root: Path) -> Path:
     return destination
 
 
+def _resolve_healthcheck_path(
+    configured: str,
+    project_root: Path,
+) -> str | None:
+    if configured == HEALTHCHECK_AUTO:
+        return "/actuator/health/readiness" if _project_has_actuator_dependency(project_root) else None
+    if configured == "":
+        return None
+    return configured
+
+
+def dockerfile_options_from_config(
+    project_root: Path,
+    build_tool: str,
+    config: DockerfileGenerateConfig,
+) -> DockerfileOptions:
+    must_have_modules = parse_must_have_modules(project_root, config.must_have_modules_file)
+    healthcheck_path = _resolve_healthcheck_path(config.healthcheck_path, project_root)
+    return DockerfileOptions(
+        build_tool=build_tool,
+        recipe=config.recipe,
+        java_version=config.java_version,
+        must_have_modules=must_have_modules,
+        jlink_baseline_modules=config.jlink_baseline_modules,
+        runtime_image=config.runtime_image,
+        use_buildkit_cache=config.use_buildkit_cache,
+        use_jlink=config.use_jlink,
+        use_layered_jar=config.use_layered_jar,
+        non_root=config.non_root,
+        platform_aware=config.platform_aware,
+        enable_appcds=config.enable_appcds,
+        enable_jep483_aot_cache=config.enable_jep483_aot_cache,
+        include_oci_labels=config.include_oci_labels,
+        include_stopsignal=config.include_stopsignal,
+        include_embedded_sbom=config.include_embedded_sbom,
+        include_reproducible_controls=config.include_reproducible_controls,
+        pin_digests=config.pin_digests,
+        tuned_jvm_flags=config.tuned_jvm_flags,
+        jvm_flags=config.jvm_flags,
+        healthcheck_path=healthcheck_path,
+    )
+
+
 def generate_dockerfile(
     project_root: Path,
     output_path: str,
@@ -86,16 +130,43 @@ def generate_dockerfile(
     jlink_baseline_modules: tuple[str, ...] = JLINK_BASELINE_MODULES,
     recipe: str = "jvm-balanced",
 ) -> GeneratedDockerfile:
-    must_have_modules = parse_must_have_modules(project_root, must_have_modules_file)
-    actuator_healthcheck = "/actuator/health/readiness" if _project_has_actuator_dependency(project_root) else None
-    options = DockerfileOptions(
+    config = DockerfileGenerateConfig(
         build_tool=build_tool,
-        recipe=recipe,
+        output=output_path,
         java_version=java_version,
-        must_have_modules=must_have_modules,
+        recipe=recipe,
+        profile=None,
+        must_have_modules_file=must_have_modules_file,
         jlink_baseline_modules=jlink_baseline_modules,
-        healthcheck_path=actuator_healthcheck,
+        runtime_image="distroless",
+        use_buildkit_cache=True,
+        use_jlink=True,
+        use_layered_jar=True,
+        non_root=True,
+        platform_aware=True,
+        enable_appcds=True,
+        enable_jep483_aot_cache=False,
+        include_oci_labels=True,
+        include_stopsignal=True,
+        include_embedded_sbom=True,
+        include_reproducible_controls=True,
+        pin_digests=True,
+        tuned_jvm_flags=True,
+        jvm_flags=(),
+        healthcheck_path=HEALTHCHECK_AUTO,
+        wizard_args=[],
+        use_legacy_scripts=False,
     )
+    return generate_dockerfile_from_config(project_root, config, build_tool)
+
+
+def generate_dockerfile_from_config(
+    project_root: Path,
+    config: DockerfileGenerateConfig,
+    build_tool: str,
+) -> GeneratedDockerfile:
+    options = dockerfile_options_from_config(project_root, build_tool, config)
+    recipe = config.recipe
     recipe_warnings: tuple[str, ...] = ()
     scaffold_warnings: tuple[str, ...] = ()
     if recipe == "native-aot":
@@ -116,7 +187,7 @@ def generate_dockerfile(
         dockerfile_text=rendered,
         options=options,
     )
-    destination = resolve_path(project_root, output_path)
+    destination = resolve_path(project_root, config.output)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(generated.dockerfile_text, encoding="utf-8")
     ensure_default_dockerignore(project_root)

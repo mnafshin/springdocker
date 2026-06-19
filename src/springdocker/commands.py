@@ -9,6 +9,7 @@ from typing import cast
 
 from .benchmarks.generate import generate_benchmark_assets
 from .benchmarks.runner import run_benchmarks
+from .config import DockerfileGenerateConfig
 from .dockerfile import JLINK_BASELINE_MODULES
 from .errors import EXIT_FAILURE, EXIT_OK, EXIT_USAGE, print_error, print_warning
 from .plugins import render_verify_with_plugins
@@ -261,23 +262,16 @@ def _use_legacy_scripts(explicit: bool) -> bool:
 
 def cmd_dockerfile_generate(
     project_root: Path,
-    build_tool: str | None,
-    output: str,
-    java_version: int,
-    must_have_modules_file: str | None,
-    extra_args: list[str],
-    use_legacy_scripts: bool,
-    recipe: str = "jvm-balanced",
-    jlink_baseline_modules: tuple[str, ...] | None = None,
+    config: DockerfileGenerateConfig,
 ) -> int:
     try:
-        info = inspect_project(project_root, build_tool)
+        info = inspect_project(project_root, config.build_tool)
     except ValueError as exc:
         print_error(str(exc))
         return EXIT_USAGE
 
-    if _use_legacy_scripts(use_legacy_scripts):
-        if recipe != "jvm-balanced":
+    if _use_legacy_scripts(config.use_legacy_scripts):
+        if config.recipe != "jvm-balanced":
             print_error("--recipe is only supported by the internal generator (disable --use-legacy-scripts)")
             return EXIT_USAGE
         script = project_root / "tools" / "dockerfile_wizard.py"
@@ -291,20 +285,16 @@ def cmd_dockerfile_generate(
             "--build-tool",
             info.build_tool,
             "--output",
-            output,
+            config.output,
         ]
-        cmd.extend(extra_args)
+        cmd.extend(config.wizard_args)
         return run_checked(cmd, project_root)
 
     try:
-        generated = dockerfile_service.generate_dockerfile(
+        generated = dockerfile_service.generate_dockerfile_from_config(
             project_root=project_root,
-            output_path=output,
+            config=config,
             build_tool=info.build_tool,
-            java_version=java_version,
-            must_have_modules_file=must_have_modules_file,
-            jlink_baseline_modules=jlink_baseline_modules or JLINK_BASELINE_MODULES,
-            recipe=recipe,
         )
     except ValueError as exc:
         print_error(str(exc))

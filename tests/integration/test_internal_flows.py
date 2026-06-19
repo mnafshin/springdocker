@@ -18,6 +18,7 @@ from springdocker.commands import (
     cmd_explain,
     cmd_verify,
 )
+from springdocker.config import sample_dockerfile_config
 from springdocker.dockerfile import DockerfileOptions, build_dockerfile
 
 
@@ -34,12 +35,7 @@ class InternalFlowTests(unittest.TestCase):
             (root / "pom.xml").write_text("<project/>", encoding="utf-8")
             code = cmd_dockerfile_generate(
                 project_root=root,
-                build_tool=None,
-                output="Dockerfile.generated",
-                java_version=21,
-                must_have_modules_file=None,
-                extra_args=[],
-                use_legacy_scripts=False,
+                config=sample_dockerfile_config(output="Dockerfile.generated", java_version=21),
             )
             self.assertEqual(code, 0)
             generated = (root / "Dockerfile.generated").read_text(encoding="utf-8")
@@ -107,12 +103,7 @@ class InternalFlowTests(unittest.TestCase):
             (root / "pom.xml").write_text("<project/>", encoding="utf-8")
             code = cmd_dockerfile_generate(
                 project_root=root,
-                build_tool=None,
-                output="Dockerfile.generated",
-                java_version=25,
-                must_have_modules_file=None,
-                extra_args=[],
-                use_legacy_scripts=False,
+                config=sample_dockerfile_config(output="Dockerfile.generated", java_version=25),
             )
             self.assertEqual(code, 0)
             stdout = StringIO()
