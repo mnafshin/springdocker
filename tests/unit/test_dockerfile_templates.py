@@ -45,6 +45,8 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
                 "use_layered_jar",
                 "enable_appcds",
                 "enable_jep483_aot_cache",
+                "jvm_flags",
+                "pin_digests",
             },
         )
 
@@ -55,7 +57,25 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
             ("java.naming", "jdk.crypto.ec", "java.desktop", "java.logging"),
         )
 
-    def test_build_dockerfile_omits_baseline_when_disabled(self) -> None:
+    def test_build_dockerfile_respects_pin_digests_false(self) -> None:
+        rendered = build_dockerfile(
+            DockerfileOptions(build_tool="maven", java_version=25, pin_digests=False, enable_appcds=False)
+        )
+        self.assertIn("FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk AS build", rendered)
+        self.assertNotIn("eclipse-temurin:25-jdk@", rendered)
+
+    def test_build_dockerfile_uses_custom_jvm_flags(self) -> None:
+        rendered = build_dockerfile(
+            DockerfileOptions(
+                build_tool="maven",
+                java_version=25,
+                tuned_jvm_flags=False,
+                jvm_flags=("-XX:+UseZGC",),
+                enable_appcds=False,
+            )
+        )
+        self.assertIn('"-XX:+UseZGC"', rendered)
+        self.assertNotIn("MaxRAMPercentage=75", rendered)
         rendered = build_dockerfile(
             DockerfileOptions(
                 build_tool="maven",

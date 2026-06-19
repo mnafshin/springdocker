@@ -22,6 +22,12 @@ from springdocker.runtime_images import SUPPORTED_RUNTIME_IMAGES
 # Auto-merged into jlink MUSTHAVE_MODULES when jlink is enabled (see merge_jlink_must_have_modules).
 JLINK_BASELINE_MODULES: tuple[str, ...] = ("java.desktop", "java.logging", "java.naming")
 
+DEFAULT_JVM_FLAGS: tuple[str, ...] = (
+    "-XX:MaxRAMPercentage=75",
+    "-XX:+ExitOnOutOfMemoryError",
+    "-Djava.io.tmpdir=/tmp",
+)
+
 BUILTIN_RECIPES = ("jvm-balanced", "spring-aot", "native-aot")
 SPRINGDOCKER_REPO_URL = "https://github.com/mnafshin/springdocker"
 NATIVE_AOT_SCAFFOLD_WARNING = (
@@ -84,6 +90,7 @@ class RuntimeConfig:
     platform_aware: bool
     non_root: bool
     tuned_jvm_flags: bool
+    jvm_flags: tuple[str, ...]
     healthcheck_path: str | None
 
 
@@ -93,6 +100,7 @@ class SupplyChainConfig:
     include_stopsignal: bool
     include_embedded_sbom: bool
     include_reproducible_controls: bool
+    pin_digests: bool
 
 
 @dataclass(frozen=True)
@@ -150,6 +158,15 @@ class DockerfileOptions:
     use_layered_jar: bool = True
     enable_appcds: bool = True
     enable_jep483_aot_cache: bool = False
+    jvm_flags: tuple[str, ...] = ()
+    pin_digests: bool = True
+
+    def resolved_jvm_flags(self) -> tuple[str, ...]:
+        if self.jvm_flags:
+            return self.jvm_flags
+        if self.tuned_jvm_flags:
+            return DEFAULT_JVM_FLAGS
+        return ()
 
     def to_spec(self) -> DockerfileSpec:
         return DockerfileSpec(
@@ -170,6 +187,7 @@ class DockerfileOptions:
                 platform_aware=self.platform_aware,
                 non_root=self.non_root,
                 tuned_jvm_flags=self.tuned_jvm_flags,
+                jvm_flags=self.resolved_jvm_flags(),
                 healthcheck_path=self.healthcheck_path,
             ),
             supply_chain=SupplyChainConfig(
@@ -177,6 +195,7 @@ class DockerfileOptions:
                 include_stopsignal=self.include_stopsignal,
                 include_embedded_sbom=self.include_embedded_sbom,
                 include_reproducible_controls=self.include_reproducible_controls,
+                pin_digests=self.pin_digests,
             ),
         )
 
@@ -236,10 +255,13 @@ def _validate_options(options: DockerfileOptions) -> None:
         raise ValueError("JEP 483 AOT cache requires use_jlink=True")
     if options.enable_jep483_aot_cache and options.enable_appcds:
         raise ValueError("enable_jep483_aot_cache and enable_appcds are mutually exclusive")
+    for flag in options.jvm_flags:
+        if not flag.strip():
+            raise ValueError("jvm_flags entries must be non-empty")
 
 
-def _pin_image(tag: str, digest: str | None) -> str:
-    if digest is None:
+def _pin_image(tag: str, digest: str | None, *, pin_digests: bool = True) -> str:
+    if not pin_digests or digest is None:
         return tag
     return f"{tag}@{digest}"
 
@@ -259,8 +281,12 @@ def _bundles_vendor_jre_on_os_runtime(spec: DockerfileSpec) -> bool:
     return _uses_os_runtime(spec) and not spec.build.use_jlink
 
 
-def _vendor_jre_image(java_version: int) -> str:
-    return _pin_image(f"eclipse-temurin:{java_version}-jre", TEMURIN_JRE_DIGESTS.get(java_version))
+def _vendor_jre_image(java_version: int, *, pin_digests: bool = True) -> str:
+    return _pin_image(
+        f"eclipse-temurin:{java_version}-jre",
+        TEMURIN_JRE_DIGESTS.get(java_version),
+        pin_digests=pin_digests,
+    )
 
 
 def _os_runtime_user_setup(runtime_image: str) -> list[str]:
@@ -338,15 +364,7 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         else f"RUN {build_cmd}"
     )
 
-    jvm_args: list[str] = []
-    if spec.runtime.tuned_jvm_flags:
-        jvm_args.extend(
-            [
-                "-XX:MaxRAMPercentage=75",
-                "-XX:+ExitOnOutOfMemoryError",
-                "-Djava.io.tmpdir=/tmp",
-            ]
-        )
+    jvm_args: list[str] = list(spec.runtime.jvm_flags)
 
     header_lines = [
         "# syntax=docker/dockerfile:1",
@@ -365,7 +383,12 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         sections.append(_section("ARG SOURCE_DATE_EPOCH=0", ""))
     if spec.supply_chain.include_oci_labels:
         sections.append(_section('ARG OCI_SOURCE=""', 'ARG OCI_REVISION=""', 'ARG OCI_CREATED=""', ""))
-    build_base = _pin_image(f"eclipse-temurin:{spec.java_version}-jdk", TEMURIN_JDK_DIGESTS.get(spec.java_version))
+    pin_digests = spec.supply_chain.pin_digests
+    build_base = _pin_image(
+        f"eclipse-temurin:{spec.java_version}-jdk",
+        TEMURIN_JDK_DIGESTS.get(spec.java_version),
+        pin_digests=pin_digests,
+    )
     if spec.build.recipe == "native-aot":
         build_base = f"ghcr.io/graalvm/native-image-community:{spec.java_version}"
     sections.append(
@@ -396,7 +419,7 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
 
     if spec.build.recipe == "native-aot":
         native_runtime_lines = [
-            f"FROM --platform=$TARGETPLATFORM {_pin_image(_distroless_base_image(spec.java_version), _distroless_base_digest(spec.java_version))}",
+            f"FROM --platform=$TARGETPLATFORM {_pin_image(_distroless_base_image(spec.java_version), _distroless_base_digest(spec.java_version), pin_digests=pin_digests)}",
             "WORKDIR /app",
             "COPY --from=build /app/" + jar_path + " /app/app",
         ]
@@ -420,7 +443,7 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         return DockerfileDocument(sections=tuple(sections))
 
     if _bundles_vendor_jre_on_os_runtime(spec):
-        sections.append(_section(f"FROM {_vendor_jre_image(spec.java_version)} AS vendor-jre", ""))
+        sections.append(_section(f"FROM {_vendor_jre_image(spec.java_version, pin_digests=pin_digests)} AS vendor-jre", ""))
 
     if spec.build.use_jlink:
         must_have = merge_jlink_must_have_modules(
@@ -450,6 +473,7 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
     runtime_base = _pin_image(
         f"eclipse-temurin:{spec.java_version}-jre",
         TEMURIN_JRE_DIGESTS.get(spec.java_version),
+        pin_digests=pin_digests,
     )
     if spec.build.use_jlink and spec.build.enable_jep483_aot_cache:
         sections.append(
@@ -477,11 +501,13 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
             _pin_image(
                 _distroless_base_image(spec.java_version),
                 _distroless_base_digest(spec.java_version),
+                pin_digests=pin_digests,
             )
             if spec.build.use_jlink
             else _pin_image(
                 _distroless_java_image(spec.java_version),
                 DISTROLESS_JAVA_DIGESTS.get(spec.java_version),
+                pin_digests=pin_digests,
             )
         )
         distroless_lines = [
@@ -530,10 +556,10 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
     elif spec.runtime.runtime_image == "temurin" and spec.build.use_jlink:
         # jlink ships the runtime; a Temurin JRE base would only add unused layers.
         tag, digest = OS_RUNTIME_IMAGES["debian-slim"]
-        sections.append(_compose_os_runtime_section(spec, jar_path, _pin_image(tag, digest)))
+        sections.append(_compose_os_runtime_section(spec, jar_path, _pin_image(tag, digest, pin_digests=pin_digests)))
     elif spec.runtime.runtime_image in OS_RUNTIME_IMAGES:
         tag, digest = OS_RUNTIME_IMAGES[spec.runtime.runtime_image]
-        sections.append(_compose_os_runtime_section(spec, jar_path, _pin_image(tag, digest)))
+        sections.append(_compose_os_runtime_section(spec, jar_path, _pin_image(tag, digest, pin_digests=pin_digests)))
     else:
         temurin_lines = [f"FROM --platform=$TARGETPLATFORM {runtime_base}"]
         if spec.runtime.non_root:

@@ -10,6 +10,8 @@
 - `-Djava.io.tmpdir=/tmp`
 - optional jlink runtime stage
 
+Configure explicitly via `[dockerfile].jvm_flags` in `.springdocker.toml`, or use `tuned_jvm_flags = true` to apply the default bundle. Set `pin_digests = false` to emit unpinned image tags.
+
 ## Why these choices exist
 
 - `MaxRAMPercentage` keeps container memory use proportional to the cgroup limit.
