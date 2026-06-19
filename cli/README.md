@@ -6,17 +6,16 @@ Product scope and CI-evidenced guarantees: [`docs/POSITIONING.md`](../docs/POSIT
 
 ## Install
 
-### Local editable
+**Primary path:** install from PyPI and run against your Spring Boot project. Clone the repository only for benchmarks on the sample app or for development ([ADR 0006](../docs/adr/0006-pypi-first-distribution.md)).
 
-```bash
-python3 -m pip install -e .
-```
-
-### pipx
+### pipx (recommended)
 
 ```bash
 pipx install springdocker
 springdocker --help
+
+# optional: benchmark run/analyze (requires Docker)
+pipx install 'springdocker[benchmark]'
 ```
 
 Upgrade:
@@ -31,8 +30,23 @@ pipx upgrade springdocker
 uv tool install springdocker
 uv tool upgrade springdocker
 
-# benchmark/evidence commands need optional extras
-python3 -m pip install -e '.[benchmark]'
+# benchmark extra
+uv tool install 'springdocker[benchmark]'
+```
+
+### pip
+
+```bash
+python3 -m pip install springdocker
+python3 -m pip install 'springdocker[benchmark]'
+```
+
+### From source (contributors)
+
+```bash
+git clone https://github.com/mnafshin/springdocker.git
+cd springdocker
+python3 -m pip install -e ".[dev]"
 ```
 
 ## Quick usage

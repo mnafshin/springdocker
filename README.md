@@ -12,6 +12,33 @@ Developer toolkit for Spring Boot containerization with optional benchmark evide
 
 See [`docs/POSITIONING.md`](docs/POSITIONING.md) for product scope, **CI-evidenced guarantees**, and how the sample projects relate to shipped behavior.
 
+## Install
+
+**Primary path: PyPI** — install the CLI and run it on your Spring Boot project. You do not need to clone this repository for Dockerfile generation, explain, or verify.
+
+```bash
+# Recommended: isolated user install (Dockerfile workflow)
+pipx install springdocker
+# or
+uv tool install springdocker
+
+# Include benchmark run/analyze (optional; requires Docker on the host)
+pipx install 'springdocker[benchmark]'
+# or: python3 -m pip install 'springdocker[benchmark]' inside your project venv
+```
+
+See [`cli/README.md`](cli/README.md#install) for pip/editable options and upgrade commands.
+
+### When to clone this repository
+
+| Goal | What to do |
+|---|---|
+| Generate/explain/verify Dockerfiles for **your** service | Install from PyPI only |
+| Reproduce benchmark evidence, presentations, or pinned CI baselines | Clone; work under `samples/java-spring-docker/` |
+| Contribute to the CLI | Clone; editable install — see [Contributing](#contributing) |
+
+Resolved in [#97](https://github.com/mnafshin/springdocker/issues/97) — see [`docs/adr/0006-pypi-first-distribution.md`](docs/adr/0006-pypi-first-distribution.md).
+
 ## Project naming
 
 **springdocker** is the canonical name for this project — use it when searching GitHub or PyPI, installing the package, or running the CLI.
@@ -90,22 +117,35 @@ See [`docs/adr/0004-sample-project-strategy.md`](docs/adr/0004-sample-project-st
 
 ## Quick start
 
-```bash
-cd /path/to/your-repo
-python3 -m venv .venv
-. .venv/bin/activate
-python3 -m pip install -e .
-python3 -m pip install -e '.[benchmark]'
+Install from PyPI first (see [Install](#install)). Then run against **your** Spring Boot project:
 
-# Dockerfile workflow — start with tests/fixtures/
+```bash
+cd /path/to/your-spring-boot-app
+springdocker doctor --project-root .
+springdocker init --project-root . --build-tool maven
+springdocker configure --project-root . --force
+springdocker dockerfile generate --project-root .
+springdocker explain --project-root . Dockerfile.generated --config-aware
+springdocker verify --project-root . Dockerfile.generated --check-config-drift
+```
+
+To try the CLI without your own app, clone this repo and use the minimal fixtures (see [Sample project map](#sample-project-map)):
+
+```bash
+git clone https://github.com/mnafshin/springdocker.git
+cd springdocker
+pipx install 'springdocker[benchmark]'   # or: pip install -e '.[dev]' for contributing
+
 springdocker doctor --project-root tests/fixtures/maven-only
 springdocker init --project-root tests/fixtures/maven-only --build-tool maven
-springdocker inspect --project-root tests/fixtures/maven-only --format json
-springdocker dockerfile generate --project-root tests/fixtures/maven-only --output Dockerfile.generated --recipe jvm-balanced
-springdocker explain --project-root tests/fixtures/maven-only Dockerfile.generated --format json
-springdocker verify --project-root tests/fixtures/maven-only Dockerfile.generated
+springdocker configure --project-root tests/fixtures/maven-only --force
+springdocker dockerfile generate --project-root tests/fixtures/maven-only
+```
 
-# Benchmark workflow — use the full sample app under samples/
+**Benchmark workflow** (optional; requires clone + Docker + `[benchmark]` extra) — use the full sample app under `samples/`:
+
+```bash
+cd springdocker   # repository root after clone
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 springdocker benchmark run --project-root samples/java-spring-docker --profile quick
 springdocker benchmark analyze --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/03-custom-jre-jlink/results/raw.csv --format table
@@ -207,6 +247,7 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 - `docs/team-adoption.md`
 - `docs/troubleshooting.md`
 - `docs/jvm-optimization.md`
+- `docs/distribution.md`
 - `SECURITY.md`
 - `CONTRIBUTING.md`
 
@@ -215,7 +256,6 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 - `docs/example-gallery.md`
 - `docs/benchmark-dashboard.md`
 - `docs/native-image-roadmap.md`
-- `docs/distribution.md`
 - `docs/compatibility-matrix.md`
 
 ## Comparison with adjacent tools
@@ -236,4 +276,4 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 
 ## Contributing
 
-The main package is under `src/springdocker/`. Run `pytest`, `ruff check src tests`, and `mypy src` before pushing changes.
+Clone the repository and use an editable install — see [CONTRIBUTING.md](CONTRIBUTING.md). The main package is under `src/springdocker/`. Run `pytest`, `ruff check src tests`, and `mypy src` before pushing changes.

@@ -1,28 +1,54 @@
 # Onboarding
 
-This repository and CLI are named **springdocker** (`pip install springdocker`, command `springdocker`). The benchmark sample lives at `samples/java-spring-docker/` with Maven coordinates `io.github.mnafshin:java-spring-docker` — see [Project naming](../README.md#project-naming) in the README.
+**springdocker** is installed from PyPI (`pip install springdocker`, command `springdocker`). You do not need to clone this repository unless you are reproducing benchmarks, editing presentations, or contributing to the CLI.
 
-## 5-minute quickstart
+See [Project naming](../README.md#project-naming) and [Install](../README.md#install) in the README.
+
+## Consumer quickstart (PyPI)
+
+Install on your machine, then run against your Spring Boot project:
+
+```bash
+pipx install springdocker
+# or: pipx install 'springdocker[benchmark]' when you need benchmark run/analyze
+
+cd /path/to/your-spring-boot-app
+springdocker doctor --project-root .
+springdocker init --project-root . --build-tool maven
+springdocker configure --project-root . --force
+springdocker dockerfile generate --project-root .
+springdocker verify --project-root . Dockerfile.generated
+```
+
+Team rollout: [team-adoption.md](team-adoption.md).
+
+## Contributor quickstart (clone)
 
 1. Clone the repo.
 2. Create and activate a virtual environment.
-3. Install the package with `python3 -m pip install -e ".[dev]"`.
-4. Run `springdocker doctor --project-root samples/java-spring-docker`.
-5. Generate a Dockerfile with `springdocker dockerfile generate`.
-6. Generate benchmark assets with `springdocker benchmark generate`.
-7. Run the sample benchmark suite with `springdocker benchmark run --profile quick`.
-8. Summarize one raw CSV file with `springdocker benchmark analyze`.
+3. Install with `python3 -m pip install -e ".[dev]"`.
+4. Run `pytest`, `ruff check src tests`, and `mypy src` before pushing.
 
-## Local development
+Use `tests/fixtures/{maven-only,gradle-only}/` for CLI regression work. Use `samples/java-spring-docker/` for benchmark harness changes.
 
-- Use the sample project under `samples/java-spring-docker/` as the default target.
-- Run the tests and linters before pushing.
-- Keep docs and CLI flags in sync.
+## Benchmark evidence (clone + Docker)
+
+Requires repository clone, `[benchmark]` extra, and Docker:
+
+```bash
+pipx install 'springdocker[benchmark]'   # or editable .[dev] from a clone
+
+springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
+springdocker benchmark run --project-root samples/java-spring-docker --profile quick
+springdocker benchmark analyze --project-root samples/java-spring-docker \
+  samples/java-spring-docker/benchmarks/03-custom-jre-jlink/results/raw.csv --format table
+```
 
 ## What to look at first
 
-- `README.md`
-- `cli/README.md`
+- `README.md` — install paths and when to clone
+- `cli/README.md` — command reference
+- `docs/POSITIONING.md` — PyPI vs sample tree
 - `docs/team-adoption.md`
 - `docs/architecture.md`
 - `docs/benchmark-methodology.md`
@@ -32,12 +58,8 @@ This repository and CLI are named **springdocker** (`pip install springdocker`, 
 
 | Goal | Command |
 |---|---|
-| Check the project | `springdocker doctor --project-root samples/java-spring-docker` |
-| Write config | `springdocker init --project-root samples/java-spring-docker --build-tool maven` |
-| Interactive Dockerfile strategy | `springdocker configure --project-root samples/java-spring-docker --force` |
-| Generate Dockerfile | `springdocker dockerfile generate --project-root samples/java-spring-docker` |
-| Run benchmarks | `springdocker benchmark run --project-root samples/java-spring-docker --profile quick` |
-
-## Team adoption
-
-For config-first rollout (SSOT in `.springdocker.toml`, CI generate + verify, profiles, FAQ): [team-adoption.md](team-adoption.md).
+| Check the project | `springdocker doctor --project-root .` |
+| Write config | `springdocker init --project-root . --build-tool maven` |
+| Interactive Dockerfile strategy | `springdocker configure --project-root . --force` |
+| Generate Dockerfile | `springdocker dockerfile generate --project-root .` |
+| Run benchmarks (sample app) | `springdocker benchmark run --project-root samples/java-spring-docker --profile quick` |

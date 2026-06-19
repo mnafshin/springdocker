@@ -1,32 +1,44 @@
-# Binary distribution
+# Distribution
 
-> **NOT IMPLEMENTED YET**
->
-> This page is roadmap content and does not describe currently shipped `springdocker` functionality.
+`springdocker` is published on **PyPI** as the primary distribution channel. Install it and run against your Spring Boot project — no repository clone required for the core CLI workflow.
 
-`springdocker` is a Python CLI, so the practical distribution channels are package managers, self-contained launchers, and a containerized runtime.
+## Shipped today
 
-## Channels
+| Channel | Command | Notes |
+|---|---|---|
+| **PyPI (base)** | `pip install springdocker` | Dockerfile generate, explain, verify, init, configure, doctor |
+| **PyPI + benchmarks** | `pip install 'springdocker[benchmark]'` | Adds `requests`; `benchmark run` still requires Docker |
+| **pipx** | `pipx install springdocker` or `pipx install 'springdocker[benchmark]'` | Recommended isolated user install |
+| **uv tool** | `uv tool install springdocker` | Same as pipx for uv users |
+
+Upgrade: `pipx upgrade springdocker`, `uv tool upgrade springdocker`, or `pip install -U springdocker`.
+
+See [README install](../README.md#install) and [cli/README.md](../cli/README.md#install).
+
+## When to clone the repository
+
+Clone [github.com/mnafshin/springdocker](https://github.com/mnafshin/springdocker) when you need:
+
+- the benchmark harness under `samples/java-spring-docker/`
+- presentation decks or pinned CI baseline CSVs
+- an editable install for contributions
+
+Decision record: [ADR 0006: PyPI-first distribution](adr/0006-pypi-first-distribution.md).
+
+## Roadmap channels
+
+These are not required for the primary PyPI path:
 
 | Channel | Notes |
 |---|---|
-| `uv tool install springdocker` | Fast Python-native install path for local users. |
-| `pipx install springdocker` | Isolated user-scoped CLI install. |
-| Homebrew | Suitable for macOS/Linux users who want a tap-based install. |
-| Scoop | Good fit for Windows users who prefer manifest-based installs. |
-| Standalone binary | Useful when Python should not be installed on the target machine. |
-| Dockerized CLI runtime | Good for hermetic CI or one-off invocations. |
+| Homebrew tap | macOS/Linux manifest-based install |
+| Scoop | Windows manifest-based install |
+| Standalone binary | For hosts without Python |
+| Dockerized CLI runtime | Hermetic CI invocations |
 
-## Sample artifacts
+Template files for some of these live under `docs/examples/distribution/` (`homebrew-formula.rb`, `scoop-manifest.json`, `standalone-binary.sh`).
 
-See `docs/examples/distribution/` for template files that can be published or adapted:
+## Release alignment
 
-- `homebrew-formula.rb`
-- `scoop-manifest.json`
-- `standalone-binary.sh`
-
-## Operational notes
-
-- Keep the published version aligned with `pyproject.toml`.
-- Generate release artifacts from tagged builds.
-- Prefer the same release process for package managers and standalone assets so the version stays consistent.
+- Keep the published PyPI version aligned with `pyproject.toml` / git tags.
+- Generate release artifacts from tagged builds (see `.github/workflows/release.yml`).

@@ -8,6 +8,18 @@
 
 This document separates **what the CLI ships and CI validates** from **what the benchmark sample demonstrates** and **what remains roadmap**.
 
+## Distribution
+
+**PyPI-first:** install `springdocker` and run it on your Spring Boot project. Cloning the repository is optional — only needed for benchmark evidence on the sample app, presentations, or contributing.
+
+| Path | Use when |
+|---|---|
+| `pip install springdocker` / `pipx` / `uv tool` | Default — Dockerfile, explain, verify on your service |
+| Clone + `samples/java-spring-docker/` | Reproduce benchmark scenarios, reference CSVs, presentation numbers |
+| Clone + editable install | CLI development ([CONTRIBUTING.md](../CONTRIBUTING.md)) |
+
+Benchmark assets stay in the main repository; they are not a separate distribution product. See [ADR 0006](adr/0006-pypi-first-distribution.md) (closes [#97](https://github.com/mnafshin/springdocker/issues/97)).
+
 ## Product scope
 
 springdocker is a **general-purpose CLI** for Maven and Gradle Spring Boot projects:
