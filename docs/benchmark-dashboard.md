@@ -22,6 +22,8 @@ Commit/publish policy: [`docs/presentation/README.md`](presentation/README.md#co
 
 See `docs/examples/benchmark-trends.json` for a compact sample of the trend payload shape.
 
+Values are copied from the pinned scenario **06** baseline (`samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json`, `quick` profile). They are **sample evidence** from one host — reproduce on your machine before treating them as representative. Refresh this file when the committed baseline changes.
+
 ## CI integration
 
 CI runs the **analyzer regression gate** on a pinned `raw.csv` / `baseline.json` pair (scenario 06) and a **benchmark-hygiene** check that `benchmark generate` produces gitignored assets only. It does not rebuild Docker images or re-run the full benchmark matrix on every push. See [`POSITIONING.md`](POSITIONING.md#shipped-guarantees-ci-evidenced).

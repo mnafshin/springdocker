@@ -1,20 +1,27 @@
 {
-  "generated_at": "2026-05-15",
+  "note": "Trend payload shape example. Values from samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json (quick profile, host-specific — not universal guarantees).",
+  "generated_at": "2026-06-18",
+  "source": "samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json",
+  "run_profile": "quick",
   "series": [
     {
       "scenario": "06-base-image-choice",
       "metric": "startup_avg_ms",
       "points": [
-        {"variant": "distroless-nonroot", "value": 1252.7},
-        {"variant": "temurin-jre", "value": 1158.7}
+        {"variant": "alpine", "value": 1583.0},
+        {"variant": "debian-slim", "value": 1583.7},
+        {"variant": "distroless", "value": 1510.7},
+        {"variant": "ubuntu", "value": 1672.7}
       ]
     },
     {
       "scenario": "06-base-image-choice",
       "metric": "image_mb_avg",
       "points": [
-        {"variant": "distroless-nonroot", "value": 134.8},
-        {"variant": "temurin-jre", "value": 134.8}
+        {"variant": "alpine", "value": 62.35},
+        {"variant": "debian-slim", "value": 85.94},
+        {"variant": "distroless", "value": 67.67},
+        {"variant": "ubuntu", "value": 85.85}
       ]
     }
   ]
