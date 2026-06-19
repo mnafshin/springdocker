@@ -78,23 +78,39 @@ class CliIntegrationTests(unittest.TestCase):
         self.assertEqual(code, 0)
 
     def test_dockerfile_generate_reads_must_have_modules_file_from_config(self) -> None:
-        td, project = self._workspace_from_fixture("gradle-only")
-        self.addCleanup(td.cleanup)
-        (project / ".springdocker.toml").write_text(
-            "[project]\n"
-            "build_tool = \"gradle\"\n\n"
-            "[dockerfile]\n"
-            "output = \"Dockerfile.test\"\n"
-            "java_version = 25\n"
-            "must_have_modules_file = \"must-have.txt\"\n",
-            encoding="utf-8",
+        cases = (
+            (
+                "gradle-only",
+                'ARG MUSTHAVE_MODULES="jdk.crypto.ec,java.naming"',
+            ),
+            (
+                "maven-only",
+                'ARG MUSTHAVE_MODULES="jdk.crypto.ec,java.naming,java.desktop,java.logging"',
+            ),
         )
-        (project / "must-have.txt").write_text("jdk.crypto.ec\n# comment\njava.naming\n", encoding="utf-8")
+        for fixture_name, expected_modules_arg in cases:
+            with self.subTest(fixture=fixture_name):
+                td, project = self._workspace_from_fixture(fixture_name)
+                self.addCleanup(td.cleanup)
+                build_tool = "gradle" if fixture_name == "gradle-only" else "maven"
+                (project / ".springdocker.toml").write_text(
+                    "[project]\n"
+                    f'build_tool = "{build_tool}"\n\n'
+                    "[dockerfile]\n"
+                    'output = "Dockerfile.test"\n'
+                    "java_version = 25\n"
+                    'must_have_modules_file = "must-have.txt"\n',
+                    encoding="utf-8",
+                )
+                (project / "must-have.txt").write_text(
+                    "jdk.crypto.ec\n# comment\njava.naming\n",
+                    encoding="utf-8",
+                )
 
-        code = main(["dockerfile", "generate", "--project-root", str(project)])
-        self.assertEqual(code, 0)
-        generated = (project / "Dockerfile.test").read_text(encoding="utf-8")
-        self.assertIn('ARG MUSTHAVE_MODULES="jdk.crypto.ec,java.naming,java.desktop,java.logging"', generated)
+                code = main(["dockerfile", "generate", "--project-root", str(project)])
+                self.assertEqual(code, 0)
+                generated = (project / "Dockerfile.test").read_text(encoding="utf-8")
+                self.assertIn(expected_modules_arg, generated)
 
     def test_inspect_outputs_json_for_maven_fixture(self) -> None:
         td, project = self._workspace_from_fixture("maven-only")
