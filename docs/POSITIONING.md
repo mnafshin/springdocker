@@ -4,7 +4,9 @@
 
 - You get a generated Dockerfile with strong defaults.
 - You keep direct ownership of the container definition.
-- You can explain and verify the output in CI.
+- You can explain (advisory review) and verify (CI gates) the output.
+
+`explain` uses static text heuristics — useful for documentation and PR review, not a security or correctness audit. `verify` runs tool-backed and config checks with pass/fail semantics; use it to block merges. See [cli/README.md](../cli/README.md#explain-command).
 
 This document separates **what the CLI ships and CI validates** from **what the benchmark sample demonstrates** and **what remains roadmap**.
 
@@ -41,7 +43,8 @@ springdocker is a **general-purpose CLI** for Maven and Gradle Spring Boot proje
 | In scope today | Out of scope today |
 |---|---|
 | Project detection, config, Dockerfile generation | Replacing your CI platform or registry |
-| `explain` / `verify` workflows around generated Dockerfiles | Guaranteed native-image production workflow |
+| `explain` — advisory static analysis for human review | Using `explain` as a security or correctness CI gate |
+| `verify` — pass/fail checks for CI (config SSOT, optional hadolint/trivy/…) | Guaranteed native-image production workflow |
 | Optional benchmark asset generation, run, and analyze | Universal JVM tuning prescriptions for every workload |
 | Plugin hooks for recipes, mutators, and verifiers | Full compatibility matrix across all Spring Boot versions |
 

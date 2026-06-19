@@ -30,7 +30,7 @@ flowchart TD
 | `src/springdocker/config.py` | Load `.springdocker.toml` and resolve command settings. |
 | `src/springdocker/project_detect.py` | Detect Maven/Gradle markers, Spring Boot hints, and common multi-module layouts (Maven reactor / Gradle `include`). |
 | `src/springdocker/dockerfile.py` | Render Dockerfiles from structured options. |
-| `src/springdocker/dockerfile_explain.py` | Explain generated Dockerfiles via static text heuristics. |
+| `src/springdocker/dockerfile_explain.py` | Advisory Dockerfile explanation via static text heuristics (not a security audit; use `verify` for CI gates). |
 | `src/springdocker/analyze.py` | Summarize benchmark CSV data and format reports. |
 | `src/springdocker/benchmarks/` | Generate and run benchmark scenario assets. |
 

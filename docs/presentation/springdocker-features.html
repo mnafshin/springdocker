@@ -234,7 +234,7 @@
             </div>
             <div class="card">
               <h4>explain</h4>
-              <p>Annotate <em>any</em> Dockerfile — line by line, with reasoning and config linkage.</p>
+              <p>Advisory static analysis — recognized optimizations and config linkage for review, not a security audit.</p>
               <small class="muted">$ springdocker explain ./Dockerfile --config-aware</small>
             </div>
             <div class="card">
@@ -470,7 +470,7 @@ ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", \
           <ol style="columns: 2; column-gap: 1.8em; font-size: 0.62em; line-height: 1.25; margin-top: 0.2em;">
             <li><code>configure</code> → reviewable <code>.springdocker.toml</code>; <code>dockerfile generate</code> is deterministic in CI.</li>
             <li>One generation → digest‑pinned, non‑root, layered JAR + jlink; OS runtime HEALTHCHECK when applicable.</li>
-            <li><code>explain --config-aware</code> works on any Dockerfile and links lines to config.</li>
+            <li><code>explain --config-aware</code> summarizes recognized features (advisory heuristics); <code>verify --check-config-drift</code> is the CI gate.</li>
             <li><code>verify --check-config-drift</code> covers lint, vuln, layer, signature, and config compliance.</li>
             <li>README answers "why not Jib / Buildpacks" briefly and clearly.</li>
             <li>CI green across major operating systems and supported Python versions.</li>

@@ -93,7 +93,15 @@ def build_parser() -> argparse.ArgumentParser:
     add_common_options(inspect)
     inspect.add_argument("--format", choices=["table", "json"], default="table")
 
-    explain = sub.add_parser("explain", help="Explain a Dockerfile")
+    explain = sub.add_parser(
+        "explain",
+        help="Advisory static analysis of a Dockerfile (not a security audit)",
+        description=(
+            "Describe recognized optimizations using text heuristics. "
+            "Output is for human review and documentation — not a substitute for "
+            "security or correctness checks. Use `springdocker verify` for CI gates."
+        ),
+    )
     add_common_options(explain)
     explain.add_argument("dockerfile", nargs="?", default="Dockerfile.generated")
     explain.add_argument("--format", choices=["table", "json"], default="table")
@@ -103,7 +111,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Include resolved .springdocker.toml options, option sources, and drift detection",
     )
 
-    verify = sub.add_parser("verify", help="Run verification checks against a Dockerfile and project context")
+    verify = sub.add_parser(
+        "verify",
+        help="Run verification checks against a Dockerfile and project context (CI gates)",
+        description=(
+            "Run tool-backed and config checks with pass/fail semantics suitable for CI. "
+            "Contrast with `springdocker explain`, which is advisory static analysis only."
+        ),
+    )
     add_common_options(verify, with_build_tool=False)
     verify.add_argument("--dockerfile", default="Dockerfile.generated")
     verify.add_argument("--image", default=None, help="Optional built image reference for dive/cosign checks")

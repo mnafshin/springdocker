@@ -106,8 +106,8 @@ Supported runtime names: `distroless`, `debian-slim`, `alpine`, `ubuntu`, `temur
 | `springdocker init --interactive` | Yes (via configure) | Yes | No | New service bootstrap |
 | `springdocker configure` | Yes | Yes (`[dockerfile]`) | Optional (`--generate`) | Strategy changes |
 | `springdocker dockerfile generate` | No | No | Yes | Daily dev + CI |
-| `springdocker explain --config-aware` | No | No | No | Audit / review |
-| `springdocker verify --check-config-drift` | No | No | No | CI SSOT gate |
+| `springdocker explain --config-aware` | No | No | No | Audit / review (advisory — not a CI gate) |
+| `springdocker verify --check-config-drift` | No | No | No | CI SSOT gate (pass/fail) |
 
 ### Precedence
 
@@ -277,7 +277,13 @@ Use `--format json` for machine-readable output.
 
 ## Explain command
 
-`springdocker explain` reads a springdocker-generated Dockerfile and describes the optimizations it contains:
+`springdocker explain` reads a Dockerfile and **describes** optimizations it recognizes using static text heuristics (regex and keyword matching).
+
+**Advisory only — not a CI gate.** Explain output helps humans review and document a Dockerfile. It does **not** perform a security audit, lint the file, scan images, or prove runtime correctness. Hand-written Dockerfiles may be misread; a missing feature in explain output does not mean that optimization is absent at runtime.
+
+**Use `springdocker verify` for CI gates** — hadolint, trivy, SBOM checks, optional dive/cosign/smoke, and `--check-config-drift` for config SSOT compliance. Only `verify` uses pass/fail semantics suitable for blocking merges.
+
+Recognized signals include:
 
 - multi-stage layout
 - BuildKit cache usage
@@ -287,12 +293,13 @@ Use `--format json` for machine-readable output.
 - jlink baseline modules (built-in defaults)
 - curated must-have modules (from `must-have.txt`)
 
-Use `--format json` when you want stable structured output.
+Use `--format json` when you want stable structured output. The JSON `notes` field repeats the advisory scope and points to `verify`.
 
-Add `--config-aware` to include resolved `[dockerfile]` options from `.springdocker.toml`, per-option sources (`default` or `project`), and drift detection against `dockerfile generate`:
+Add `--config-aware` to include resolved `[dockerfile]` options from `.springdocker.toml`, per-option sources (`default` or `project`), and drift detection against `dockerfile generate`. Config drift in explain is informational; enforce SSOT in CI with `verify --check-config-drift`:
 
 ```bash
 springdocker explain --project-root . Dockerfile.generated --format json --config-aware
+springdocker verify --project-root . --dockerfile Dockerfile.generated --check-config-drift
 ```
 
 ## Verify command

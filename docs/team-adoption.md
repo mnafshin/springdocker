@@ -75,11 +75,13 @@ springdocker dockerfile generate --runtime-image alpine --no-use-jlink
 
 To change strategy permanently, edit `.springdocker.toml` or rerun `springdocker configure --force`.
 
-Inspect what the generator decided:
+Inspect what the generator decided (advisory — not a CI gate):
 
 ```bash
 springdocker explain Dockerfile.generated --format json --config-aware
 ```
+
+For pass/fail CI checks (config drift, SBOM, optional hadolint/trivy), use `springdocker verify --check-config-drift` below.
 
 ## CI pipeline (copy-pasteable)
 
@@ -113,7 +115,7 @@ jobs:
       - name: Verify config SSOT (drift, SBOM, non-root, JVM flags)
         run: springdocker verify --project-root . --dockerfile Dockerfile.generated --check-config-drift --format json
 
-      - name: Explain with config audit (optional JSON artifact)
+      - name: Explain with config audit (optional JSON artifact; advisory only)
         run: springdocker explain --project-root . Dockerfile.generated --format json --config-aware > explain.json
 
       # Optional: commit Dockerfile.generated in repo and fail on uncommitted drift:

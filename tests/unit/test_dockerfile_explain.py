@@ -61,7 +61,9 @@ class DockerfileExplainTests(unittest.TestCase):
 
     def test_explain_includes_static_analysis_notes(self) -> None:
         payload = explain_dockerfile_text("FROM scratch\n")
-        self.assertIn("Explanation is based on static text signals", payload["notes"][0])
+        notes = payload["notes"]
+        self.assertIn("Advisory static analysis only", notes[0])
+        self.assertIn("springdocker verify", notes[-1])
 
 
 if __name__ == "__main__":

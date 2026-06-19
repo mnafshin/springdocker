@@ -76,6 +76,7 @@ Those sample names predate the **springdocker** product name. They do not affect
 - **Jib** and **Buildpacks** optimize for build convenience and opaque image assembly.
 - **springdocker** optimizes for teams that want a **real Dockerfile they can own, read, and edit**.
 - It combines explicit Dockerfile generation with explainability and verification workflows.
+- **`explain`** is advisory static analysis for human review; **`verify`** is the pass/fail command for CI gates.
 
 See [`docs/POSITIONING.md`](docs/POSITIONING.md) for the detailed comparison and tradeoffs.
 
@@ -137,8 +138,8 @@ springdocker doctor --project-root .
 springdocker init --project-root . --build-tool maven
 springdocker configure --project-root . --force
 springdocker dockerfile generate --project-root .
-springdocker explain --project-root . Dockerfile.generated --config-aware
-springdocker verify --project-root . Dockerfile.generated --check-config-drift
+springdocker explain --project-root . Dockerfile.generated --config-aware   # advisory review
+springdocker verify --project-root . Dockerfile.generated --check-config-drift   # CI gate
 ```
 
 To try the CLI without your own app, clone this repo and use the minimal fixtures (see [Sample project map](#sample-project-map)):
