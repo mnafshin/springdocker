@@ -23,6 +23,7 @@ This repository and CLI are named **springdocker** (`pip install springdocker`, 
 
 - `README.md`
 - `cli/README.md`
+- `docs/team-adoption.md`
 - `docs/architecture.md`
 - `docs/benchmark-methodology.md`
 - `docs/troubleshooting.md`
@@ -33,5 +34,10 @@ This repository and CLI are named **springdocker** (`pip install springdocker`, 
 |---|---|
 | Check the project | `springdocker doctor --project-root samples/java-spring-docker` |
 | Write config | `springdocker init --project-root samples/java-spring-docker --build-tool maven` |
+| Interactive Dockerfile strategy | `springdocker configure --project-root samples/java-spring-docker --force` |
 | Generate Dockerfile | `springdocker dockerfile generate --project-root samples/java-spring-docker` |
 | Run benchmarks | `springdocker benchmark run --project-root samples/java-spring-docker --profile quick` |
+
+## Team adoption
+
+For config-first rollout (SSOT in `.springdocker.toml`, CI generate + verify, profiles, FAQ): [team-adoption.md](team-adoption.md).

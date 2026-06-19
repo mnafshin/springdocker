@@ -204,6 +204,7 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 - `docs/adr/README.md`
 - `docs/multiarch.md`
 - `docs/onboarding.md`
+- `docs/team-adoption.md`
 - `docs/troubleshooting.md`
 - `docs/jvm-optimization.md`
 - `SECURITY.md`

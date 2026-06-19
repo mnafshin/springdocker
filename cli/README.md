@@ -82,15 +82,34 @@ Supported runtime names: `distroless`, `debian-slim`, `alpine`, `ubuntu`, `temur
 
 ## Config-first workflow
 
-`.springdocker.toml` is the **single source of truth** for Dockerfile generation (see [ADR 0005](../docs/adr/0005-config-first-dockerfile-generation.md)).
+`.springdocker.toml` is the **single source of truth** for Dockerfile generation (see [ADR 0005](../docs/adr/0005-config-first-dockerfile-generation.md)). Team rollout guide: [docs/team-adoption.md](../docs/team-adoption.md).
+
+### Command matrix
+
+| Command | Interactive? | Writes config? | Writes Dockerfile? | Typical user |
+|---|---|---|---|---|
+| `springdocker init` | No | Yes (skeleton) | No | Platform / first checkout |
+| `springdocker init --interactive` | Yes (via configure) | Yes | No | New service bootstrap |
+| `springdocker configure` | Yes | Yes (`[dockerfile]`) | Optional (`--generate`) | Strategy changes |
+| `springdocker dockerfile generate` | No | No | Yes | Daily dev + CI |
+| `springdocker explain --config-aware` | No | No | No | Audit / review |
+| `springdocker verify --check-config-drift` | No | No | No | CI SSOT gate |
+
+### Precedence
+
+| Priority | Source |
+|---:|---|
+| 1 | CLI flags on `dockerfile generate` |
+| 2 | Project `.springdocker.toml` |
+| 3 | Built-in defaults |
+
+Org policy (`SPRINGDOCKER_POLICY`) is planned ([#123](https://github.com/mnafshin/springdocker/issues/123)); not required today.
 
 | Command | Purpose |
 |---|---|
 | `springdocker configure` | Interactive wizard that writes/updates `[dockerfile]` in config |
 | `springdocker init --interactive` | Create config skeleton, then run configure |
 | `springdocker dockerfile generate` | Deterministic generate from config (CI-safe, no prompts) |
-
-Precedence: **CLI flags > `.springdocker.toml` > defaults**.
 
 Profiles (`production-balanced`, `smallest-image`, `fast-cold-start`, `build-speed`, `simplest`, `compliance`, `custom`) are selected in `configure` and expanded to explicit options in config.
 
@@ -197,6 +216,21 @@ Create template config:
 springdocker init --project-root samples/java-spring-docker --build-tool gradle
 springdocker init --project-root samples/java-spring-docker --build-tool gradle --profile full --print
 ```
+
+### `init --interactive`
+
+Creates `.springdocker.toml` if missing, then runs the same wizard as `configure` (no Dockerfile write unless you chain commands yourself):
+
+```bash
+springdocker init --project-root . --build-tool maven --interactive
+# equivalent to:
+# springdocker init --project-root . --build-tool maven
+# springdocker configure --project-root . --force
+```
+
+Use `--force` on `init` to overwrite an existing skeleton; use `configure --force` to replace only the `[dockerfile]` section in an existing file.
+
+See [docs/team-adoption.md](../docs/team-adoption.md) for first-time setup, CI examples, and migration from the retired `tools/dockerfile_wizard.py`.
 
 ## Legacy benchmark scripts
 

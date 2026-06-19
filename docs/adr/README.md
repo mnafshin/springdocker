@@ -9,4 +9,5 @@ This directory contains the current architecture decisions for `springdocker`.
 3. [ADR 0003: Dockerfile generation philosophy](0003-dockerfile-generation-philosophy.md)
 4. [ADR 0004: Sample project strategy](0004-sample-project-strategy.md)
 5. [ADR 0005: Config-first Dockerfile generation](0005-config-first-dockerfile-generation.md)
+6. [Team adoption guide](../team-adoption.md) — config-first rollout for teams
 
