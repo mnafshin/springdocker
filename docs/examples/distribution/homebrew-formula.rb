@@ -1,7 +1,7 @@
 class Springdocker < Formula
   desc "Spring Boot Dockerfile and benchmark workflow CLI"
   homepage "https://github.com/mnafshin/springdocker"
-  url "https://github.com/mnafshin/springdocker/archive/refs/tags/v0.1.0.tar.gz"
+  url "https://github.com/mnafshin/springdocker/archive/refs/tags/v1.0.4.tar.gz"
   sha256 "REPLACE_WITH_TARBALL_SHA256"
   license "Apache-2.0"
 
