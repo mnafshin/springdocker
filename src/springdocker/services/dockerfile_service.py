@@ -158,22 +158,17 @@ def generate_dockerfile(
     return generate_dockerfile_from_config(project_root, config, build_tool)
 
 
-def generate_dockerfile_from_config(
+def _render_dockerfile_from_config(
     project_root: Path,
     config: DockerfileGenerateConfig,
     build_tool: str,
-) -> GeneratedDockerfile:
+) -> tuple[str, tuple[str, ...]]:
     options = dockerfile_options_from_config(project_root, build_tool, config)
     recipe = config.recipe
-    recipe_warnings: tuple[str, ...] = ()
-    scaffold_warnings: tuple[str, ...] = ()
-    if recipe == "native-aot":
-        scaffold_warnings = (NATIVE_AOT_SCAFFOLD_WARNING,)
     if recipe in BUILTIN_RECIPES:
         rendered = build_dockerfile(options)
     else:
         recipe_render = render_recipe_from_plugins(recipe=recipe, options=options)
-        recipe_warnings = recipe_render.warnings
         if recipe_render.handled and recipe_render.rendered is not None:
             rendered = recipe_render.rendered
         elif recipe_render.handled:
@@ -185,13 +180,41 @@ def generate_dockerfile_from_config(
         dockerfile_text=rendered,
         options=options,
     )
+    return generated.dockerfile_text, generated.warnings
+
+
+def render_dockerfile_text_from_config(
+    project_root: Path,
+    config: DockerfileGenerateConfig,
+    build_tool: str,
+) -> str:
+    rendered_text, _ = _render_dockerfile_from_config(project_root, config, build_tool)
+    return rendered_text
+
+
+def generate_dockerfile_from_config(
+    project_root: Path,
+    config: DockerfileGenerateConfig,
+    build_tool: str,
+) -> GeneratedDockerfile:
+    recipe = config.recipe
+    recipe_warnings: tuple[str, ...] = ()
+    scaffold_warnings: tuple[str, ...] = ()
+    if recipe == "native-aot":
+        scaffold_warnings = (NATIVE_AOT_SCAFFOLD_WARNING,)
+    if recipe not in BUILTIN_RECIPES:
+        options = dockerfile_options_from_config(project_root, build_tool, config)
+        recipe_render = render_recipe_from_plugins(recipe=recipe, options=options)
+        recipe_warnings = recipe_render.warnings
+
+    rendered_text, mutator_warnings = _render_dockerfile_from_config(project_root, config, build_tool)
     destination = resolve_path(project_root, config.output)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(generated.dockerfile_text, encoding="utf-8")
+    destination.write_text(rendered_text, encoding="utf-8")
     ensure_default_dockerignore(project_root)
     return GeneratedDockerfile(
         path=destination,
-        plugin_warnings=(*scaffold_warnings, *recipe_warnings, *generated.warnings),
+        plugin_warnings=(*scaffold_warnings, *recipe_warnings, *mutator_warnings),
     )
 
 
@@ -201,10 +224,42 @@ class GeneratedDockerfile:
     plugin_warnings: tuple[str, ...]
 
 
-def explain_dockerfile(project_root: Path, dockerfile_path: str) -> dict[str, object]:
+def explain_dockerfile(
+    project_root: Path,
+    dockerfile_path: str,
+    *,
+    config_aware: bool = False,
+    build_tool: str | None = None,
+) -> dict[str, object]:
     path = resolve_path(project_root, dockerfile_path)
     if not path.exists():
         raise ValueError(f"missing Dockerfile: {path}")
     payload = dict(explain_dockerfile_text(path.read_text(encoding="utf-8")))
     payload["path"] = str(path)
+    if not config_aware:
+        return payload
+
+    from ..config_audit import build_config_aware_payload, load_config_audit
+    from ..project_detect import inspect_project
+
+    resolved_build_tool = build_tool
+    if resolved_build_tool is None:
+        try:
+            resolved_build_tool = inspect_project(project_root, None).build_tool
+        except ValueError:
+            resolved_build_tool = None
+
+    if resolved_build_tool is None:
+        payload["config_aware"] = {
+            "config_present": False,
+            "detail": "build tool could not be resolved for config audit",
+        }
+        return payload
+
+    audit = load_config_audit(project_root, resolved_build_tool, path)
+    if audit is None:
+        payload["config_aware"] = {"config_present": False}
+        return payload
+
+    payload["config_aware"] = build_config_aware_payload(audit)
     return payload

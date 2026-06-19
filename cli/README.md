@@ -236,6 +236,12 @@ Use `--format json` for machine-readable output.
 
 Use `--format json` when you want stable structured output.
 
+Add `--config-aware` to include resolved `[dockerfile]` options from `.springdocker.toml`, per-option sources (`default` or `project`), and drift detection against `dockerfile generate`:
+
+```bash
+springdocker explain --project-root . Dockerfile.generated --format json --config-aware
+```
+
 ## Verify command
 
 `springdocker verify` runs a battery of checks against a generated Dockerfile and optional runtime context. It is designed to work in CI without installing every external tool.
@@ -247,7 +253,17 @@ springdocker verify --project-root tests/fixtures/maven-only Dockerfile.generate
   --smoke-url http://127.0.0.1:8081/actuator/health \
   --format junit \
   --output reports/verify.junit.xml
+springdocker verify --project-root . --dockerfile Dockerfile.generated --check-config-drift
 ```
+
+`--check-config-drift` adds config SSOT checks when `.springdocker.toml` is present:
+
+| Check | Validates |
+|---|---|
+| `config-drift` | Dockerfile matches `dockerfile generate` output for current config |
+| `config-embedded-sbom` | `/usr/share/sbom/spdx.json` present when `include_embedded_sbom = true` |
+| `config-non-root` | unprivileged `USER` when `non_root = true` |
+| `config-jvm-flags` | configured JVM flags appear in `ENTRYPOINT` |
 
 ### Built-in checks
 

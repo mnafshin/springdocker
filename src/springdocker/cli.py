@@ -97,6 +97,11 @@ def build_parser() -> argparse.ArgumentParser:
     add_common_options(explain)
     explain.add_argument("dockerfile", nargs="?", default="Dockerfile.generated")
     explain.add_argument("--format", choices=["table", "json"], default="table")
+    explain.add_argument(
+        "--config-aware",
+        action="store_true",
+        help="Include resolved .springdocker.toml options, option sources, and drift detection",
+    )
 
     verify = sub.add_parser("verify", help="Run verification checks against a Dockerfile and project context")
     add_common_options(verify, with_build_tool=False)
@@ -105,6 +110,11 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--smoke-url", default=None, help="Optional HTTP endpoint for smoke verification")
     verify.add_argument("--format", default="table")
     verify.add_argument("--output", default=None, help="Write verification report to file")
+    verify.add_argument(
+        "--check-config-drift",
+        action="store_true",
+        help="Verify Dockerfile matches config SSOT (drift, SBOM, non-root, JVM flags)",
+    )
 
     dockerfile = sub.add_parser("dockerfile", help="Dockerfile operations")
     dockerfile_sub = dockerfile.add_subparsers(dest="dockerfile_command", required=True)
@@ -321,7 +331,13 @@ def _handle_inspect(args: argparse.Namespace, project_root: Path) -> int:
 
 
 def _handle_explain(args: argparse.Namespace, project_root: Path) -> int:
-    return cmd_explain(project_root=project_root, dockerfile_path=args.dockerfile, output_format=args.format)
+    return cmd_explain(
+        project_root=project_root,
+        dockerfile_path=args.dockerfile,
+        output_format=args.format,
+        config_aware=args.config_aware,
+        build_tool=args.build_tool,
+    )
 
 
 def _handle_verify(args: argparse.Namespace, project_root: Path) -> int:
@@ -332,6 +348,8 @@ def _handle_verify(args: argparse.Namespace, project_root: Path) -> int:
         smoke_url=args.smoke_url,
         output_format=args.format,
         output_path=args.output,
+        check_config_drift=args.check_config_drift,
+        build_tool=getattr(args, "build_tool", None),
     )
 
 

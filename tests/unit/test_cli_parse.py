@@ -32,21 +32,23 @@ class CliParseTests(unittest.TestCase):
 
     def test_explain_parse(self) -> None:
         parser = build_parser()
-        args = parser.parse_args(["explain", "Dockerfile.generated", "--format", "json"])
+        args = parser.parse_args(["explain", "Dockerfile.generated", "--format", "json", "--config-aware"])
         self.assertEqual(args.command, "explain")
         self.assertEqual(args.dockerfile, "Dockerfile.generated")
         self.assertEqual(args.format, "json")
+        self.assertTrue(args.config_aware)
 
     def test_verify_parse(self) -> None:
         parser = build_parser()
         args = parser.parse_args(
-            ["verify", "--dockerfile", "Dockerfile.generated", "--image", "demo:latest", "--format", "sarif", "--output", "verify.sarif"]
+            ["verify", "--dockerfile", "Dockerfile.generated", "--image", "demo:latest", "--format", "sarif", "--output", "verify.sarif", "--check-config-drift"]
         )
         self.assertEqual(args.command, "verify")
         self.assertEqual(args.dockerfile, "Dockerfile.generated")
         self.assertEqual(args.image, "demo:latest")
         self.assertEqual(args.format, "sarif")
         self.assertEqual(args.output, "verify.sarif")
+        self.assertTrue(args.check_config_drift)
 
     def test_verify_parse_accepts_plugin_format(self) -> None:
         parser = build_parser()

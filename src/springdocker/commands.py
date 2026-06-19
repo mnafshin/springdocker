@@ -109,21 +109,34 @@ def _render_explain_table(payload: dict[str, object]) -> str:
     jlink_modules = cast(dict[str, list[str]], payload.get("jlink_modules", {}))
     baseline_modules = ", ".join(jlink_modules.get("baseline", [])) or "-"
     curated_modules = ", ".join(jlink_modules.get("curated", [])) or "-"
-    return "\n".join(
-        [
-            "| Field | Value |",
-            "|---|---|",
-            f"| Source | {payload.get('source', '-')} |",
-            f"| Build tool | {payload.get('build_tool') or '-'} |",
-            f"| Java version | {payload.get('java_version') if payload.get('java_version') is not None else '-'} |",
-            f"| Stage count | {payload.get('stage_count', '-')} |",
-            f"| Features | {feature_names or '-'} |",
-            f"| Jlink baseline modules | {baseline_modules} |",
-            f"| Curated must-have modules | {curated_modules} |",
-            f"| Summary | {payload.get('summary', '-')} |",
-            f"| Notes | {'; '.join(notes) if notes else '-'} |",
-        ]
-    )
+    lines = [
+        "| Field | Value |",
+        "|---|---|",
+        f"| Source | {payload.get('source', '-')} |",
+        f"| Build tool | {payload.get('build_tool') or '-'} |",
+        f"| Java version | {payload.get('java_version') if payload.get('java_version') is not None else '-'} |",
+        f"| Stage count | {payload.get('stage_count', '-')} |",
+        f"| Features | {feature_names or '-'} |",
+        f"| Jlink baseline modules | {baseline_modules} |",
+        f"| Curated must-have modules | {curated_modules} |",
+        f"| Summary | {payload.get('summary', '-')} |",
+        f"| Notes | {'; '.join(notes) if notes else '-'} |",
+    ]
+    config_aware = payload.get("config_aware")
+    if isinstance(config_aware, dict):
+        lines.extend(
+            [
+                f"| Config present | {'yes' if config_aware.get('config_present') else 'no'} |",
+            ]
+        )
+        drift = config_aware.get("drift")
+        if isinstance(drift, dict):
+            drift_label = "yes" if drift.get("detected") else "no"
+            lines.append(f"| Config drift | {drift_label} ({drift.get('detail', '-')}) |")
+        resolved_options = config_aware.get("resolved_options")
+        if isinstance(resolved_options, dict):
+            lines.append(f"| Config runtime image | {resolved_options.get('runtime_image', '-')} |")
+    return "\n".join(lines)
 
 
 def cmd_benchmark_compare(
@@ -150,9 +163,21 @@ def cmd_benchmark_compare(
     return EXIT_OK
 
 
-def cmd_explain(project_root: Path, dockerfile_path: str, output_format: str) -> int:
+def cmd_explain(
+    project_root: Path,
+    dockerfile_path: str,
+    output_format: str,
+    *,
+    config_aware: bool = False,
+    build_tool: str | None = None,
+) -> int:
     try:
-        payload = dockerfile_service.explain_dockerfile(project_root, dockerfile_path)
+        payload = dockerfile_service.explain_dockerfile(
+            project_root,
+            dockerfile_path,
+            config_aware=config_aware,
+            build_tool=build_tool,
+        )
     except ValueError as exc:
         print_error(str(exc))
         return EXIT_USAGE
@@ -171,6 +196,9 @@ def cmd_verify(
     smoke_url: str | None,
     output_format: str,
     output_path: str | None,
+    *,
+    check_config_drift: bool = False,
+    build_tool: str | None = None,
 ) -> int:
     path = Path(dockerfile_path)
     if not path.is_absolute():
@@ -185,6 +213,8 @@ def cmd_verify(
             dockerfile_path=path,
             image=image,
             smoke_url=smoke_url,
+            check_config_drift=check_config_drift,
+            build_tool=build_tool,
         )
     )
 

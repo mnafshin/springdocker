@@ -39,6 +39,8 @@ class VerifyContext:
     dockerfile_path: Path
     image: str | None
     smoke_url: str | None
+    check_config_drift: bool = False
+    build_tool: str | None = None
 
 
 def _run_tool(args: list[str], ok_exit_codes: tuple[int, ...] = (0,)) -> tuple[VerifyStatus, str]:
@@ -134,6 +136,57 @@ def _verify_plugin_entry(context: VerifyContext, entry: Any) -> tuple[VerifyStat
     raise TypeError("verifier plugin must return (status, detail) or a dict payload")
 
 
+def _verify_config_checks(context: VerifyContext) -> list[VerifyResult]:
+    from ..config_audit import load_config_audit
+    from ..project_detect import inspect_project
+
+    started = time.monotonic()
+    build_tool = context.build_tool
+    if build_tool is None:
+        try:
+            build_tool = inspect_project(context.project_root, None).build_tool
+        except ValueError as exc:
+            duration_ms = int((time.monotonic() - started) * 1000)
+            return [
+                VerifyResult(
+                    name="config-drift",
+                    status="skipped",
+                    detail=f"build tool could not be resolved: {exc}",
+                    duration_ms=duration_ms,
+                )
+            ]
+
+    audit = load_config_audit(context.project_root, build_tool, context.dockerfile_path)
+    if audit is None:
+        duration_ms = int((time.monotonic() - started) * 1000)
+        return [
+            VerifyResult(
+                name="config-drift",
+                status="skipped",
+                detail="no .springdocker.toml present for config audit",
+                duration_ms=duration_ms,
+            )
+        ]
+
+    dockerfile_text = context.dockerfile_path.read_text(encoding="utf-8")
+    from ..config_audit import run_config_verify_checks
+
+    checks = run_config_verify_checks(audit, dockerfile_text)
+    results: list[VerifyResult] = []
+    for name, status, detail in checks:
+        check_started = time.monotonic()
+        duration_ms = int((time.monotonic() - check_started) * 1000)
+        results.append(
+            VerifyResult(
+                name=name,
+                status=cast(VerifyStatus, status),
+                detail=detail,
+                duration_ms=duration_ms,
+            )
+        )
+    return results
+
+
 def run_verification(context: VerifyContext) -> VerifyOutcome:
     checks: list[tuple[str, Any]] = [
         ("hadolint", _verify_hadolint),
@@ -150,6 +203,9 @@ def run_verification(context: VerifyContext) -> VerifyOutcome:
         status, detail = check(context)
         duration_ms = int((time.monotonic() - started) * 1000)
         results.append(VerifyResult(name=name, status=status, detail=detail, duration_ms=duration_ms))
+
+    if context.check_config_drift:
+        results.extend(_verify_config_checks(context))
 
     for entry in iter_verifier_entry_points():
         started = time.monotonic()

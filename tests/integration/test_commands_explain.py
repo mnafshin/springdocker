@@ -12,8 +12,11 @@ from tests.test_support import add_src_to_path
 add_src_to_path()
 
 from springdocker.commands import cmd_explain
+from springdocker.config import load_config
+from springdocker.config_audit import resolve_dockerfile_audit_config
 from springdocker.dockerfile import DockerfileOptions, build_dockerfile
 from springdocker.errors import EXIT_OK, EXIT_USAGE
+from springdocker.services.dockerfile_service import render_dockerfile_text_from_config
 
 
 class ExplainCommandTests(unittest.TestCase):
@@ -125,6 +128,66 @@ class ExplainCommandTests(unittest.TestCase):
             self.assertEqual(code, EXIT_OK)
             payload = json.loads(stdout.getvalue())
             self.assertIn("distroless runtime", [feature["name"] for feature in payload["features"]])
+
+    def test_explain_config_aware_includes_resolved_options(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / ".springdocker.toml").write_text(
+                "[project]\n"
+                'build_tool = "maven"\n\n'
+                "[dockerfile]\n"
+                'output = "Dockerfile.generated"\n'
+                'runtime_image = "alpine"\n',
+                encoding="utf-8",
+            )
+            dockerfile = root / "Dockerfile.generated"
+            loaded = load_config(root / ".springdocker.toml")
+            config = resolve_dockerfile_audit_config(root, "maven", dockerfile, loaded)
+            dockerfile.write_text(
+                render_dockerfile_text_from_config(root, config, "maven"),
+                encoding="utf-8",
+            )
+            stdout = StringIO()
+            with redirect_stdout(stdout):
+                code = cmd_explain(
+                    root,
+                    "Dockerfile.generated",
+                    "json",
+                    config_aware=True,
+                    build_tool="maven",
+                )
+            self.assertEqual(code, EXIT_OK)
+            payload = json.loads(stdout.getvalue())
+            config_aware = payload["config_aware"]
+            self.assertTrue(config_aware["config_present"])
+            self.assertEqual(config_aware["resolved_options"]["runtime_image"], "alpine")
+            self.assertEqual(config_aware["option_sources"]["runtime_image"], "project")
+            self.assertEqual(config_aware["option_sources"]["use_jlink"], "default")
+            self.assertFalse(config_aware["drift"]["detected"])
+
+    def test_explain_config_aware_detects_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / ".springdocker.toml").write_text(
+                "[project]\n"
+                'build_tool = "maven"\n\n'
+                "[dockerfile]\n"
+                'output = "Dockerfile.generated"\n',
+                encoding="utf-8",
+            )
+            (root / "Dockerfile.generated").write_text("FROM scratch\n", encoding="utf-8")
+            stdout = StringIO()
+            with redirect_stdout(stdout):
+                code = cmd_explain(
+                    root,
+                    "Dockerfile.generated",
+                    "json",
+                    config_aware=True,
+                    build_tool="maven",
+                )
+            self.assertEqual(code, EXIT_OK)
+            payload = json.loads(stdout.getvalue())
+            self.assertTrue(payload["config_aware"]["drift"]["detected"])
 
 
 if __name__ == "__main__":
