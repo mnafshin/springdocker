@@ -42,7 +42,7 @@ Template files for some of these live under `docs/examples/distribution/` (`home
 
 - Keep the published PyPI version aligned with `pyproject.toml` / git tags (`vMAJOR.MINOR.PATCH`).
 - Generate release artifacts from tagged builds (see `.github/workflows/release.yml`).
-- **Bump example templates** under `docs/examples/distribution/` on each release so version strings and tag URLs stay in sync with `pyproject.toml` (currently **1.0.4**).
+- **Bump example templates** under `docs/examples/distribution/` on each release so version strings and tag URLs stay in sync with `pyproject.toml` (currently **1.1.0**).
 
 ### Template variables
 
@@ -50,6 +50,6 @@ Template files for some of these live under `docs/examples/distribution/` (`home
 |---|---|---|
 | `homebrew-formula.rb` | tag in `url` | `.../archive/refs/tags/vX.Y.Z.tar.gz` (source tarball — published with tags) |
 | `scoop-manifest.json` | `"version"` field | `.../releases/download/vX.Y.Z/springdocker-windows-amd64.zip` (placeholder until CI ships zip) |
-| `standalone-binary.sh` | `SPRINGDOCKER_VERSION` env, default `1.0.4` | `.../releases/download/vX.Y.Z/springdocker-linux-amd64.tar.gz` (placeholder until CI ships tarball) |
+| `standalone-binary.sh` | `SPRINGDOCKER_VERSION` env, default `1.1.0` | `.../releases/download/vX.Y.Z/springdocker-linux-amd64.tar.gz` (placeholder until CI ships tarball) |
 
 Replace `REPLACE_WITH_*` checksum placeholders when adopting a manifest for a real tap or bucket. Until standalone archives exist in GitHub Releases, prefer **pipx** / **PyPI** for end users.
