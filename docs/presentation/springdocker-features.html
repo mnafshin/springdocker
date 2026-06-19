@@ -139,7 +139,7 @@
   </style>
 </head>
 <body>
-  <!-- benchmark-updated: 2026-06-18T03:09:06Z -->
+  <!-- benchmark-updated: 2026-06-19T22:40:20Z -->
   <div class="reveal">
     <div class="slides">
 
@@ -151,8 +151,8 @@
         <section>
           <div class="hero-mark">$ springdocker init</div>
           <h1 class="hero-title">springdocker<br/><em>features</em> &amp; workflow</h1>
-          <p class="hero-sub">Generate, explain, and verify production Spring Boot Dockerfiles — without giving up ownership of the Dockerfile.</p>
-          <div class="footer-note">TALK 1 · FEATURES · PRESS →</div>
+          <p class="hero-sub">Generate, explain, and verify production Spring Boot Dockerfiles — strategy in <code>.springdocker.toml</code>, output you own.</p>
+          <div class="footer-note">FEATURES · PRESS →</div>
         </section>
 
         <!-- 1.2 The Painful Truth -->
@@ -206,7 +206,7 @@
         <section>
           <span class="badge">Meet the tool</span>
           <h2><code style="font-size: 1em;">springdocker</code></h2>
-          <p class="tagline">Generate, explain, and verify production Spring Boot Dockerfiles.</p>
+          <p class="tagline">Configure strategy in git. Generate, explain, and verify production Spring Boot Dockerfiles.</p>
           <div class="pill-row" style="margin-top: 1.2em;">
             <span class="pill">⚡ One command</span>
             <span class="pill">🧠 Opinionated recipes</span>
@@ -217,25 +217,30 @@
           </div>
         </section>
 
-        <!-- 2.2 Three verbs -->
+        <!-- 2.2 Config-first commands -->
         <section>
-          <span class="badge">Three verbs. That's it.</span>
-          <h2>The entire product fits on a napkin.</h2>
-          <div class="grid grid-3" style="margin-top: 1.2em;">
+          <span class="badge">Config-first. Four commands.</span>
+          <h2>Strategy in git. Output in CI.</h2>
+          <div class="grid grid-2" style="margin-top: 1.2em;">
             <div class="card">
-              <h4>generate</h4>
-              <p>Pick a recipe. Get a Dockerfile and a managed <code>.dockerignore</code>.</p>
-              <small class="muted">$ springdocker dockerfile generate --recipe jvm-balanced</small>
+              <h4>configure</h4>
+              <p>Interactive wizard writes <code>[dockerfile]</code> to <code>.springdocker.toml</code> — reviewable in PRs.</p>
+              <small class="muted">$ springdocker configure --project-root .</small>
+            </div>
+            <div class="card">
+              <h4>dockerfile generate</h4>
+              <p>Non-interactive. Reads resolved config. Writes Dockerfile and <code>.dockerignore</code>.</p>
+              <small class="muted">$ springdocker dockerfile generate --project-root .</small>
             </div>
             <div class="card">
               <h4>explain</h4>
-              <p>Annotate <em>any</em> Dockerfile — not just ours. Line by line. With reasoning.</p>
-              <small class="muted">$ springdocker explain ./Dockerfile</small>
+              <p>Annotate <em>any</em> Dockerfile — line by line, with reasoning and config linkage.</p>
+              <small class="muted">$ springdocker explain ./Dockerfile --config-aware</small>
             </div>
             <div class="card">
               <h4>verify</h4>
-              <p>Lint · scan · layer audit · signature · SBOM · smoke run. One pass/fail.</p>
-              <small class="muted">$ springdocker verify ./Dockerfile</small>
+              <p>Lint · scan · layer audit · signature · SBOM · smoke · config drift. One pass/fail.</p>
+              <small class="muted">$ springdocker verify ./Dockerfile --check-config-drift</small>
             </div>
           </div>
         </section>
@@ -248,7 +253,8 @@
             <div class="card">
               <h4 class="accent">We ship</h4>
               <ul>
-                <li>Dockerfile generation, explanation, verification</li>
+                <li>Dockerfile generation from <code>.springdocker.toml</code>, explanation, verification</li>
+                <li>Interactive <code>configure</code> wizard with named profiles</li>
                 <li>Spring Boot–aware project detection (Maven + Gradle + Kotlin DSL)</li>
                 <li>Reference benchmark dataset, regenerated on a controlled runner</li>
                 <li>A real plugin contract (6 extension points)</li>
@@ -290,7 +296,7 @@
             <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:48%;"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
             <div class="bar-row"><span class="label">native‑aot*</span><div class="bar-wrap"><div class="bar" style="width:39%;"></div></div><span class="val">55.7 MB</span></div>
           </div>
-          <p class="muted" style="margin-top: 1em;">Same image-size ladder as Talk 2 (<code>docker-steps-evidence.html</code>) — each bar is an independent scenario lever, not one Dockerfile. <code>jvm-balanced</code> defaults to distroless + jlink. * native reference only · scaffold recipe today.</p>
+          <p class="muted" style="margin-top: 1em;">Same image-size ladder as <code>docker-steps-evidence.html</code> — each bar is an independent scenario lever, not one Dockerfile. <code>production-balanced</code> profile defaults to distroless + jlink. * native reference only · scaffold recipe today.</p>
         </section>
 
         <!-- 3.3 Cold start -->
@@ -312,10 +318,10 @@
           <span class="badge">Build cache · the silent productivity killer</span>
           <h3>Rebuild after touching one Java file</h3>
           <div class="grid grid-2" style="margin-top: 1em;">
-            <div class="stat bad"><span class="num" data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">1,078 ms</span><span class="lbl">Without BuildKit cache</span></div>
-            <div class="stat"><span class="num" data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">611 ms</span><span class="lbl">With BuildKit cache</span></div>
+            <div class="stat bad"><span class="num" data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">940 ms</span><span class="lbl">Without BuildKit cache</span></div>
+            <div class="stat"><span class="num" data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">793 ms</span><span class="lbl">With BuildKit cache</span></div>
           </div>
-          <p style="margin-top: 0.8em;" class="muted"><span data-benchmark-computed="02-buildkit-gradle-cache/build_speedup">~1.8×</span> faster rebuild after touching one Java file</p>
+          <p style="margin-top: 0.8em;" class="muted"><span data-benchmark-computed="02-buildkit-gradle-cache/build_speedup">~1.2×</span> faster rebuild after touching one Java file</p>
           <p style="margin-top: 0.8em;">Build caching and layered outputs reduce rebuild time significantly in repeated CI runs.</p>
         </section>
 
@@ -350,26 +356,28 @@
           <h2>From <code>git clone</code> to a production image.</h2>
           <ol class="step-list">
             <li><strong>Inspect.</strong> <code>springdocker inspect</code> reads <code>pom.xml</code> / <code>build.gradle[.kts]</code> and reports compatibility signals.</li>
-            <li><strong>Initialize.</strong> <code>springdocker init</code> writes a starter <code>.springdocker.toml</code>.</li>
-            <li><strong>Generate.</strong> <code>springdocker dockerfile generate</code> writes a Dockerfile and ensures <code>.dockerignore</code>.</li>
-            <li><strong>Verify.</strong> <code>springdocker verify</code> runs built-in checks (and optional plugin checks) with pass/fail output.</li>
+            <li><strong>Initialize.</strong> <code>springdocker init</code> writes a starter <code>.springdocker.toml</code> (or use <code>init --interactive</code> to chain configure).</li>
+            <li><strong>Configure.</strong> <code>springdocker configure</code> picks a profile and writes explicit <code>[dockerfile]</code> options — the SSOT your team reviews in PRs.</li>
+            <li><strong>Generate.</strong> <code>springdocker dockerfile generate</code> reads config deterministically and writes the Dockerfile.</li>
+            <li><strong>Verify.</strong> <code>springdocker verify --check-config-drift</code> runs built-in checks and confirms the Dockerfile matches config.</li>
             <li><strong>Benchmark.</strong> <code>springdocker benchmark generate/run/analyze</code> provides reproducible evidence for tuning decisions.</li>
           </ol>
         </section>
 
-        <!-- 4.2 The recipe -->
+        <!-- 4.2 Profiles -->
         <section>
-          <span class="badge">Pick a recipe, not a long flag list</span>
-          <h3>A small set of recipes covers most Spring Boot deployments.</h3>
+          <span class="badge">Pick a profile, not a long flag list</span>
+          <h3>Named bundles in <code>configure</code> expand to explicit config keys.</h3>
           <table>
-            <thead><tr><th>Recipe</th><th>Best for</th><th>Image trend</th><th>Cold-start trend</th></tr></thead>
+            <thead><tr><th>Profile</th><th>Best for</th><th>Image trend</th><th>Cold-start trend</th></tr></thead>
             <tbody>
-              <tr><td><code>jvm-balanced</code></td><td>General-purpose default</td><td>distroless + jlink (~68 MB)</td><td>~1.5 s startup</td></tr>
-              <tr><td><code>spring-aot</code></td><td>AOT-optimized JVM startup</td><td>similar</td><td>faster (AOT build)</td></tr>
-              <tr><td><code>native-aot</code></td><td>Cold-start critical workloads</td><td>smallest (~56 MB ref)</td><td>fastest (scaffold)</td></tr>
+              <tr><td><code>production-balanced</code></td><td>Team default — distroless + jlink + supply chain</td><td>distroless + jlink (~68 MB)</td><td>~1.5 s startup</td></tr>
+              <tr><td><code>fast-cold-start</code></td><td>JEP 483 AOT cache when Java 24+</td><td>similar</td><td>~968 ms (scenario 04)</td></tr>
+              <tr><td><code>smallest-image</code></td><td>Registry cost / fleet bandwidth</td><td>alpine + jlink (~62 MB)</td><td>trade-off vs glibc</td></tr>
+              <tr><td><code>compliance</code></td><td>SBOM, digest pins, OCI labels, reproducible controls</td><td>similar</td><td>similar</td></tr>
             </tbody>
           </table>
-          <p class="muted" style="margin-top: 1em;">Tune behavior via config and CLI options. Recipes can be extended through plugins.</p>
+          <p class="muted" style="margin-top: 1em;">Profiles save as explicit <code>[dockerfile]</code> keys for readable diffs. Override any option in config or via CLI flags.</p>
         </section>
 
         <!-- 4.3 The output -->
@@ -415,7 +423,7 @@ ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", \
 
   springdocker verify — PASSED
           </code></pre>
-          <p class="muted" style="margin-top: 0.8em;">Same command in your terminal and in CI. Fails the build when any gate fails. Outputs JUnit XML, SARIF, and JSON for tooling.</p>
+          <p class="muted" style="margin-top: 0.8em;">Add <code>--check-config-drift</code> to confirm the Dockerfile matches <code>.springdocker.toml</code>. Same command in your terminal and in CI. Outputs JUnit XML, SARIF, and JSON for tooling.</p>
         </section>
       </section>
 
@@ -460,9 +468,10 @@ ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", \
           <span class="badge">When do we call it "professional"?</span>
           <h3 style="margin-bottom: 0.35em;">All gates green, or it's still early-stage.</h3>
           <ol style="columns: 2; column-gap: 1.8em; font-size: 0.62em; line-height: 1.25; margin-top: 0.2em;">
-            <li>One command → digest‑pinned, non‑root, layered JAR + jlink; OS runtime HEALTHCHECK when applicable.</li>
-            <li><code>explain</code> works on any Dockerfile.</li>
-            <li><code>verify</code> covers lint, vuln, layer, signature.</li>
+            <li><code>configure</code> → reviewable <code>.springdocker.toml</code>; <code>dockerfile generate</code> is deterministic in CI.</li>
+            <li>One generation → digest‑pinned, non‑root, layered JAR + jlink; OS runtime HEALTHCHECK when applicable.</li>
+            <li><code>explain --config-aware</code> works on any Dockerfile and links lines to config.</li>
+            <li><code>verify --check-config-drift</code> covers lint, vuln, layer, signature, and config compliance.</li>
             <li>README answers "why not Jib / Buildpacks" briefly and clearly.</li>
             <li>CI green across major operating systems and supported Python versions.</li>
             <li>High line coverage on dockerfile / commands / config.</li>
@@ -489,7 +498,7 @@ ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", \
             </div>
             <div class="card" style="padding: 0.85em 0.95em;">
               <h4>The solution</h4>
-              <p style="font-size: 0.58em; line-height: 1.3;">Generate a Dockerfile you own, explain existing ones, and verify with one command.</p>
+              <p style="font-size: 0.58em; line-height: 1.3;">Commit strategy in <code>.springdocker.toml</code>, generate a Dockerfile you own, explain and verify with config-aware checks.</p>
             </div>
             <div class="card pink" style="padding: 0.85em 0.95em;">
               <h4>The bet</h4>
@@ -506,7 +515,7 @@ ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", \
         <section data-background-gradient="radial-gradient(circle at 50% 40%, #1d3c34 0%, #0a0d12 60%)">
           <div class="hero-mark">$ pip install springdocker</div>
           <h1 class="hero-title" style="margin-top: 0.3em;">Build the Dockerfile<br/>your app <em>deserves</em>.</h1>
-          <p class="hero-sub" style="margin-top: 1.0em;">Generate. Explain. Verify. Repeat.</p>
+          <p class="hero-sub" style="margin-top: 1.0em;">Configure. Generate. Explain. Verify.</p>
           <div class="pill-row" style="margin-top: 1.5em;">
             <span class="pill">github.com/mnafshin/springdocker</span>
             <span class="pill">github.com/mnafshin/springdocker/tree/main/docs</span>

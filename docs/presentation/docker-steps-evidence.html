@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- benchmark-updated: 2026-06-18T03:09:06Z -->
+  <!-- benchmark-updated: 2026-06-19T22:40:20Z -->
 
 <div class="reveal">
 <div class="slides">
@@ -25,7 +25,7 @@
       <span class="badge">JUG · Spring Boot containers</span>
       <h1 class="hero-title">Docker steps<br><em>with evidence</em></h1>
       <p class="muted">Why each Dockerfile decision exists — and what you gain from scenarios 01–08</p>
-      <p class="tiny" style="margin-top: 1.2em;">TALK 2 · STEPS &amp; BENEFITS · Press → · Speaker notes: <kbd>S</kbd></p>
+      <p class="tiny" style="margin-top: 1.2em;">STEPS &amp; BENEFITS · Press → · Speaker notes: <kbd>S</kbd></p>
       <aside class="notes">Frame the talk: most teams can build a container; fewer can explain why each line is there.</aside>
     </section>
 
@@ -101,7 +101,7 @@ springdocker benchmark analyze benchmarks/03-custom-jre-jlink/results/raw.csv</c
           <tr><td>03 JLink + jdeps</td><td class="good">ON (+ must-have modules)</td><td>Major size win, stable startup</td></tr>
           <tr><td>04 JEP 483 AOT cache</td><td class="warn">Conditional</td><td>Tail latency improvement varies</td></tr>
           <tr><td>05 JVM flags</td><td class="warn">Baseline first</td><td>Host/workload dependent</td></tr>
-          <tr><td>06 Base image</td><td class="good">Distroless + jlink</td><td><code>jvm-balanced</code> default; scenario 06 compares OS bases</td></tr>
+          <tr><td>06 Base image</td><td class="good">Distroless + jlink</td><td><code>production-balanced</code> profile default; scenario 06 compares OS bases</td></tr>
           <tr><td>07 Native vs JVM</td><td class="warn">Scaffold / selective</td><td>Cold start vs build time tradeoff</td></tr>
           <tr><td>08 AppCDS</td><td class="good">ON when layered JAR</td><td>Faster startup from shared archive</td></tr>
         </tbody>
@@ -148,15 +148,15 @@ ENTRYPOINT ["java", …, "org.springframework.boot.loader.launch.JarLauncher"]</
       <span class="badge pink">Scenario 02 · highest ROI</span>
       <h2>BuildKit cache mounts</h2>
       <div class="grid grid-2" style="margin-top: 1em;">
-        <div class="stat bad"><span class="num" data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">1,078 ms</span><span class="lbl">Without cache</span></div>
-        <div class="stat"><span class="num" data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">611 ms</span><span class="lbl">With cache</span></div>
+        <div class="stat bad"><span class="num" data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">940 ms</span><span class="lbl">Without cache</span></div>
+        <div class="stat"><span class="num" data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">793 ms</span><span class="lbl">With cache</span></div>
       </div>
-      <p style="margin-top: 0.8em;" class="muted"><span data-benchmark-computed="02-buildkit-gradle-cache/build_speedup">~1.8×</span> faster rebuild after touching one Java file</p>
+      <p style="margin-top: 0.8em;" class="muted"><span data-benchmark-computed="02-buildkit-gradle-cache/build_speedup">~1.2×</span> faster rebuild after touching one Java file</p>
       <table style="margin-top: 0.8em;">
         <thead><tr><th>Variant</th><th>Image</th><th>Build avg</th><th>Startup avg</th><th>Startup p95</th></tr></thead>
         <tbody>
-          <tr><td>with-buildkit-cache</td><td class="warn"><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/image_mb_avg">167.82 MB</span></td><td class="good"><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">611 ms</span></td><td><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/startup_avg_ms">1,151 ms</span></td><td><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/startup_p95_ms">1,342 ms</span></td></tr>
-          <tr><td>without-buildkit-cache</td><td class="good"><span data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/image_mb_avg">167.28 MB</span></td><td class="risk"><span data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">1,078 ms</span></td><td>—</td><td>—</td></tr>
+          <tr><td>with-buildkit-cache</td><td><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/image_mb_avg">67.67 MB</span></td><td class="good"><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">793 ms</span></td><td class="good"><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/startup_avg_ms">1,340 ms</span></td><td class="risk"><span data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/startup_p95_ms">1,618 ms</span></td></tr>
+          <tr><td>without-buildkit-cache</td><td><span data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/image_mb_avg">67.67 MB</span></td><td class="risk"><span data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">940 ms</span></td><td class="warn"><span data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/startup_avg_ms">1,346 ms</span></td><td class="good"><span data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/startup_p95_ms">1,355 ms</span></td></tr>
         </tbody>
       </table>
       <pre><code class="language-dockerfile" data-trim data-noescape>RUN --mount=type=cache,target=/root/.m2 \
@@ -278,7 +278,7 @@ application/</code></pre>
     <section>
       <span class="badge">Decision 06</span>
       <h2>Smallest image ≠ best production choice</h2>
-      <p><span class="good">distroless + jlink</span> is the <code>jvm-balanced</code> generator default — strong size and startup in scenario 06 evidence. <strong>debian-slim</strong> still wins on build time when CI speed matters most.</p>
+      <p><span class="good">distroless + jlink</span> is the <code>production-balanced</code> profile default — strong size and startup in scenario 06 evidence. <strong>debian-slim</strong> still wins on build time when CI speed matters most.</p>
       <div class="grid grid-2" style="margin-top: 0.8em;">
         <div class="card"><h4>Pick alpine</h4><p>When every MB counts and musl compatibility is verified.</p></div>
         <div class="card"><h4>Pick distroless</h4><p>When non-root hardening and smaller pulls matter more than build speed.</p></div>
@@ -380,7 +380,7 @@ USER root</code></pre>
         <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:48%"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
         <div class="bar-row"><span class="label">native-aot*</span><div class="bar-wrap"><div class="bar" style="width:39%"></div></div><span class="val">55.7 MB</span></div>
       </div>
-      <p class="scenario-foot">Same image-size ladder as Talk 1 — each bar is an independent scenario lever, not one cumulative Dockerfile. * native reference only · scaffold recipe today</p>
+      <p class="scenario-foot">Same image-size ladder as <code>springdocker-features.html</code> — each bar is an independent scenario lever, not one cumulative Dockerfile. * native reference only · scaffold recipe today</p>
     </section>
     <section>
       <span class="badge pink">Combined impact</span>
@@ -425,9 +425,11 @@ USER root</code></pre>
         <li>Run one full-profile benchmark on a real service</li>
         <li>Adopt only changes with repeatable p95 or cost improvement</li>
       </ol>
-      <pre><code class="language-bash" data-trim data-noescape>springdocker dockerfile generate --recipe jvm-balanced
-springdocker explain Dockerfile.generated
-springdocker verify Dockerfile.generated --format table</code></pre>
+      <pre><code class="language-bash" data-trim data-noescape>springdocker init --project-root . --build-tool maven
+springdocker configure --project-root . --force
+springdocker dockerfile generate --project-root .
+springdocker explain --project-root . Dockerfile.generated --config-aware
+springdocker verify --project-root . Dockerfile.generated --check-config-drift</code></pre>
     </section>
   </section>
 

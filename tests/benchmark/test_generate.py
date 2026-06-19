@@ -82,6 +82,16 @@ class GenerateScenarioTests(unittest.TestCase):
         self.assertEqual(tuned.enable_jep483_aot_cache, defaults.enable_jep483_aot_cache)
         self.assertEqual(tuned.enable_appcds, defaults.enable_appcds)
 
+        with_cache = next(opts for name, opts in scenarios["02-buildkit-gradle-cache"].variants if name == "with-buildkit-cache")
+        without_cache = next(
+            opts for name, opts in scenarios["02-buildkit-gradle-cache"].variants if name == "without-buildkit-cache"
+        )
+        self.assertTrue(with_cache.use_buildkit_cache)
+        self.assertFalse(without_cache.use_buildkit_cache)
+        self.assertEqual(with_cache.must_have_modules, without_cache.must_have_modules)
+        self.assertEqual(with_cache.use_jlink, without_cache.use_jlink)
+        self.assertEqual(with_cache.runtime_image, without_cache.runtime_image)
+
         with_cds = next(opts for name, opts in scenarios["08-appcds"].variants if name == "with-appcds")
         without_cds = next(opts for name, opts in scenarios["08-appcds"].variants if name == "without-appcds")
         self.assertTrue(with_cds.enable_appcds)

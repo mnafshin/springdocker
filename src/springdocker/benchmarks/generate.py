@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from springdocker.dockerfile import BUILTIN_RECIPES, DockerfileOptions, build_dockerfile
@@ -158,7 +158,7 @@ def default_scenarios(
             id="02-buildkit-gradle-cache",
             variants=(
                 ("with-buildkit-cache", base),
-                ("without-buildkit-cache", DockerfileOptions(build_tool=build_tool, java_version=java_version, use_buildkit_cache=False, enable_appcds=False, enable_jep483_aot_cache=False)),
+                ("without-buildkit-cache", replace(base, use_buildkit_cache=False)),
             ),
         ),
         StandardScenarioDefinition(

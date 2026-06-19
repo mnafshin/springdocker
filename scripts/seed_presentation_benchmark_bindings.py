@@ -24,7 +24,7 @@ DECK_CUSTOMIZATIONS: dict[Path, list[tuple[str, str]]] = {
         ),
         (
             "<p class=\"tiny\" style=\"margin-top: 1.2em;\">Press → · Speaker notes: <kbd>S</kbd></p>",
-            "<p class=\"tiny\" style=\"margin-top: 1.2em;\">TALK 2 · STEPS &amp; BENEFITS · Press → · Speaker notes: <kbd>S</kbd></p>",
+            "<p class=\"tiny\" style=\"margin-top: 1.2em;\">STEPS &amp; BENEFITS · Press → · Speaker notes: <kbd>S</kbd></p>",
         ),
         (
             '<tr><td>specialized-multi-stage</td><td class="good">100.40 MB</td><td class="good">645 ms</td><td>1,428 ms</td></tr>',
@@ -134,7 +134,7 @@ DECK_CUSTOMIZATIONS: dict[Path, list[tuple[str, str]]] = {
         ),
         (
             '<div class="footer-note">PRESS → TO BEGIN</div>',
-            '<div class="footer-note">TALK 1 · FEATURES · PRESS →</div>',
+            '<div class="footer-note">FEATURES · PRESS →</div>',
         ),
         (
             '<div class="bar-row"><span class="label">without‑jlink</span><div class="bar-wrap"><div class="bar bad" style="width: 100%;"></div></div><span class="val">144.38 MB</span></div>',

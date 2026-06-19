@@ -11,10 +11,10 @@ python3 -m http.server 8000
 
 Then open:
 
-| Talk | File | Audience |
+| Deck | File | Audience |
 |---|---|---|
-| **1 — springdocker features & workflow** | [`springdocker-features.html`](springdocker-features.html) | Teams evaluating the CLI: generate, explain, verify, plugins |
-| **2 — why each step & what you gain** | [`docker-steps-evidence.html`](docker-steps-evidence.html) | Engineers choosing build/runtime/JVM options with benchmark evidence |
+| **Features & workflow** | [`springdocker-features.html`](springdocker-features.html) | Teams evaluating the CLI: configure, generate, explain, verify, plugins |
+| **Docker steps & evidence** | [`docker-steps-evidence.html`](docker-steps-evidence.html) | Engineers choosing build/runtime/JVM options with benchmark evidence |
 
 ## Refresh benchmark numbers (automated)
 
@@ -34,7 +34,7 @@ This updates:
 - `docker-steps-evidence.html` — scenario tables (values + `good`/`warn`/`risk` highlights), bar charts, cache stats
 
 Benchmark scenario tables use a shared column layout when CSV data exists: **Variant · Image · Build avg · Startup avg · Startup p95**. Cells without measured startup data (e.g. failed runs) show `—`. Standalone bar charts remain on cross-cutting summary slides that have no table.
-- `springdocker-features.html` — evidence bar charts in Talk 1
+- `springdocker-features.html` — evidence bar charts in the features deck
 - `benchmark-summary.md` — paste-ready markdown tables (gitignored)
 
 Use `--check` to verify deck benchmark values are current without writing files. The `benchmark-updated` HTML comment is refreshed only when values change, so timestamp-only drift does not fail the check.
@@ -43,12 +43,12 @@ Use `--profile full` for presentation-grade run counts (10 runs per scenario; 15
 
 Scenario **07 (native)** is not measured by the runner (`--skip-native` by default). The deck binds the JVM comparison row to scenario **03** `without-jlink-runtime`; native-aot table and bar rows stay as published reference values (marked with `*`).
 
-**Cross-cutting bar charts:** Talk 1 and Talk 2 share the same **image-size** ladder (temurin → vendor JRE → jlink → distroless → alpine). Cold-start bars list startup levers across scenarios 03/04/08 — also independent levers, not one Dockerfile.
+**Cross-cutting bar charts:** Both decks share the same **image-size** ladder (temurin → vendor JRE → jlink → distroless → alpine). Cold-start bars list startup levers across scenarios 03/04/08 — also independent levers, not one Dockerfile.
 
 ## Files
 
-- `springdocker-features.html` — Talk 1 (features & workflow)
-- `docker-steps-evidence.html` — Talk 2 (scenarios 01–08 with benefits)
+- `springdocker-features.html` — features & workflow (config-first CLI)
+- `docker-steps-evidence.html` — scenarios 01–08 with benefits
 - `benchmark-summary.md` — generated markdown summary (gitignored)
 - `assets/evidence-deck.css` — shared styling for `docker-steps-evidence.html`
 
