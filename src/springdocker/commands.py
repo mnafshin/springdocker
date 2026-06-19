@@ -9,7 +9,8 @@ from typing import cast
 
 from .benchmarks.generate import generate_benchmark_assets
 from .benchmarks.runner import run_benchmarks
-from .config import DockerfileGenerateConfig
+from .config import DockerfileGenerateConfig, load_config, resolve_dockerfile_generate_config
+from .configure_wizard import run_configure_wizard
 from .dockerfile import JLINK_BASELINE_MODULES
 from .errors import EXIT_FAILURE, EXIT_OK, EXIT_USAGE, print_error, print_warning
 from .plugins import render_verify_with_plugins
@@ -258,6 +259,70 @@ def _use_legacy_scripts(explicit: bool) -> bool:
     if explicit:
         return True
     return os.environ.get("SPRINGDOCKER_LEGACY_SCRIPTS", "").lower() in {"1", "true", "yes", "on"}
+
+
+def cmd_configure(
+    project_root: Path,
+    build_tool: str | None,
+    config_path: Path,
+    force: bool,
+    generate_after: bool,
+) -> int:
+    try:
+        inspect_project(project_root, build_tool)
+    except ValueError as exc:
+        print_error(str(exc))
+        return EXIT_USAGE
+
+    if config_path.exists() and not force:
+        print_error(f"Config already exists: {config_path}")
+        print("hint: rerun with --force to overwrite the [dockerfile] section", file=sys.stderr)
+        return EXIT_USAGE
+
+    try:
+        run_configure_wizard(
+            project_root=project_root,
+            config_path=config_path,
+            force=force,
+            generate_after=generate_after,
+        )
+    except SystemExit:
+        return EXIT_USAGE
+    except ValueError as exc:
+        print_error(str(exc))
+        return EXIT_USAGE
+
+    if generate_after:
+        loaded_config = load_config(config_path) if config_path.exists() else {}
+        resolved = resolve_dockerfile_generate_config(
+            cli_build_tool=build_tool,
+            cli_output=None,
+            cli_java_version=None,
+            cli_recipe=None,
+            cli_profile=None,
+            cli_runtime_image=None,
+            cli_use_buildkit_cache=None,
+            cli_use_jlink=None,
+            cli_use_layered_jar=None,
+            cli_non_root=None,
+            cli_platform_aware=None,
+            cli_enable_appcds=None,
+            cli_enable_jep483_aot_cache=None,
+            cli_include_oci_labels=None,
+            cli_include_stopsignal=None,
+            cli_include_embedded_sbom=None,
+            cli_include_reproducible_controls=None,
+            cli_pin_digests=None,
+            cli_tuned_jvm_flags=None,
+            cli_jvm_flags=None,
+            cli_healthcheck_path=None,
+            cli_wizard_args=None,
+            cli_use_legacy_scripts=None,
+            loaded_config=loaded_config,
+        )
+        return cmd_dockerfile_generate(project_root, resolved)
+
+    return EXIT_OK
 
 
 def cmd_dockerfile_generate(

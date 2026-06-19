@@ -10,6 +10,7 @@ from .commands import (
     cmd_benchmark_compare,
     cmd_benchmark_generate,
     cmd_benchmark_run,
+    cmd_configure,
     cmd_dockerfile_generate,
     cmd_doctor,
     cmd_explain,
@@ -69,6 +70,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
     init.add_argument("--print", action="store_true", dest="print_only", help="Print config template to stdout")
     init.add_argument("--force", action="store_true", help="Overwrite existing config file")
+    init.add_argument(
+        "--interactive",
+        action="store_true",
+        help="After init, run configure wizard to populate [dockerfile] options",
+    )
+
+    configure = sub.add_parser("configure", help="Interactive wizard that writes .springdocker.toml")
+    add_common_options(configure)
+    configure.add_argument("--config", default=".springdocker.toml", help="Config file path")
+    configure.add_argument("--force", action="store_true", help="Overwrite existing [dockerfile] section")
+    configure.add_argument(
+        "--generate",
+        action="store_true",
+        help="Run dockerfile generate immediately after writing config",
+    )
 
     doctor = sub.add_parser("doctor", help="Detect project and validate basic prerequisites")
     add_common_options(doctor)
@@ -205,17 +221,68 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _resolve_dockerfile_config(args: argparse.Namespace, loaded: dict) -> object:
+    return resolve_dockerfile_generate_config(
+        cli_build_tool=getattr(args, "build_tool", None),
+        cli_output=getattr(args, "output", None),
+        cli_java_version=getattr(args, "java_version", None),
+        cli_recipe=getattr(args, "recipe", None),
+        cli_profile=None,
+        cli_runtime_image=None,
+        cli_use_buildkit_cache=None,
+        cli_use_jlink=None,
+        cli_use_layered_jar=None,
+        cli_non_root=None,
+        cli_platform_aware=None,
+        cli_enable_appcds=None,
+        cli_enable_jep483_aot_cache=None,
+        cli_include_oci_labels=None,
+        cli_include_stopsignal=None,
+        cli_include_embedded_sbom=None,
+        cli_include_reproducible_controls=None,
+        cli_pin_digests=None,
+        cli_tuned_jvm_flags=None,
+        cli_jvm_flags=None,
+        cli_healthcheck_path=None,
+        cli_wizard_args=getattr(args, "wizard_arg", None),
+        cli_use_legacy_scripts=getattr(args, "use_legacy_scripts", None),
+        loaded_config=loaded,
+    )
+
+
 def _handle_init(args: argparse.Namespace, project_root: Path) -> int:
     config_path = Path(args.config)
     if not config_path.is_absolute():
         config_path = project_root / config_path
-    return cmd_init(
+    code = cmd_init(
         project_root=project_root,
         build_tool=args.build_tool,
         config_path=config_path,
         profile=args.profile,
         force=args.force,
         print_only=args.print_only,
+    )
+    if code != 0 or args.print_only or not args.interactive:
+        return code
+    return cmd_configure(
+        project_root=project_root,
+        build_tool=args.build_tool,
+        config_path=config_path,
+        force=True,
+        generate_after=False,
+    )
+
+
+def _handle_configure(args: argparse.Namespace, project_root: Path) -> int:
+    config_path = Path(args.config)
+    if not config_path.is_absolute():
+        config_path = project_root / config_path
+    return cmd_configure(
+        project_root=project_root,
+        build_tool=args.build_tool,
+        config_path=config_path,
+        force=args.force,
+        generate_after=args.generate,
     )
 
 
@@ -246,26 +313,8 @@ def _handle_verify(args: argparse.Namespace, project_root: Path) -> int:
 
 def _handle_dockerfile_generate(args: argparse.Namespace, project_root: Path) -> int:
     loaded = load_config(project_root / ".springdocker.toml")
-    resolved = resolve_dockerfile_generate_config(
-        cli_build_tool=args.build_tool,
-        cli_output=args.output,
-        cli_java_version=args.java_version,
-        cli_recipe=args.recipe,
-        cli_wizard_args=args.wizard_arg,
-        cli_use_legacy_scripts=args.use_legacy_scripts,
-        loaded_config=loaded,
-    )
-    return cmd_dockerfile_generate(
-        project_root=project_root,
-        build_tool=resolved.build_tool,
-        output=resolved.output,
-        java_version=resolved.java_version,
-        recipe=resolved.recipe,
-        must_have_modules_file=resolved.must_have_modules_file,
-        jlink_baseline_modules=resolved.jlink_baseline_modules,
-        extra_args=resolved.wizard_args,
-        use_legacy_scripts=resolved.use_legacy_scripts,
-    )
+    resolved = _resolve_dockerfile_config(args, loaded)
+    return cmd_dockerfile_generate(project_root=project_root, config=resolved)
 
 
 def _handle_benchmark_generate(args: argparse.Namespace, project_root: Path) -> int:
@@ -276,15 +325,7 @@ def _handle_benchmark_generate(args: argparse.Namespace, project_root: Path) -> 
         cli_use_legacy_scripts=args.use_legacy_scripts,
         loaded_config=loaded,
     )
-    dockerfile_resolved = resolve_dockerfile_generate_config(
-        cli_build_tool=None,
-        cli_output=None,
-        cli_java_version=None,
-        cli_recipe=None,
-        cli_wizard_args=None,
-        cli_use_legacy_scripts=None,
-        loaded_config=loaded,
-    )
+    dockerfile_resolved = _resolve_dockerfile_config(args, loaded)
     must_have_modules = dockerfile_service.parse_must_have_modules(
         project_root,
         dockerfile_resolved.must_have_modules_file,
@@ -359,6 +400,7 @@ def _handle_benchmark_compare(args: argparse.Namespace, project_root: Path) -> i
 # To add a new command: register a parser in build_parser() and add an entry here.
 _DISPATCH: dict[_DispatchKey, _Handler] = {
     ("init",): _handle_init,
+    ("configure",): _handle_configure,
     ("doctor",): _handle_doctor,
     ("inspect",): _handle_inspect,
     ("explain",): _handle_explain,
