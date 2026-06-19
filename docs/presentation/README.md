@@ -2,6 +2,47 @@
 
 Reveal.js slide decks for talks about **springdocker** (product/features) and **Dockerfile engineering** (step-by-step evidence).
 
+## Commit and publish policy
+
+Resolved in [#91](https://github.com/mnafshin/springdocker/issues/91).
+
+| Asset | Policy |
+|---|---|
+| `*.html`, `assets/*.css` | **Committed** — canonical, reviewable talk sources with `data-benchmark` bindings |
+| `benchmark-summary.md` | **Gitignored** — local paste helper from `update_presentation_benchmarks.py` |
+| Reveal.js / fonts | **CDN only** — not vendored in the repo; no npm build step |
+| GitHub Pages | **Optional** — not CI-automated; enable manually if you want a public URL |
+| PyPI / release artifacts | **Not included** — decks ship with the git repository, not the CLI package |
+
+**Default:** keep HTML/CSS in the main repository. Talks, benchmark evidence, and presentation numbers stay versioned together; contributors open PRs when slide content or refreshed numbers change.
+
+**Do not** move decks out of the repo or treat them as throwaway generated output — only `benchmark-summary.md` is ephemeral.
+
+### Optional GitHub Pages
+
+The repo includes [`docs/index.html`](../index.html), which redirects to `presentation/springdocker-features.html`.
+
+To publish (maintainer, one-time):
+
+1. GitHub → **Settings** → **Pages**
+2. **Build and deployment** → Source: **Deploy from a branch**
+3. Branch: `main`, folder: **`/docs`**
+
+Result: static hosting for both decks at paths under `/presentation/…`. Reveal.js still loads from the public CDN, so there is no build pipeline to maintain.
+
+For local dry runs or conference Wi‑Fi, prefer `python3 -m http.server` (below) — no hosting setup required.
+
+### What to commit after a benchmark refresh
+
+```bash
+python scripts/update_presentation_benchmarks.py
+# commit only if HTML changed:
+#   docs/presentation/springdocker-features.html
+#   docs/presentation/docker-steps-evidence.html
+```
+
+Use `--check` in CI or pre-talk prep to detect stale numbers without writing files (see [Refresh benchmark numbers](#refresh-benchmark-numbers-automated)).
+
 ## Open locally
 
 ```bash

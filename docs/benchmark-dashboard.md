@@ -6,6 +6,8 @@
 
 Benchmark numbers for talks are refreshed into `docs/presentation/docker-steps-evidence.html`, `docs/presentation/springdocker-features.html`, and the generated `docs/presentation/benchmark-summary.md` via `python scripts/update_presentation_benchmarks.py`.
 
+Commit/publish policy: [`docs/presentation/README.md`](presentation/README.md#commit-and-publish-policy).
+
 ## What it shows
 
 - scenario-by-scenario benchmark comparisons
