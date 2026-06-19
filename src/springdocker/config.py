@@ -13,6 +13,10 @@ except ModuleNotFoundError:  # pragma: no cover - exercised on Python < 3.11
     import tomli as tomllib
 
 
+# Sentinel: auto-detect actuator healthcheck at generate time.
+HEALTHCHECK_AUTO = "__auto__"
+
+
 @dataclass(frozen=True)
 class DoctorConfig:
     build_tool: str | None
@@ -24,10 +28,59 @@ class DockerfileGenerateConfig:
     output: str
     java_version: int
     recipe: str
+    profile: str | None
     must_have_modules_file: str | None
     jlink_baseline_modules: tuple[str, ...]
+    runtime_image: str
+    use_buildkit_cache: bool
+    use_jlink: bool
+    use_layered_jar: bool
+    non_root: bool
+    platform_aware: bool
+    enable_appcds: bool
+    enable_jep483_aot_cache: bool
+    include_oci_labels: bool
+    include_stopsignal: bool
+    include_embedded_sbom: bool
+    include_reproducible_controls: bool
+    pin_digests: bool
+    tuned_jvm_flags: bool
+    jvm_flags: tuple[str, ...]
+    healthcheck_path: str
     wizard_args: list[str]
     use_legacy_scripts: bool
+
+
+def sample_dockerfile_config(**overrides: object) -> DockerfileGenerateConfig:
+    defaults: dict[str, object] = {
+        "build_tool": None,
+        "output": "Dockerfile.generated",
+        "java_version": 25,
+        "recipe": "jvm-balanced",
+        "profile": None,
+        "must_have_modules_file": None,
+        "jlink_baseline_modules": JLINK_BASELINE_MODULES,
+        "runtime_image": "distroless",
+        "use_buildkit_cache": True,
+        "use_jlink": True,
+        "use_layered_jar": True,
+        "non_root": True,
+        "platform_aware": True,
+        "enable_appcds": True,
+        "enable_jep483_aot_cache": False,
+        "include_oci_labels": True,
+        "include_stopsignal": True,
+        "include_embedded_sbom": True,
+        "include_reproducible_controls": True,
+        "pin_digests": True,
+        "tuned_jvm_flags": True,
+        "jvm_flags": (),
+        "healthcheck_path": HEALTHCHECK_AUTO,
+        "wizard_args": [],
+        "use_legacy_scripts": False,
+    }
+    defaults.update(overrides)
+    return DockerfileGenerateConfig(**defaults)  # type: ignore[arg-type]
 
 
 @dataclass(frozen=True)
@@ -74,6 +127,12 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         "# When jlink is enabled, these modules are auto-merged into the jlink module list.\n"
         '# jlink_baseline_modules = ["java.desktop", "java.logging", "java.naming"]\n'
         "# Set jlink_baseline_modules = [] to disable built-in baseline injection.\n"
+        "# Config-first workflow: run `springdocker configure` to set options interactively.\n"
+        "# runtime_image = \"distroless\"\n"
+        "# use_jlink = true\n"
+        "# include_embedded_sbom = true\n"
+        "# pin_digests = true\n"
+        "# tuned_jvm_flags = true\n"
         "legacy_scripts = false\n"
         "wizard_args = []\n\n"
         "[benchmark.generate]\n"
@@ -166,8 +225,25 @@ def _validate_schema(data: dict[str, Any]) -> None:
                 "output",
                 "java_version",
                 "recipe",
+                "profile",
                 "must_have_modules_file",
                 "jlink_baseline_modules",
+                "runtime_image",
+                "use_buildkit_cache",
+                "use_jlink",
+                "use_layered_jar",
+                "non_root",
+                "platform_aware",
+                "enable_appcds",
+                "enable_jep483_aot_cache",
+                "include_oci_labels",
+                "include_stopsignal",
+                "include_embedded_sbom",
+                "include_reproducible_controls",
+                "pin_digests",
+                "tuned_jvm_flags",
+                "jvm_flags",
+                "healthcheck_path",
                 "legacy_scripts",
                 "wizard_args",
             },
@@ -191,6 +267,25 @@ def _validate_schema(data: dict[str, Any]) -> None:
     _expect_optional_str(dockerfile.get("recipe"), "dockerfile.recipe")
     _expect_optional_str(dockerfile.get("must_have_modules_file"), "dockerfile.must_have_modules_file")
     _expect_optional_str_list(dockerfile.get("jlink_baseline_modules"), "dockerfile.jlink_baseline_modules")
+    _expect_optional_str(dockerfile.get("profile"), "dockerfile.profile")
+    _expect_optional_str(dockerfile.get("runtime_image"), "dockerfile.runtime_image")
+    _expect_optional_bool(dockerfile.get("use_buildkit_cache"), "dockerfile.use_buildkit_cache")
+    _expect_optional_bool(dockerfile.get("use_jlink"), "dockerfile.use_jlink")
+    _expect_optional_bool(dockerfile.get("use_layered_jar"), "dockerfile.use_layered_jar")
+    _expect_optional_bool(dockerfile.get("non_root"), "dockerfile.non_root")
+    _expect_optional_bool(dockerfile.get("platform_aware"), "dockerfile.platform_aware")
+    _expect_optional_bool(dockerfile.get("enable_appcds"), "dockerfile.enable_appcds")
+    _expect_optional_bool(dockerfile.get("enable_jep483_aot_cache"), "dockerfile.enable_jep483_aot_cache")
+    _expect_optional_bool(dockerfile.get("include_oci_labels"), "dockerfile.include_oci_labels")
+    _expect_optional_bool(dockerfile.get("include_stopsignal"), "dockerfile.include_stopsignal")
+    _expect_optional_bool(dockerfile.get("include_embedded_sbom"), "dockerfile.include_embedded_sbom")
+    _expect_optional_bool(dockerfile.get("include_reproducible_controls"), "dockerfile.include_reproducible_controls")
+    _expect_optional_bool(dockerfile.get("pin_digests"), "dockerfile.pin_digests")
+    _expect_optional_bool(dockerfile.get("tuned_jvm_flags"), "dockerfile.tuned_jvm_flags")
+    _expect_optional_str_list(dockerfile.get("jvm_flags"), "dockerfile.jvm_flags")
+    healthcheck_path = dockerfile.get("healthcheck_path")
+    if healthcheck_path is not None and not isinstance(healthcheck_path, str):
+        raise ValueError("Config key 'dockerfile.healthcheck_path' must be a string or null")
     _expect_optional_bool(dockerfile.get("legacy_scripts"), "dockerfile.legacy_scripts")
     _expect_optional_str_list(dockerfile.get("wizard_args"), "dockerfile.wizard_args")
     _expect_optional_str(benchmark_run.get("profile"), "benchmark.run.profile")
@@ -250,11 +345,64 @@ def resolve_doctor_config(cli_build_tool: str | None, loaded_config: dict[str, A
     return DoctorConfig(build_tool=_resolve_build_tool(cli_build_tool, loaded_config, "doctor"))
 
 
+def _pick_bool(
+    cli_value: bool | None,
+    config_value: bool | None,
+    default: bool,
+) -> bool:
+    if cli_value is not None:
+        return cli_value
+    if config_value is not None:
+        return config_value
+    return default
+
+
+def _pick_str(
+    cli_value: str | None,
+    config_value: str | None,
+    default: str,
+) -> str:
+    if cli_value is not None:
+        return cli_value
+    if config_value is not None:
+        return config_value
+    return default
+
+
+def _pick_int(
+    cli_value: int | None,
+    config_value: int | None,
+    default: int,
+) -> int:
+    if cli_value is not None:
+        return cli_value
+    if config_value is not None:
+        return config_value
+    return default
+
+
 def resolve_dockerfile_generate_config(
     cli_build_tool: str | None,
     cli_output: str | None,
     cli_java_version: int | None,
     cli_recipe: str | None,
+    cli_profile: str | None,
+    cli_runtime_image: str | None,
+    cli_use_buildkit_cache: bool | None,
+    cli_use_jlink: bool | None,
+    cli_use_layered_jar: bool | None,
+    cli_non_root: bool | None,
+    cli_platform_aware: bool | None,
+    cli_enable_appcds: bool | None,
+    cli_enable_jep483_aot_cache: bool | None,
+    cli_include_oci_labels: bool | None,
+    cli_include_stopsignal: bool | None,
+    cli_include_embedded_sbom: bool | None,
+    cli_include_reproducible_controls: bool | None,
+    cli_pin_digests: bool | None,
+    cli_tuned_jvm_flags: bool | None,
+    cli_jvm_flags: list[str] | None,
+    cli_healthcheck_path: str | None,
     cli_wizard_args: list[str] | None,
     cli_use_legacy_scripts: bool | None,
     loaded_config: dict[str, Any],
@@ -262,8 +410,13 @@ def resolve_dockerfile_generate_config(
     dockerfile = _expect_table(loaded_config, "dockerfile")
     build_tool = _resolve_build_tool(cli_build_tool, loaded_config, "project")
     output = cli_output or _expect_optional_str(dockerfile.get("output"), "dockerfile.output") or "Dockerfile.generated"
-    java_version = cli_java_version or _expect_optional_int(dockerfile.get("java_version"), "dockerfile.java_version") or 25
+    java_version = _pick_int(
+        cli_java_version,
+        _expect_optional_int(dockerfile.get("java_version"), "dockerfile.java_version"),
+        25,
+    )
     recipe = cli_recipe or _expect_optional_str(dockerfile.get("recipe"), "dockerfile.recipe") or "jvm-balanced"
+    profile = cli_profile or _expect_optional_str(dockerfile.get("profile"), "dockerfile.profile")
     must_have_modules_file = _expect_optional_str(
         dockerfile.get("must_have_modules_file"),
         "dockerfile.must_have_modules_file",
@@ -281,18 +434,112 @@ def resolve_dockerfile_generate_config(
     else:
         wizard_args = _expect_optional_str_list(dockerfile.get("wizard_args"), "dockerfile.wizard_args") or []
 
-    if cli_use_legacy_scripts is not None:
-        use_legacy = cli_use_legacy_scripts
+    use_legacy = _pick_bool(
+        cli_use_legacy_scripts,
+        _expect_optional_bool(dockerfile.get("legacy_scripts"), "dockerfile.legacy_scripts"),
+        False,
+    )
+
+    jvm_flags_raw = (
+        cli_jvm_flags
+        if cli_jvm_flags is not None
+        else _expect_optional_str_list(dockerfile.get("jvm_flags"), "dockerfile.jvm_flags")
+    )
+    jvm_flags = tuple(jvm_flags_raw) if jvm_flags_raw is not None else ()
+
+    if cli_healthcheck_path is not None:
+        healthcheck_path = cli_healthcheck_path
+    elif "healthcheck_path" in dockerfile:
+        configured = dockerfile.get("healthcheck_path")
+        if configured is None:
+            healthcheck_path = HEALTHCHECK_AUTO
+        elif isinstance(configured, str):
+            healthcheck_path = configured
+        else:
+            raise ValueError("Config key 'dockerfile.healthcheck_path' must be a string or null")
     else:
-        use_legacy = _expect_optional_bool(dockerfile.get("legacy_scripts"), "dockerfile.legacy_scripts") or False
+        healthcheck_path = HEALTHCHECK_AUTO
 
     return DockerfileGenerateConfig(
         build_tool=build_tool,
         output=output,
         java_version=java_version,
         recipe=recipe,
+        profile=profile,
         must_have_modules_file=must_have_modules_file,
         jlink_baseline_modules=jlink_baseline_modules,
+        runtime_image=_pick_str(
+            cli_runtime_image,
+            _expect_optional_str(dockerfile.get("runtime_image"), "dockerfile.runtime_image"),
+            "distroless",
+        ),
+        use_buildkit_cache=_pick_bool(
+            cli_use_buildkit_cache,
+            _expect_optional_bool(dockerfile.get("use_buildkit_cache"), "dockerfile.use_buildkit_cache"),
+            True,
+        ),
+        use_jlink=_pick_bool(
+            cli_use_jlink,
+            _expect_optional_bool(dockerfile.get("use_jlink"), "dockerfile.use_jlink"),
+            True,
+        ),
+        use_layered_jar=_pick_bool(
+            cli_use_layered_jar,
+            _expect_optional_bool(dockerfile.get("use_layered_jar"), "dockerfile.use_layered_jar"),
+            True,
+        ),
+        non_root=_pick_bool(
+            cli_non_root,
+            _expect_optional_bool(dockerfile.get("non_root"), "dockerfile.non_root"),
+            True,
+        ),
+        platform_aware=_pick_bool(
+            cli_platform_aware,
+            _expect_optional_bool(dockerfile.get("platform_aware"), "dockerfile.platform_aware"),
+            True,
+        ),
+        enable_appcds=_pick_bool(
+            cli_enable_appcds,
+            _expect_optional_bool(dockerfile.get("enable_appcds"), "dockerfile.enable_appcds"),
+            True,
+        ),
+        enable_jep483_aot_cache=_pick_bool(
+            cli_enable_jep483_aot_cache,
+            _expect_optional_bool(dockerfile.get("enable_jep483_aot_cache"), "dockerfile.enable_jep483_aot_cache"),
+            False,
+        ),
+        include_oci_labels=_pick_bool(
+            cli_include_oci_labels,
+            _expect_optional_bool(dockerfile.get("include_oci_labels"), "dockerfile.include_oci_labels"),
+            True,
+        ),
+        include_stopsignal=_pick_bool(
+            cli_include_stopsignal,
+            _expect_optional_bool(dockerfile.get("include_stopsignal"), "dockerfile.include_stopsignal"),
+            True,
+        ),
+        include_embedded_sbom=_pick_bool(
+            cli_include_embedded_sbom,
+            _expect_optional_bool(dockerfile.get("include_embedded_sbom"), "dockerfile.include_embedded_sbom"),
+            True,
+        ),
+        include_reproducible_controls=_pick_bool(
+            cli_include_reproducible_controls,
+            _expect_optional_bool(dockerfile.get("include_reproducible_controls"), "dockerfile.include_reproducible_controls"),
+            True,
+        ),
+        pin_digests=_pick_bool(
+            cli_pin_digests,
+            _expect_optional_bool(dockerfile.get("pin_digests"), "dockerfile.pin_digests"),
+            True,
+        ),
+        tuned_jvm_flags=_pick_bool(
+            cli_tuned_jvm_flags,
+            _expect_optional_bool(dockerfile.get("tuned_jvm_flags"), "dockerfile.tuned_jvm_flags"),
+            True,
+        ),
+        jvm_flags=jvm_flags,
+        healthcheck_path=healthcheck_path,
         wizard_args=wizard_args,
         use_legacy_scripts=use_legacy,
     )

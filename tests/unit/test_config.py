@@ -18,6 +18,12 @@ from springdocker.config import (
 )
 from springdocker.dockerfile import JLINK_BASELINE_MODULES
 
+_NO_CLI: tuple[None, ...] = (None,) * 23
+
+
+def _resolve_dockerfile(loaded: dict) -> object:
+    return resolve_dockerfile_generate_config(*_NO_CLI, loaded)
+
 
 class ConfigTests(unittest.TestCase):
     def test_load_missing_config_returns_empty(self) -> None:
@@ -94,7 +100,7 @@ class ConfigTests(unittest.TestCase):
             },
         }
         doctor = resolve_doctor_config(None, loaded)
-        dockerfile = resolve_dockerfile_generate_config(None, None, None, None, None, None, loaded)
+        dockerfile = _resolve_dockerfile(loaded)
         bench_generate = resolve_benchmark_generate_config(None, None, None, loaded)
         self.assertEqual(doctor.build_tool, "maven")
         self.assertEqual(dockerfile.build_tool, "gradle")
@@ -111,17 +117,32 @@ class ConfigTests(unittest.TestCase):
             ("alpine", "debian-slim", "ubuntu", "distroless"),
         )
 
+    def test_resolve_dockerfile_options_from_config(self) -> None:
+        loaded = {
+            "dockerfile": {
+                "runtime_image": "alpine",
+                "pin_digests": False,
+                "jvm_flags": ["-XX:+UseZGC"],
+                "enable_appcds": False,
+            }
+        }
+        resolved = _resolve_dockerfile(loaded)
+        self.assertEqual(resolved.runtime_image, "alpine")
+        self.assertFalse(resolved.pin_digests)
+        self.assertEqual(resolved.jvm_flags, ("-XX:+UseZGC",))
+        self.assertFalse(resolved.enable_appcds)
+
     def test_resolve_jlink_baseline_modules_from_config(self) -> None:
         loaded = {
             "dockerfile": {
                 "jlink_baseline_modules": ["java.logging"],
             }
         }
-        resolved = resolve_dockerfile_generate_config(None, None, None, None, None, None, loaded)
+        resolved = _resolve_dockerfile(loaded)
         self.assertEqual(resolved.jlink_baseline_modules, ("java.logging",))
 
         empty_loaded = {"dockerfile": {"jlink_baseline_modules": []}}
-        empty_resolved = resolve_dockerfile_generate_config(None, None, None, None, None, None, empty_loaded)
+        empty_resolved = _resolve_dockerfile(empty_loaded)
         self.assertEqual(empty_resolved.jlink_baseline_modules, ())
 
     def test_render_default_config_documents_jlink_baseline_modules(self) -> None:
