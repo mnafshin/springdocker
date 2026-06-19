@@ -30,6 +30,8 @@ mypy src
 
 Ruff runs with **F**, **I**, **B** (bugbear), **UP** (pyupgrade), and **SIM** (simplify) — see `[tool.ruff.lint]` in `pyproject.toml`. Fix auto-fixable issues with `ruff check src tests --fix`.
 
+Mypy runs on `src/` with gradual strictness — baseline settings plus per-module overrides for core modules. See [`docs/typing-roadmap.md`](docs/typing-roadmap.md) before tightening types or adding `# type: ignore`.
+
 ## Coverage policy
 
 Local `pytest` and the CI `coverage` job enforce the same gate: **≥80% line coverage** on the entire

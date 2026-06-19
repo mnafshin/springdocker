@@ -61,6 +61,20 @@ warn_unused_ignores = true
 no_implicit_optional = true
 ignore_missing_imports = true
 
+# Phase 1 strict modules — see docs/typing-roadmap.md (#90)
+[[tool.mypy.overrides]]
+module = [
+    "springdocker.errors",
+    "springdocker.digest_pins",
+    "springdocker.dockerfile_explain",
+    "springdocker.compare",
+    "springdocker.config_audit",
+    "springdocker.runtime_images",
+    "springdocker.services.verify_service",
+]
+disallow_untyped_defs = true
+warn_return_any = true
+
 [tool.pyright]
 include = ["src", "tests"]
 extraPaths = ["src"]

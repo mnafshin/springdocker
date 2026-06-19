@@ -259,6 +259,7 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 - `docs/onboarding.md`
 - `docs/team-adoption.md`
 - `docs/troubleshooting.md`
+- `docs/typing-roadmap.md` — gradual mypy strictness and module rollout plan
 - `docs/jvm-optimization.md`
 - `docs/distribution.md`
 - `docs/presentation/README.md` — Reveal.js decks: ownership, update cadence, commit/publish policy

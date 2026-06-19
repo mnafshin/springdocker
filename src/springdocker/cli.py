@@ -19,6 +19,7 @@ from .commands import (
     cmd_verify,
 )
 from .config import (
+    DockerfileGenerateConfig,
     load_config,
     resolve_benchmark_generate_config,
     resolve_benchmark_run_config,
@@ -272,7 +273,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _resolve_dockerfile_config(args: argparse.Namespace, loaded: dict) -> object:
+def _resolve_dockerfile_config(args: argparse.Namespace, loaded: dict) -> DockerfileGenerateConfig:
     return resolve_dockerfile_generate_config(
         cli_build_tool=getattr(args, "build_tool", None),
         cli_output=getattr(args, "output", None),

@@ -3,9 +3,25 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import Final
+from typing import Final, TypedDict
 
 from springdocker.dockerfile import DEFAULT_JVM_FLAGS, DockerfileOptions
+
+
+class _ProfileOverlay(TypedDict, total=False):
+    runtime_image: str
+    use_jlink: bool
+    use_layered_jar: bool
+    enable_appcds: bool
+    enable_jep483_aot_cache: bool
+    include_oci_labels: bool
+    include_stopsignal: bool
+    include_embedded_sbom: bool
+    include_reproducible_controls: bool
+    pin_digests: bool
+    non_root: bool
+    tuned_jvm_flags: bool
+
 
 PROFILE_NAMES: Final[tuple[str, ...]] = (
     "production-balanced",
@@ -17,7 +33,7 @@ PROFILE_NAMES: Final[tuple[str, ...]] = (
     "custom",
 )
 
-_PROFILE_OVERLAYS: dict[str, dict[str, object]] = {
+_PROFILE_OVERLAYS: dict[str, _ProfileOverlay] = {
     "production-balanced": {
         "runtime_image": "distroless",
         "use_jlink": True,
