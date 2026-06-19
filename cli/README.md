@@ -39,6 +39,8 @@ python3 -m pip install -e '.[benchmark]'
 
 ```bash
 springdocker init --project-root samples/java-spring-docker --build-tool maven --profile quick
+springdocker configure --project-root samples/java-spring-docker --force   # interactive → writes [dockerfile] in config
+springdocker dockerfile generate --project-root samples/java-spring-docker  # non-interactive; reads .springdocker.toml
 springdocker doctor --project-root samples/java-spring-docker
 springdocker inspect --project-root samples/java-spring-docker --format json
 springdocker explain --project-root samples/java-spring-docker Dockerfile.generated --format json
@@ -76,7 +78,48 @@ The generator sets `runtime_image = "distroless"` internally for JVM recipes. Th
 | `distroless` (default) | Non-root, minimal base + jlink; **no `HEALTHCHECK`** (no shell/`wget` in the image). Probe readiness from the orchestrator (e.g. Kubernetes `readinessProbe` on `/actuator/health/readiness`). |
 | `debian-slim`, `alpine`, `ubuntu`, `temurin` | Full OS or vendor JRE paths; **`HEALTHCHECK` is emitted** when Spring Boot Actuator is on the classpath. |
 
-Supported runtime names: `distroless`, `debian-slim`, `alpine`, `ubuntu`, `temurin` (plus aliases such as `debian-bookworm-slim`, `eclipse-temurin-jre`). Today these are generator/benchmark options — not yet a `[dockerfile]` config key.
+Supported runtime names: `distroless`, `debian-slim`, `alpine`, `ubuntu`, `temurin` (plus aliases such as `debian-bookworm-slim`, `eclipse-temurin-jre`). Set via `[dockerfile].runtime_image` in `.springdocker.toml` or `--runtime-image` on `dockerfile generate`.
+
+## Config-first workflow
+
+`.springdocker.toml` is the **single source of truth** for Dockerfile generation (see [ADR 0005](../docs/adr/0005-config-first-dockerfile-generation.md)).
+
+| Command | Purpose |
+|---|---|
+| `springdocker configure` | Interactive wizard that writes/updates `[dockerfile]` in config |
+| `springdocker init --interactive` | Create config skeleton, then run configure |
+| `springdocker dockerfile generate` | Deterministic generate from config (CI-safe, no prompts) |
+
+Precedence: **CLI flags > `.springdocker.toml` > defaults**.
+
+Profiles (`production-balanced`, `smallest-image`, `fast-cold-start`, `build-speed`, `simplest`, `compliance`, `custom`) are selected in `configure` and expanded to explicit options in config.
+
+### `dockerfile generate` CLI overrides
+
+Every `[dockerfile]` key is overridable from the CLI except file-backed keys (`must_have_modules_file`, `jlink_baseline_modules`), which stay in config only.
+
+| Section | CLI flags | Config key(s) |
+|---|---|---|
+| General | `--output`, `--java-version`, `--recipe`, `--profile`, `--use-legacy-scripts`, `--wizard-arg` | `output`, `java_version`, `recipe`, `profile`, `legacy_scripts`, `wizard_args` |
+| Runtime | `--runtime-image`, `--non-root` / `--no-non-root`, `--platform-aware` / `--no-platform-aware`, `--healthcheck-path` | `runtime_image`, `non_root`, `platform_aware`, `healthcheck_path` |
+| Build | `--use-buildkit-cache` / `--no-use-buildkit-cache`, `--use-jlink` / `--no-use-jlink`, `--use-layered-jar` / `--no-use-layered-jar` | `use_buildkit_cache`, `use_jlink`, `use_layered_jar` |
+| Supply chain | `--include-oci-labels`, `--include-stopsignal`, `--include-embedded-sbom`, `--include-reproducible-controls`, `--pin-digests` (each with `--no-*` form) | matching `include_*` keys and `pin_digests` |
+| JVM | `--enable-appcds`, `--enable-jep483-aot-cache`, `--tuned-jvm-flags`, `--jvm-flag` (repeatable) | `enable_appcds`, `enable_jep483_aot_cache`, `tuned_jvm_flags`, `jvm_flags` |
+
+Example one-off CI override:
+
+```bash
+springdocker dockerfile generate \
+  --project-root samples/java-spring-docker \
+  --runtime-image alpine \
+  --no-use-jlink \
+  --enable-jep483-aot-cache \
+  --no-include-embedded-sbom \
+  --pin-digests \
+  --jvm-flag "-XX:+UseZGC"    # or --jvm-flag=-XX:+UseZGC when the flag starts with '-'
+```
+
+The `dockerfile generate` `--help` output groups flags under **runtime**, **build**, **supply chain**, and **JVM** sections.
 
 The `07-native-benchmark` scenario is generated with the `native-aot` scaffold recipe. The internal benchmark runner skips native scenarios by default (`--skip-native`).
 
@@ -101,8 +144,15 @@ build_tool = "maven"
 output = "Dockerfile.generated"
 java_version = 25
 recipe = "jvm-balanced"
-# Generator default runtime (not a config key yet): runtime_image = "distroless"
-# → distroless/base + jlink + layered JAR. Alternatives for benchmarks: debian-slim, alpine, ubuntu, temurin.
+# profile = "production-balanced"  # set by `springdocker configure`
+# runtime_image = "distroless"
+# use_jlink = true
+# enable_jep483_aot_cache = false
+# include_embedded_sbom = true
+# pin_digests = true
+# tuned_jvm_flags = true
+# jvm_flags = ["-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "-Djava.io.tmpdir=/tmp"]
+# Generator default runtime: distroless (gcr.io/distroless/base-* + jlink + layered JAR).
 must_have_modules_file = "must-have.txt"
 legacy_scripts = false
 wizard_args = []

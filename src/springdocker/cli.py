@@ -133,6 +133,44 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Use project scripts instead of internal implementation (or set SPRINGDOCKER_LEGACY_SCRIPTS=1)",
     )
+    gen.add_argument("--profile", default=None, help="Dockerfile profile name stored in config metadata")
+
+    runtime = gen.add_argument_group("runtime", "Runtime image options")
+    runtime.add_argument(
+        "--runtime-image",
+        default=None,
+        help="Runtime base image (distroless, debian-slim, alpine, ubuntu, temurin)",
+    )
+    runtime.add_argument("--non-root", action=argparse.BooleanOptionalAction, default=None)
+    runtime.add_argument("--platform-aware", action=argparse.BooleanOptionalAction, default=None)
+    runtime.add_argument(
+        "--healthcheck-path",
+        default=None,
+        help="Healthcheck path (empty string disables; omit for actuator auto-detect)",
+    )
+
+    build = gen.add_argument_group("build", "Build and image layout options")
+    build.add_argument("--use-buildkit-cache", action=argparse.BooleanOptionalAction, default=None)
+    build.add_argument("--use-jlink", action=argparse.BooleanOptionalAction, default=None)
+    build.add_argument("--use-layered-jar", action=argparse.BooleanOptionalAction, default=None)
+
+    supply = gen.add_argument_group("supply chain", "Supply chain and reproducibility")
+    supply.add_argument("--include-oci-labels", action=argparse.BooleanOptionalAction, default=None)
+    supply.add_argument("--include-stopsignal", action=argparse.BooleanOptionalAction, default=None)
+    supply.add_argument("--include-embedded-sbom", action=argparse.BooleanOptionalAction, default=None)
+    supply.add_argument("--include-reproducible-controls", action=argparse.BooleanOptionalAction, default=None)
+    supply.add_argument("--pin-digests", action=argparse.BooleanOptionalAction, default=None)
+
+    jvm = gen.add_argument_group("JVM", "JVM tuning and caching")
+    jvm.add_argument("--enable-appcds", action=argparse.BooleanOptionalAction, default=None)
+    jvm.add_argument("--enable-jep483-aot-cache", action=argparse.BooleanOptionalAction, default=None)
+    jvm.add_argument("--tuned-jvm-flags", action=argparse.BooleanOptionalAction, default=None)
+    jvm.add_argument(
+        "--jvm-flag",
+        action="append",
+        default=None,
+        help="JVM flag; repeat to override jvm_flags list",
+    )
 
     bench = sub.add_parser("benchmark", help="Benchmark operations")
     bench_sub = bench.add_subparsers(dest="benchmark_command", required=True)
@@ -227,23 +265,23 @@ def _resolve_dockerfile_config(args: argparse.Namespace, loaded: dict) -> object
         cli_output=getattr(args, "output", None),
         cli_java_version=getattr(args, "java_version", None),
         cli_recipe=getattr(args, "recipe", None),
-        cli_profile=None,
-        cli_runtime_image=None,
-        cli_use_buildkit_cache=None,
-        cli_use_jlink=None,
-        cli_use_layered_jar=None,
-        cli_non_root=None,
-        cli_platform_aware=None,
-        cli_enable_appcds=None,
-        cli_enable_jep483_aot_cache=None,
-        cli_include_oci_labels=None,
-        cli_include_stopsignal=None,
-        cli_include_embedded_sbom=None,
-        cli_include_reproducible_controls=None,
-        cli_pin_digests=None,
-        cli_tuned_jvm_flags=None,
-        cli_jvm_flags=None,
-        cli_healthcheck_path=None,
+        cli_profile=getattr(args, "profile", None),
+        cli_runtime_image=getattr(args, "runtime_image", None),
+        cli_use_buildkit_cache=getattr(args, "use_buildkit_cache", None),
+        cli_use_jlink=getattr(args, "use_jlink", None),
+        cli_use_layered_jar=getattr(args, "use_layered_jar", None),
+        cli_non_root=getattr(args, "non_root", None),
+        cli_platform_aware=getattr(args, "platform_aware", None),
+        cli_enable_appcds=getattr(args, "enable_appcds", None),
+        cli_enable_jep483_aot_cache=getattr(args, "enable_jep483_aot_cache", None),
+        cli_include_oci_labels=getattr(args, "include_oci_labels", None),
+        cli_include_stopsignal=getattr(args, "include_stopsignal", None),
+        cli_include_embedded_sbom=getattr(args, "include_embedded_sbom", None),
+        cli_include_reproducible_controls=getattr(args, "include_reproducible_controls", None),
+        cli_pin_digests=getattr(args, "pin_digests", None),
+        cli_tuned_jvm_flags=getattr(args, "tuned_jvm_flags", None),
+        cli_jvm_flags=getattr(args, "jvm_flag", None),
+        cli_healthcheck_path=getattr(args, "healthcheck_path", None),
         cli_wizard_args=getattr(args, "wizard_arg", None),
         cli_use_legacy_scripts=getattr(args, "use_legacy_scripts", None),
         loaded_config=loaded,

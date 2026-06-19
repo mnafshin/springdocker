@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import unittest
 
 from tests.test_support import add_src_to_path
@@ -82,6 +83,53 @@ class CliParseTests(unittest.TestCase):
         self.assertEqual(args.java_version, 21)
         self.assertEqual(args.recipe, "spring-aot")
         self.assertTrue(args.use_legacy_scripts)
+
+    def test_dockerfile_generate_parse_config_flags(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "dockerfile",
+                "generate",
+                "--runtime-image",
+                "alpine",
+                "--no-use-jlink",
+                "--enable-jep483-aot-cache",
+                "--no-include-embedded-sbom",
+                "--pin-digests",
+                "--jvm-flag=-XX:+UseZGC",
+                "--jvm-flag=-XX:MaxRAMPercentage=75",
+                "--healthcheck-path",
+                "/actuator/health",
+            ]
+        )
+        self.assertEqual(args.runtime_image, "alpine")
+        self.assertFalse(args.use_jlink)
+        self.assertTrue(args.enable_jep483_aot_cache)
+        self.assertFalse(args.include_embedded_sbom)
+        self.assertTrue(args.pin_digests)
+        self.assertEqual(args.jvm_flag, ["-XX:+UseZGC", "-XX:MaxRAMPercentage=75"])
+        self.assertEqual(args.healthcheck_path, "/actuator/health")
+
+    def test_dockerfile_generate_help_groups_config_flags(self) -> None:
+        parser = build_parser()
+        dockerfile_parser = next(
+            action.choices["dockerfile"]
+            for action in parser._actions
+            if isinstance(action, argparse._SubParsersAction)
+        )
+        gen_parser = next(
+            action.choices["generate"]
+            for action in dockerfile_parser._actions
+            if isinstance(action, argparse._SubParsersAction)
+        )
+        help_text = gen_parser.format_help()
+        self.assertIn("runtime:\n  Runtime image options", help_text)
+        self.assertIn("build:\n  Build and image layout options", help_text)
+        self.assertIn("supply chain:\n  Supply chain and reproducibility", help_text)
+        self.assertIn("JVM:\n  JVM tuning and caching", help_text)
+        self.assertIn("--runtime-image", help_text)
+        self.assertIn("--no-include-embedded-sbom", help_text)
+        self.assertIn("--jvm-flag", help_text)
 
     def test_benchmark_run_parse(self) -> None:
         parser = build_parser()

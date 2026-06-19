@@ -132,6 +132,50 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(resolved.jvm_flags, ("-XX:+UseZGC",))
         self.assertFalse(resolved.enable_appcds)
 
+    def test_dockerfile_cli_overrides_config(self) -> None:
+        loaded = {
+            "dockerfile": {
+                "runtime_image": "distroless",
+                "use_jlink": True,
+                "include_embedded_sbom": True,
+                "pin_digests": True,
+                "jvm_flags": ["-XX:+UseG1GC"],
+                "enable_jep483_aot_cache": False,
+            }
+        }
+        resolved = resolve_dockerfile_generate_config(
+            cli_build_tool=None,
+            cli_output=None,
+            cli_java_version=None,
+            cli_recipe=None,
+            cli_profile=None,
+            cli_runtime_image="alpine",
+            cli_use_buildkit_cache=None,
+            cli_use_jlink=False,
+            cli_use_layered_jar=None,
+            cli_non_root=None,
+            cli_platform_aware=None,
+            cli_enable_appcds=None,
+            cli_enable_jep483_aot_cache=True,
+            cli_include_oci_labels=None,
+            cli_include_stopsignal=None,
+            cli_include_embedded_sbom=False,
+            cli_include_reproducible_controls=None,
+            cli_pin_digests=False,
+            cli_tuned_jvm_flags=None,
+            cli_jvm_flags=["-XX:+UseZGC"],
+            cli_healthcheck_path=None,
+            cli_wizard_args=None,
+            cli_use_legacy_scripts=None,
+            loaded_config=loaded,
+        )
+        self.assertEqual(resolved.runtime_image, "alpine")
+        self.assertFalse(resolved.use_jlink)
+        self.assertFalse(resolved.include_embedded_sbom)
+        self.assertFalse(resolved.pin_digests)
+        self.assertEqual(resolved.jvm_flags, ("-XX:+UseZGC",))
+        self.assertTrue(resolved.enable_jep483_aot_cache)
+
     def test_resolve_jlink_baseline_modules_from_config(self) -> None:
         loaded = {
             "dockerfile": {
