@@ -8,6 +8,20 @@
 
 This document separates **what the CLI ships and CI validates** from **what the benchmark sample demonstrates** and **what remains roadmap**.
 
+## Target audience
+
+Resolved in [#87](https://github.com/mnafshin/springdocker/issues/87) — see [ADR 0008](adr/0008-target-audience.md).
+
+**Primary: production teams** adopting Spring Boot containerization with a Dockerfile they own, review in PRs, and verify in CI. Install from PyPI; run against your service; use Java 17+ and your Spring Boot version via config.
+
+**Secondary: conference and evidence storytelling.** Presentations, benchmark scenarios, and the reference sample (`Spring Boot 4`, `Java 25`) live in this repository to support reproducible talks and tuning evidence. They are optional — not required for production rollout and not claims about every user's stack.
+
+**Not primary: lab-only research tooling.** Stress-testing happens in-repo; the shipped CLI is general-purpose for real projects.
+
+### Java 25 / Spring Boot 4 in the reference sample
+
+The benchmark sample uses bleeding-edge versions to exercise generator output and publish evidence. That is intentional for the **secondary** audience. Production users configure `java_version` and profiles for their own LTS or current JDK — see [team-adoption.md](team-adoption.md). The sample version choice is a **feature for evidence depth**, not a requirement for adoption.
+
 ## Distribution
 
 **PyPI-first:** install `springdocker` and run it on your Spring Boot project. Cloning the repository is optional — only needed for benchmark evidence on the sample app, presentations, or contributing.
@@ -88,7 +102,7 @@ Resolved in [#95](https://github.com/mnafshin/springdocker/issues/95) — see [`
 | Java (generated Dockerfiles) | 25 in sample config | Generator requires Java ≥17 |
 | Python CLI | 3.12 in CI | Requires Python ≥3.10 |
 
-Revisit whether Java 25 / Spring Boot 4 defaults suit a general audience: [#69](https://github.com/mnafshin/springdocker/issues/69).
+Production teams set `java_version` in `.springdocker.toml` for their service. The reference sample stays on current JDK/Spring Boot for benchmark and presentation refresh — see [ADR 0008](adr/0008-target-audience.md).
 
 ## Why not Jib?
 

@@ -6,11 +6,23 @@
 [![Coverage](https://img.shields.io/badge/coverage-%3E%3D80%25-brightgreen)](./pyproject.toml)
 [![Benchmark](https://img.shields.io/badge/benchmark-regression--gated-orange)](./docs/benchmark-methodology.md)
 
-Developer toolkit for Spring Boot containerization with optional benchmark evidence for tuning decisions.
+Developer toolkit for **production teams** containerizing Spring Boot — with optional benchmark evidence for tuning and conference demos.
 
-`springdocker` is a Python CLI that helps you inspect a Spring Boot project, generate a Dockerfile, create benchmark assets, run benchmark suites, and summarize benchmark results.
+`springdocker` is a Python CLI that helps teams inspect a Spring Boot project, commit Dockerfile strategy in `.springdocker.toml`, generate and verify Dockerfiles in CI, and (optionally) run benchmark suites for evidence-backed tuning.
 
-See [`docs/POSITIONING.md`](docs/POSITIONING.md) for product scope, **CI-evidenced guarantees**, and how the sample projects relate to shipped behavior.
+See [`docs/POSITIONING.md`](docs/POSITIONING.md) for **who it is for**, CI-evidenced guarantees, and how the sample projects relate to shipped behavior.
+
+## Who it's for
+
+Resolved in [#87](https://github.com/mnafshin/springdocker/issues/87) — see [`docs/adr/0008-target-audience.md`](docs/adr/0008-target-audience.md).
+
+| Audience | Fit |
+|---|---|
+| **Production teams** (primary) | Adopt via PyPI on **your** Maven/Gradle service — config-first Dockerfile workflow, explain/verify in CI, Java **17+** on your project |
+| **Conference / storytelling** (secondary) | Clone for presentations and benchmark evidence under `samples/java-spring-docker/` — numbers are sample-specific, not universal guarantees |
+| **Personal lab only** (not primary) | Bleeding-edge sample (Boot 4 / Java 25) stress-tests the generator inside the repo; you do not need to match those versions to use the CLI |
+
+**Not** a black-box image builder like Jib or Buildpacks — you own the Dockerfile. **Not** a research-only toy — CI gates the installable CLI; benchmarks and decks are optional depth.
 
 ## Install
 

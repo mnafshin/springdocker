@@ -11,5 +11,6 @@ This directory contains the current architecture decisions for `springdocker`.
 5. [ADR 0005: Config-first Dockerfile generation](0005-config-first-dockerfile-generation.md)
 6. [ADR 0006: PyPI-first distribution](0006-pypi-first-distribution.md)
 7. [ADR 0007: Jlink baseline modules scoped to Spring Web detection](0007-jlink-baseline-modules-web-detection.md)
-8. [Team adoption guide](../team-adoption.md) — config-first rollout for teams
+8. [ADR 0008: Target audience](0008-target-audience.md)
+9. [Team adoption guide](../team-adoption.md) — config-first rollout for teams
 
