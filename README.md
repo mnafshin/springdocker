@@ -242,7 +242,15 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 
 ## Project docs
 
-### Implemented docs
+Documentation uses three status labels:
+
+| Status | Meaning |
+|---|---|
+| **Implemented** | Shipped CLI behavior, runbooks, ADRs, or committed reference artifacts |
+| **Experimental** | Scaffold or opt-in capability — documented with explicit limits; not production-ready |
+| **Roadmap** | Planned capability or doc product not shipped yet |
+
+### Implemented
 
 - `docs/project-detection.md` — Maven/Gradle detection boundaries and monorepo workflows
 - `docs/POSITIONING.md` — product scope, CI guarantees, sample-tree strategy
@@ -263,15 +271,18 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 - `docs/jvm-optimization.md`
 - `docs/distribution.md`
 - `docs/presentation/README.md` — Reveal.js decks: ownership, update cadence, commit/publish policy
+- `docs/example-gallery.md` — index of committed Dockerfile and benchmark JSON examples under `docs/examples/`
+- `docs/compatibility-matrix.md` — descriptive support ranges (Java 17+, Python 3.10+, etc.)
 - `SECURITY.md`
 - `CONTRIBUTING.md`
 
-### Roadmap docs (not implemented yet)
+### Experimental
 
-- `docs/example-gallery.md`
-- `docs/benchmark-dashboard.md`
-- `docs/native-image-roadmap.md`
-- `docs/compatibility-matrix.md`
+- `docs/native-image-roadmap.md` — `native-aot` recipe and scenario 07 scaffold; runner skips native by default; production native-image workflow remains roadmap
+
+### Roadmap
+
+- `docs/benchmark-dashboard.md` — standalone trend dashboard (presentation decks and `benchmark analyze` JSON are substitutes today)
 
 ## Comparison with adjacent tools
 

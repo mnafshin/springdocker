@@ -1,8 +1,6 @@
 # Example gallery
 
-> **NOT IMPLEMENTED YET**
->
-> This page is roadmap content and does not describe currently shipped `springdocker` functionality.
+> **Status: Implemented** — index of committed reference artifacts under `docs/examples/`.
 
 This gallery collects representative generated outputs so you can see the main `springdocker` modes side by side.
 

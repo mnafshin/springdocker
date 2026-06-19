@@ -1,8 +1,6 @@
 # Benchmark dashboard
 
-> **NOT IMPLEMENTED YET**
->
-> This page is roadmap content and does not describe currently shipped `springdocker` functionality.
+> **Status: Roadmap** — no standalone dashboard product yet. Talk evidence lives in `docs/presentation/` (updated via `scripts/update_presentation_benchmarks.py`); machine-readable summaries come from `springdocker benchmark analyze`.
 
 Benchmark numbers for talks are refreshed into `docs/presentation/docker-steps-evidence.html`, `docs/presentation/springdocker-features.html`, and the generated `docs/presentation/benchmark-summary.md` via `python scripts/update_presentation_benchmarks.py`.
 

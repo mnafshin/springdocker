@@ -101,7 +101,7 @@ Resolved in [#95](https://github.com/mnafshin/springdocker/issues/95) — see [`
 
 | Layer | Reference (sample/docs) | Broader support |
 |---|---|---|
-| Spring Boot | 4.0.1 sample app | Maven/Gradle projects with Spring Boot markers; no version matrix published yet ([`compatibility-matrix.md`](compatibility-matrix.md) is roadmap) |
+| Spring Boot | 4.0.1 sample app | Maven/Gradle projects with Spring Boot markers; see [`compatibility-matrix.md`](compatibility-matrix.md) for descriptive support ranges |
 | Java (generated Dockerfiles) | 25 in sample config | Generator requires Java ≥17 |
 | Python CLI | 3.12 in CI | Requires Python ≥3.10 |
 

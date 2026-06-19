@@ -1,8 +1,8 @@
 # Native image roadmap
 
-> **NOT IMPLEMENTED YET**
+> **Status: Experimental** — `springdocker dockerfile generate --recipe native-aot` and benchmark scenario `07-native-benchmark` emit scaffold Dockerfiles; the internal runner skips native execution by default (`--skip-native`).
 >
-> This page is roadmap content and does not describe currently shipped `springdocker` functionality.
+> **Production native-image workflow: Roadmap** — build validation, reflection configuration, and benchmark execution are not shipped yet.
 
 `springdocker` does not ship a native-image workflow yet, but the current benchmark structure leaves a clear path for it.
 

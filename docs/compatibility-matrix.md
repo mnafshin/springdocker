@@ -1,8 +1,6 @@
 # Compatibility matrix
 
-> **NOT IMPLEMENTED YET**
->
-> This page is roadmap content and does not describe currently shipped `springdocker` functionality.
+> **Status: Implemented** — descriptive support ranges for the shipped CLI; not a formal certification matrix.
 
 This repository documents the stack combinations that `springdocker` is designed to handle today.
 

@@ -24,7 +24,7 @@ The same E2E paths validate generated variant families that the benchmark genera
 |---|---|---|
 | jlink runtime | Covered via generated benchmark asset | Verified through the `03-custom-jre-jlink` scenario. |
 | distroless runtime | Covered via generated benchmark asset | Verified through the `06-base-image-choice` scenario. |
-| native JVM comparison scaffold | Scaffold only / roadmap | The `07-native-benchmark` scenario generates a `native-aot` Dockerfile scaffold; native-image execution remains out of scope. |
+| native JVM comparison scaffold | Experimental | The `07-native-benchmark` scenario generates a `native-aot` Dockerfile scaffold; native-image execution remains out of scope. |
 
 ## Why fixtures are canonical for CI
 
