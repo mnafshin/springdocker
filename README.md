@@ -46,7 +46,7 @@ See [`cli/README.md`](cli/README.md#install) for pip/editable options and upgrad
 | Goal | What to do |
 |---|---|
 | Generate/explain/verify Dockerfiles for **your** service | Install from PyPI only |
-| Reproduce benchmark evidence, presentations, or pinned CI baselines | Clone; work under `samples/java-spring-docker/` |
+| Reproduce benchmark evidence, presentations, or pinned CI baselines | Clone; work under `samples/java-spring-docker/` — see [`docs/presentation/README.md`](docs/presentation/README.md) for deck ownership and update policy |
 | Contribute to the CLI | Clone; editable install — see [Contributing](#contributing) |
 
 Resolved in [#97](https://github.com/mnafshin/springdocker/issues/97) — see [`docs/adr/0006-pypi-first-distribution.md`](docs/adr/0006-pypi-first-distribution.md).
@@ -260,6 +260,7 @@ The reference sample uses bleeding-edge versions to stress-test generator output
 - `docs/troubleshooting.md`
 - `docs/jvm-optimization.md`
 - `docs/distribution.md`
+- `docs/presentation/README.md` — Reveal.js decks: ownership, update cadence, commit/publish policy
 - `SECURITY.md`
 - `CONTRIBUTING.md`
 

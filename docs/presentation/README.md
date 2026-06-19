@@ -1,6 +1,33 @@
 # Presentation decks
 
-Reveal.js slide decks for talks about **springdocker** (product/features) and **Dockerfile engineering** (step-by-step evidence).
+Reveal.js slide decks for **springdocker** (product/features) and **Dockerfile engineering** (step-by-step evidence).
+
+These are **maintained project assets**, not throwaway session notes. They support the [secondary conference/evidence audience](../POSITIONING.md#target-audience) described in positioning docs — versioned alongside benchmark CSVs and sample-app evidence.
+
+Policy: [#83](https://github.com/mnafshin/springdocker/issues/83) (ownership & cadence) · [#91](https://github.com/mnafshin/springdocker/issues/91) (commit vs publish).
+
+## Ownership
+
+| Question | Answer |
+|---|---|
+| **Who owns these files?** | Repository maintainers — same ownership model as `docs/` and `samples/java-spring-docker/benchmarks/`. |
+| **Who may edit?** | Anyone via pull request; reviewers check factual alignment with CLI behavior and benchmark methodology. |
+| **Who publishes GitHub Pages?** | A repo admin, optionally — see [Publish policy](#commit-and-publish-policy) below. Not required for CLI users. |
+| **Who refreshes benchmark numbers?** | Whoever changes benchmark scenarios or presents with current evidence — typically a maintainer before a talk or after a `--profile full` sample run. |
+
+Slide **content** (wording, structure, new sections) and bound **numbers** (from `data-benchmark` CSVs) both go through normal git review. Do not fork decks outside the repo for “official” talks without merging improvements back.
+
+## Update cadence
+
+| Trigger | Action |
+|---|---|
+| **Before a conference or meetup talk** | Run `update_presentation_benchmarks.py --check`; refresh with `--profile full` if numbers are stale; commit HTML if bindings changed. |
+| **After benchmark scenario or sample-app changes** | Regenerate bindings and commit updated `*.html` in the same PR when feasible. |
+| **After CLI/product changes** (configure, verify, profiles) | Manually update narrative slides in `springdocker-features.html`; numbers may be unchanged. |
+| **Routine maintenance** | No fixed schedule — refresh when presenting or when pinned CI baseline CSVs (`samples/.../results/`) change materially. |
+| **Ephemeral helper output** | Regenerate `benchmark-summary.md` locally anytime; never commit (gitignored). |
+
+Stale numbers are acceptable between talks if slides label evidence as sample-specific (see [Notes](#notes)). Before citing absolutes on stage, run a full-profile benchmark on your host or verify `--check` passes.
 
 ## Commit and publish policy
 

@@ -14,7 +14,7 @@ Resolved in [#87](https://github.com/mnafshin/springdocker/issues/87) — see [A
 
 **Primary: production teams** adopting Spring Boot containerization with a Dockerfile they own, review in PRs, and verify in CI. Install from PyPI; run against your service; use Java 17+ and your Spring Boot version via config.
 
-**Secondary: conference and evidence storytelling.** Presentations, benchmark scenarios, and the reference sample (`Spring Boot 4`, `Java 25`) live in this repository to support reproducible talks and tuning evidence. They are optional — not required for production rollout and not claims about every user's stack.
+**Secondary: conference and evidence storytelling.** Presentations, benchmark scenarios, and the reference sample (`Spring Boot 4`, `Java 25`) live in this repository to support reproducible talks and tuning evidence. They are optional — not required for production rollout and not claims about every user's stack. Ownership, update cadence, and publish policy: [`docs/presentation/README.md`](../presentation/README.md).
 
 **Not primary: lab-only research tooling.** Stress-testing happens in-repo; the shipped CLI is general-purpose for real projects.
 
