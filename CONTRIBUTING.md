@@ -28,6 +28,8 @@ ruff check src tests
 mypy src
 ```
 
+Ruff runs with **F**, **I**, **B** (bugbear), **UP** (pyupgrade), and **SIM** (simplify) — see `[tool.ruff.lint]` in `pyproject.toml`. Fix auto-fixable issues with `ruff check src tests --fix`.
+
 ## Coverage policy
 
 Local `pytest` and the CI `coverage` job enforce the same gate: **≥80% line coverage** on the entire

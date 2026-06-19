@@ -49,6 +49,7 @@ target-version = "py310"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
+# F/I: pyflakes + isort; B: bugbear; UP: pyupgrade; SIM: simplify (see #84)
 select = ["F", "I", "B", "UP", "SIM"]
 
 [tool.mypy]

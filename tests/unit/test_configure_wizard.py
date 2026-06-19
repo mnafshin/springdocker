@@ -22,9 +22,11 @@ class ConfigureWizardTests(unittest.TestCase):
             root = Path(td)
             (root / "pom.xml").write_text("<project></project>", encoding="utf-8")
             config_path = root / ".springdocker.toml"
-            with patch("springdocker.configure_wizard.ask_choice", return_value="production-balanced"):
-                with patch("springdocker.configure_wizard.ask_bool", return_value=True):
-                    run_configure_wizard(root, config_path)
+            with (
+                patch("springdocker.configure_wizard.ask_choice", return_value="production-balanced"),
+                patch("springdocker.configure_wizard.ask_bool", return_value=True),
+            ):
+                run_configure_wizard(root, config_path)
             self.assertTrue(config_path.exists())
             text = config_path.read_text("utf-8")
             self.assertIn("[dockerfile]", text)
@@ -56,9 +58,11 @@ class ConfigureCliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             (root / "pom.xml").write_text("<project></project>", encoding="utf-8")
-            with patch("springdocker.configure_wizard.ask_choice", return_value="production-balanced"):
-                with patch("springdocker.configure_wizard.ask_bool", return_value=True):
-                    code = main(["configure", "--project-root", str(root), "--force"])
+            with (
+                patch("springdocker.configure_wizard.ask_choice", return_value="production-balanced"),
+                patch("springdocker.configure_wizard.ask_bool", return_value=True),
+            ):
+                code = main(["configure", "--project-root", str(root), "--force"])
             self.assertEqual(code, 0)
             config_path = root / ".springdocker.toml"
             loaded = load_config(config_path)

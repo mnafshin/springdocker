@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 from springdocker.config import (
-    HEALTHCHECK_AUTO,
     DockerfileGenerateConfig,
     load_config,
     resolve_dockerfile_generate_config,

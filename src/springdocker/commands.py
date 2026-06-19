@@ -11,7 +11,6 @@ from .benchmarks.generate import generate_benchmark_assets
 from .benchmarks.runner import run_benchmarks
 from .config import DockerfileGenerateConfig, load_config, resolve_dockerfile_generate_config
 from .configure_wizard import run_configure_wizard
-from .dockerfile import JLINK_BASELINE_MODULES
 from .errors import EXIT_FAILURE, EXIT_OK, EXIT_USAGE, print_error, print_warning
 from .plugins import render_verify_with_plugins
 from .project_detect import inspect_project

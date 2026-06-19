@@ -5,10 +5,15 @@ from __future__ import annotations
 from dataclasses import replace
 from pathlib import Path
 
-from springdocker.config import HEALTHCHECK_AUTO, DockerfileGenerateConfig, render_default_config, write_default_config
+from springdocker.config import HEALTHCHECK_AUTO, DockerfileGenerateConfig, write_default_config
 from springdocker.config_serializer import dockerfile_options_to_table, merge_dockerfile_section
 from springdocker.dockerfile import DockerfileOptions
-from springdocker.dockerfile_profiles import PROFILE_NAMES, apply_profile, default_jvm_flags_for_display, profile_description
+from springdocker.dockerfile_profiles import (
+    PROFILE_NAMES,
+    apply_profile,
+    default_jvm_flags_for_display,
+    profile_description,
+)
 from springdocker.project_detect import inspect_project_details
 
 
