@@ -35,7 +35,7 @@ Mypy runs on `src/` with gradual strictness — baseline settings plus per-modul
 ## Coverage policy
 
 Local `pytest` and the CI `coverage` job enforce the same gate: **≥80% line coverage** on the entire
-`springdocker` package (`pyproject.toml` → `[tool.pytest.ini_options]` → `addopts`).
+`springdocker` package (`pyproject.toml` → `[tool.pytest.ini_options]` → `addopts`). The README coverage badge links here.
 
 - CI matrix jobs run one suite at a time (`unit`, `integration`, `e2e`, `benchmark`) with
   `--cov-fail-under=0` because partial runs cannot satisfy the global threshold.
