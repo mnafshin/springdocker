@@ -86,8 +86,7 @@ class CliIntegrationTests(unittest.TestCase):
             "[dockerfile]\n"
             "output = \"Dockerfile.test\"\n"
             "java_version = 25\n"
-            "must_have_modules_file = \"must-have.txt\"\n"
-            "legacy_scripts = false\n",
+            "must_have_modules_file = \"must-have.txt\"\n",
             encoding="utf-8",
         )
         (project / "must-have.txt").write_text("jdk.crypto.ec\n# comment\njava.naming\n", encoding="utf-8")

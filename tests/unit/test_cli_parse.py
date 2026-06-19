@@ -74,7 +74,6 @@ class CliParseTests(unittest.TestCase):
                 "21",
                 "--recipe",
                 "spring-aot",
-                "--use-legacy-scripts",
             ]
         )
         self.assertEqual(args.command, "dockerfile")
@@ -82,7 +81,6 @@ class CliParseTests(unittest.TestCase):
         self.assertEqual(args.output, "Dockerfile.prod")
         self.assertEqual(args.java_version, 21)
         self.assertEqual(args.recipe, "spring-aot")
-        self.assertTrue(args.use_legacy_scripts)
 
     def test_dockerfile_generate_parse_config_flags(self) -> None:
         parser = build_parser()

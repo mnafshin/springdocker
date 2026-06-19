@@ -316,8 +316,6 @@ def cmd_configure(
             cli_tuned_jvm_flags=None,
             cli_jvm_flags=None,
             cli_healthcheck_path=None,
-            cli_wizard_args=None,
-            cli_use_legacy_scripts=None,
             loaded_config=loaded_config,
         )
         return cmd_dockerfile_generate(project_root, resolved)
@@ -334,26 +332,6 @@ def cmd_dockerfile_generate(
     except ValueError as exc:
         print_error(str(exc))
         return EXIT_USAGE
-
-    if _use_legacy_scripts(config.use_legacy_scripts):
-        if config.recipe != "jvm-balanced":
-            print_error("--recipe is only supported by the internal generator (disable --use-legacy-scripts)")
-            return EXIT_USAGE
-        script = project_root / "tools" / "dockerfile_wizard.py"
-        if not script.exists():
-            print_error(f"missing script: {script}")
-            return EXIT_USAGE
-
-        cmd = [
-            "python3",
-            str(script),
-            "--build-tool",
-            info.build_tool,
-            "--output",
-            config.output,
-        ]
-        cmd.extend(config.wizard_args)
-        return run_checked(cmd, project_root)
 
     try:
         generated = dockerfile_service.generate_dockerfile_from_config(

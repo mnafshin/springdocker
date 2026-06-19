@@ -90,7 +90,7 @@ class ConfigSerializerTests(unittest.TestCase):
             merge_dockerfile_section(path, dockerfile_options_to_table(options))
             loaded = load_config(path, strict=True)
             resolved = resolve_dockerfile_generate_config(
-                *[None] * 23,
+                *[None] * 21,
                 loaded,
             )
             self.assertEqual(resolved.java_version, 25)

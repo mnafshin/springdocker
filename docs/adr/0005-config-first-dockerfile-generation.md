@@ -6,9 +6,8 @@ Accepted
 
 ## Context
 
-`DockerfileOptions` models most generation decisions internally, but only a subset is exposed
-via `.springdocker.toml` and CLI. Interactive generation is split between the internal generator
-and legacy `tools/dockerfile_wizard.py`.
+`DockerfileOptions` models most generation decisions internally. Interactive generation is
+provided by `springdocker configure`; deterministic CI generation uses `dockerfile generate`.
 
 Teams need a reproducible, reviewable Dockerfile strategy in git. CI must generate Dockerfiles
 without interactive prompts.
@@ -33,15 +32,13 @@ without interactive prompts.
 6. **Digest pinning:** `pin_digests = true` (default) preserves current behavior. When
    `false`, image tags are emitted without `@sha256:` suffixes.
 7. **Benchmark:** optional evidence workflow; never required before `dockerfile generate`.
-8. **Legacy wizard:** `--use-legacy-scripts` and `wizard_args` are deprecated in favor of
-   `configure` + `dockerfile generate`.
 
 ## Consequences
 
 - Teams commit `.springdocker.toml` and review Dockerfile strategy in PRs.
 - CI runs `dockerfile generate` deterministically.
 - The generator surface in config matches `DockerfileOptions` for explainability and testing.
-- Legacy script delegation can be removed after one release cycle with deprecation warnings.
+- Legacy `tools/dockerfile_wizard.py` delegation is removed; use `configure` + `dockerfile generate`.
 
 ## References
 

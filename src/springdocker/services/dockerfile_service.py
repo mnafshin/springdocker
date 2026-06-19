@@ -154,8 +154,6 @@ def generate_dockerfile(
         tuned_jvm_flags=True,
         jvm_flags=(),
         healthcheck_path=HEALTHCHECK_AUTO,
-        wizard_args=[],
-        use_legacy_scripts=False,
     )
     return generate_dockerfile_from_config(project_root, config, build_tool)
 

@@ -18,7 +18,7 @@ from springdocker.config import (
 )
 from springdocker.dockerfile import JLINK_BASELINE_MODULES
 
-_NO_CLI: tuple[None, ...] = (None,) * 23
+_NO_CLI: tuple[None, ...] = (None,) * 21
 
 
 def _resolve_dockerfile(loaded: dict) -> object:
@@ -92,8 +92,6 @@ class ConfigTests(unittest.TestCase):
                 "java_version": 21,
                 "recipe": "spring-aot",
                 "must_have_modules_file": "must-have.txt",
-                "legacy_scripts": True,
-                "wizard_args": ["--profile", "balanced"],
             },
             "benchmark": {
                 "generate": {"java_version": 21, "legacy_scripts": True},
@@ -109,7 +107,6 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(dockerfile.recipe, "spring-aot")
         self.assertEqual(dockerfile.must_have_modules_file, "must-have.txt")
         self.assertEqual(dockerfile.jlink_baseline_modules, JLINK_BASELINE_MODULES)
-        self.assertTrue(dockerfile.use_legacy_scripts)
         self.assertEqual(bench_generate.java_version, 21)
         self.assertTrue(bench_generate.use_legacy_scripts)
         self.assertEqual(
@@ -165,8 +162,6 @@ class ConfigTests(unittest.TestCase):
             cli_tuned_jvm_flags=None,
             cli_jvm_flags=["-XX:+UseZGC"],
             cli_healthcheck_path=None,
-            cli_wizard_args=None,
-            cli_use_legacy_scripts=None,
             loaded_config=loaded,
         )
         self.assertEqual(resolved.runtime_image, "alpine")

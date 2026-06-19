@@ -178,8 +178,6 @@ def run_configure_wizard(
         tuned_jvm_flags=options.tuned_jvm_flags,
         jvm_flags=options.jvm_flags,
         healthcheck_path=HEALTHCHECK_AUTO,
-        wizard_args=[],
-        use_legacy_scripts=False,
     )
 
     print(f"\nwrote config: {config_path}")

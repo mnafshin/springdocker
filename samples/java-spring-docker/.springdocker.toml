@@ -12,8 +12,6 @@ output = "Dockerfile.generated"
 java_version = 25
 recipe = "jvm-balanced"
 must_have_modules_file = "musthave_modules.txt"
-legacy_scripts = false
-wizard_args = []
 
 [benchmark.generate]
 java_version = 25

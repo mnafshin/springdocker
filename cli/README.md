@@ -100,7 +100,7 @@ Every `[dockerfile]` key is overridable from the CLI except file-backed keys (`m
 
 | Section | CLI flags | Config key(s) |
 |---|---|---|
-| General | `--output`, `--java-version`, `--recipe`, `--profile`, `--use-legacy-scripts`, `--wizard-arg` | `output`, `java_version`, `recipe`, `profile`, `legacy_scripts`, `wizard_args` |
+| General | `--output`, `--java-version`, `--recipe`, `--profile` | `output`, `java_version`, `recipe`, `profile` |
 | Runtime | `--runtime-image`, `--non-root` / `--no-non-root`, `--platform-aware` / `--no-platform-aware`, `--healthcheck-path` | `runtime_image`, `non_root`, `platform_aware`, `healthcheck_path` |
 | Build | `--use-buildkit-cache` / `--no-use-buildkit-cache`, `--use-jlink` / `--no-use-jlink`, `--use-layered-jar` / `--no-use-layered-jar` | `use_buildkit_cache`, `use_jlink`, `use_layered_jar` |
 | Supply chain | `--include-oci-labels`, `--include-stopsignal`, `--include-embedded-sbom`, `--include-reproducible-controls`, `--pin-digests` (each with `--no-*` form) | matching `include_*` keys and `pin_digests` |
@@ -154,8 +154,6 @@ recipe = "jvm-balanced"
 # jvm_flags = ["-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "-Djava.io.tmpdir=/tmp"]
 # Generator default runtime: distroless (gcr.io/distroless/base-* + jlink + layered JAR).
 must_have_modules_file = "must-have.txt"
-legacy_scripts = false
-wizard_args = []
 
 [benchmark.generate]
 java_version = 25
@@ -200,23 +198,16 @@ springdocker init --project-root samples/java-spring-docker --build-tool gradle
 springdocker init --project-root samples/java-spring-docker --build-tool gradle --profile full --print
 ```
 
-## Legacy compatibility mode
+## Legacy benchmark scripts
 
-Main command paths are internal and do not require project script files.
-
-To force script wrappers for compatibility:
+Benchmark commands still support `--use-legacy-scripts` (or `SPRINGDOCKER_LEGACY_SCRIPTS=1`) to delegate to project scripts under `benchmarks/` when needed:
 
 ```bash
-springdocker dockerfile generate --use-legacy-scripts ...
 springdocker benchmark generate --use-legacy-scripts ...
 springdocker benchmark run --use-legacy-scripts ...
 ```
 
-or set:
-
-```bash
-export SPRINGDOCKER_LEGACY_SCRIPTS=1
-```
+Dockerfile generation always uses the internal config-driven generator. Use `springdocker configure` for interactive setup instead of the retired `tools/dockerfile_wizard.py` script.
 
 ## Inspect command
 

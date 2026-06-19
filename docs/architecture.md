@@ -57,10 +57,9 @@ The configuration loader validates the schema early so invalid keys fail fast in
 `cmd_dockerfile_generate()`:
 
 1. Inspects the project root and build tool.
-2. Optionally falls back to the legacy sample script path.
-3. Parses `must_have_modules_file` when provided.
-4. Calls `build_dockerfile()` with structured options.
-5. Writes the generated file to the target path.
+2. Parses `must_have_modules_file` when provided.
+3. Calls `build_dockerfile()` with structured options.
+4. Writes the generated file to the target path.
 
 `dockerfile.py` produces:
 

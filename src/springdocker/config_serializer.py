@@ -47,8 +47,6 @@ def dockerfile_options_to_table(options: DockerfileOptions, *, profile: str | No
         "include_reproducible_controls": options.include_reproducible_controls,
         "pin_digests": options.pin_digests,
         "tuned_jvm_flags": options.tuned_jvm_flags,
-        "legacy_scripts": False,
-        "wizard_args": [],
     }
     if profile is not None:
         table["profile"] = profile
@@ -83,8 +81,6 @@ def render_dockerfile_section(table: dict[str, Any]) -> str:
         "jvm_flags",
         "jlink_baseline_modules",
         "must_have_modules_file",
-        "legacy_scripts",
-        "wizard_args",
     ]
     for key in key_order:
         if key not in table:

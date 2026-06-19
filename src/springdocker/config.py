@@ -47,8 +47,6 @@ class DockerfileGenerateConfig:
     tuned_jvm_flags: bool
     jvm_flags: tuple[str, ...]
     healthcheck_path: str
-    wizard_args: list[str]
-    use_legacy_scripts: bool
 
 
 def sample_dockerfile_config(**overrides: object) -> DockerfileGenerateConfig:
@@ -76,8 +74,6 @@ def sample_dockerfile_config(**overrides: object) -> DockerfileGenerateConfig:
         "tuned_jvm_flags": True,
         "jvm_flags": (),
         "healthcheck_path": HEALTHCHECK_AUTO,
-        "wizard_args": [],
-        "use_legacy_scripts": False,
     }
     defaults.update(overrides)
     return DockerfileGenerateConfig(**defaults)  # type: ignore[arg-type]
@@ -132,9 +128,7 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         "# use_jlink = true\n"
         "# include_embedded_sbom = true\n"
         "# pin_digests = true\n"
-        "# tuned_jvm_flags = true\n"
-        "legacy_scripts = false\n"
-        "wizard_args = []\n\n"
+        "# tuned_jvm_flags = true\n\n"
         "[benchmark.generate]\n"
         "java_version = 25\n"
         "legacy_scripts = false\n\n"
@@ -244,8 +238,6 @@ def _validate_schema(data: dict[str, Any]) -> None:
                 "tuned_jvm_flags",
                 "jvm_flags",
                 "healthcheck_path",
-                "legacy_scripts",
-                "wizard_args",
             },
         ),
         ("benchmark", benchmark, {"run", "generate", "profile", "runner_args"}),
@@ -286,8 +278,6 @@ def _validate_schema(data: dict[str, Any]) -> None:
     healthcheck_path = dockerfile.get("healthcheck_path")
     if healthcheck_path is not None and not isinstance(healthcheck_path, str):
         raise ValueError("Config key 'dockerfile.healthcheck_path' must be a string or null")
-    _expect_optional_bool(dockerfile.get("legacy_scripts"), "dockerfile.legacy_scripts")
-    _expect_optional_str_list(dockerfile.get("wizard_args"), "dockerfile.wizard_args")
     _expect_optional_str(benchmark_run.get("profile"), "benchmark.run.profile")
     _expect_optional_str_list(benchmark_run.get("runner_args"), "benchmark.run.runner_args")
     _expect_optional_str(benchmark_run.get("cpuset_cpus"), "benchmark.run.cpuset_cpus")
@@ -403,8 +393,6 @@ def resolve_dockerfile_generate_config(
     cli_tuned_jvm_flags: bool | None,
     cli_jvm_flags: list[str] | None,
     cli_healthcheck_path: str | None,
-    cli_wizard_args: list[str] | None,
-    cli_use_legacy_scripts: bool | None,
     loaded_config: dict[str, Any],
 ) -> DockerfileGenerateConfig:
     dockerfile = _expect_table(loaded_config, "dockerfile")
@@ -427,17 +415,6 @@ def resolve_dockerfile_generate_config(
     )
     jlink_baseline_modules = (
         JLINK_BASELINE_MODULES if jlink_baseline_modules_raw is None else tuple(jlink_baseline_modules_raw)
-    )
-
-    if cli_wizard_args is not None:
-        wizard_args = cli_wizard_args
-    else:
-        wizard_args = _expect_optional_str_list(dockerfile.get("wizard_args"), "dockerfile.wizard_args") or []
-
-    use_legacy = _pick_bool(
-        cli_use_legacy_scripts,
-        _expect_optional_bool(dockerfile.get("legacy_scripts"), "dockerfile.legacy_scripts"),
-        False,
     )
 
     jvm_flags_raw = (
@@ -540,8 +517,6 @@ def resolve_dockerfile_generate_config(
         ),
         jvm_flags=jvm_flags,
         healthcheck_path=healthcheck_path,
-        wizard_args=wizard_args,
-        use_legacy_scripts=use_legacy,
     )
 
 

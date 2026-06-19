@@ -62,7 +62,7 @@ class ConfigureCliTests(unittest.TestCase):
             self.assertEqual(code, 0)
             config_path = root / ".springdocker.toml"
             loaded = load_config(config_path)
-            resolved = resolve_dockerfile_generate_config(*([None] * 23), loaded)
+            resolved = resolve_dockerfile_generate_config(*([None] * 21), loaded)
             self.assertEqual(resolved.runtime_image, "distroless")
             self.assertEqual(resolved.profile, "production-balanced")
 

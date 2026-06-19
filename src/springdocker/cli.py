@@ -108,7 +108,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     dockerfile = sub.add_parser("dockerfile", help="Dockerfile operations")
     dockerfile_sub = dockerfile.add_subparsers(dest="dockerfile_command", required=True)
-    gen = dockerfile_sub.add_parser("generate", help="Generate Dockerfile via existing wizard")
+    gen = dockerfile_sub.add_parser("generate", help="Generate Dockerfile from resolved config")
     add_common_options(gen)
     gen.add_argument("--output", default=None, help="Output Dockerfile path")
     gen.add_argument("--java-version", type=int, default=None, help="Java major version for generated Dockerfile")
@@ -120,18 +120,6 @@ def build_parser() -> argparse.ArgumentParser:
             "(jvm-balanced, spring-aot, native-aot scaffold); "
             "native-aot is experimental and not a production workflow"
         ),
-    )
-    gen.add_argument(
-        "--wizard-arg",
-        action="append",
-        default=None,
-        help="Extra argument forwarded to tools/dockerfile_wizard.py; repeat for multiple args",
-    )
-    gen.add_argument(
-        "--use-legacy-scripts",
-        action=argparse.BooleanOptionalAction,
-        default=None,
-        help="Use project scripts instead of internal implementation (or set SPRINGDOCKER_LEGACY_SCRIPTS=1)",
     )
     gen.add_argument("--profile", default=None, help="Dockerfile profile name stored in config metadata")
 
@@ -282,8 +270,6 @@ def _resolve_dockerfile_config(args: argparse.Namespace, loaded: dict) -> object
         cli_tuned_jvm_flags=getattr(args, "tuned_jvm_flags", None),
         cli_jvm_flags=getattr(args, "jvm_flag", None),
         cli_healthcheck_path=getattr(args, "healthcheck_path", None),
-        cli_wizard_args=getattr(args, "wizard_arg", None),
-        cli_use_legacy_scripts=getattr(args, "use_legacy_scripts", None),
         loaded_config=loaded,
     )
 
