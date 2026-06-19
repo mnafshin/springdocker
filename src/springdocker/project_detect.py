@@ -15,6 +15,13 @@ class ProjectInfo:
     has_spring_markers: bool
 
 
+SPRING_WEB_STARTER_ARTIFACTS: tuple[str, ...] = (
+    "spring-boot-starter-web",
+    "spring-boot-starter-webflux",
+    "spring-boot-starter-websocket",
+)
+
+
 @dataclass(frozen=True)
 class MultiModuleLayout:
     kind: str
@@ -65,6 +72,29 @@ def detect_build_tool(root: Path, explicit: str | None = None) -> str:
     if has_gradle:
         return "gradle"
     raise ValueError("Could not detect build tool. Expected pom.xml or gradle markers.")
+
+
+def has_spring_web_dependency(root: Path, build_tool: str | None = None) -> bool:
+    """Return True when the project declares a Spring Web stack starter."""
+    if _descriptor_has_web_starter(root):
+        return True
+    try:
+        tool = build_tool or detect_build_tool(root)
+    except ValueError:
+        return False
+    layout = analyze_multi_module_layout(root, tool)
+    return any(_descriptor_has_web_starter(root / module) for module in layout.spring_boot_modules)
+
+
+def _descriptor_has_web_starter(root: Path) -> bool:
+    for descriptor in ("pom.xml", "build.gradle", "build.gradle.kts"):
+        path = root / descriptor
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if any(artifact in text for artifact in SPRING_WEB_STARTER_ARTIFACTS):
+            return True
+    return False
 
 
 def _direct_spring_markers(root: Path) -> bool:

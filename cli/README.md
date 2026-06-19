@@ -207,19 +207,24 @@ When `dockerfile.must_have_modules_file` is set, springdocker reads modules from
 (`must-have.txt` style, one module per line, `#` comments allowed) and injects them into
 the jlink module list for reflection/dynamic-loading edge cases.
 
-When jlink is enabled, springdocker also auto-merges built-in **jlink baseline modules**:
+When jlink is enabled, springdocker auto-merges **jlink baseline modules** when Spring Web starters
+are detected (`spring-boot-starter-web`, `spring-boot-starter-webflux`, `spring-boot-starter-websocket`):
 
-- `java.desktop` — JavaBeans and desktop-related APIs used by parts of the Spring stack
+- `java.desktop` — JavaBeans and desktop-related APIs used by parts of the Spring Web stack
 - `java.logging` — `java.util.logging` used by framework and library code
 - `java.naming` — JNDI lookups that jdeps often misses on web apps
 
-Configure or disable them in `.springdocker.toml`:
+Non-web Spring Boot workloads get **no** auto baseline — use jdeps plus `must_have_modules_file` for
+extra modules. Override or disable in `.springdocker.toml`:
 
 ```toml
 [dockerfile]
+# Omit jlink_baseline_modules to auto-detect from Spring Web starters at generate time.
 # Override defaults or set [] to disable baseline injection.
 jlink_baseline_modules = ["java.desktop", "java.logging", "java.naming"]
 ```
+
+See [ADR 0007](../docs/adr/0007-jlink-baseline-modules-web-detection.md).
 
 `springdocker explain` reports baseline and curated modules separately in JSON/table output.
 Baseline modules are generator defaults; curated modules come from `must_have_modules_file`.

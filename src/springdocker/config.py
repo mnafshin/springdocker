@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from springdocker.dockerfile import JLINK_BASELINE_MODULES
 from springdocker.runtime_images import parse_base_image_variants
 
 try:
@@ -30,7 +29,7 @@ class DockerfileGenerateConfig:
     recipe: str
     profile: str | None
     must_have_modules_file: str | None
-    jlink_baseline_modules: tuple[str, ...]
+    jlink_baseline_modules: tuple[str, ...] | None
     runtime_image: str
     use_buildkit_cache: bool
     use_jlink: bool
@@ -57,7 +56,7 @@ def sample_dockerfile_config(**overrides: object) -> DockerfileGenerateConfig:
         "recipe": "jvm-balanced",
         "profile": None,
         "must_have_modules_file": None,
-        "jlink_baseline_modules": JLINK_BASELINE_MODULES,
+        "jlink_baseline_modules": None,
         "runtime_image": "distroless",
         "use_buildkit_cache": True,
         "use_jlink": True,
@@ -122,6 +121,7 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         '# must_have_modules_file = "must-have.txt"\n'
         "# When jlink is enabled, these modules are auto-merged into the jlink module list.\n"
         '# jlink_baseline_modules = ["java.desktop", "java.logging", "java.naming"]\n'
+        "# Omit jlink_baseline_modules to auto-detect from Spring Web starters at generate time.\n"
         "# Set jlink_baseline_modules = [] to disable built-in baseline injection.\n"
         "# Config-first workflow: run `springdocker configure` to set options interactively.\n"
         "# runtime_image = \"distroless\"\n"
@@ -409,13 +409,14 @@ def resolve_dockerfile_generate_config(
         dockerfile.get("must_have_modules_file"),
         "dockerfile.must_have_modules_file",
     )
-    jlink_baseline_modules_raw = _expect_optional_str_list(
-        dockerfile.get("jlink_baseline_modules"),
-        "dockerfile.jlink_baseline_modules",
-    )
-    jlink_baseline_modules = (
-        JLINK_BASELINE_MODULES if jlink_baseline_modules_raw is None else tuple(jlink_baseline_modules_raw)
-    )
+    if "jlink_baseline_modules" in dockerfile:
+        jlink_baseline_modules_raw = _expect_optional_str_list(
+            dockerfile.get("jlink_baseline_modules"),
+            "dockerfile.jlink_baseline_modules",
+        )
+        jlink_baseline_modules = () if jlink_baseline_modules_raw is None else tuple(jlink_baseline_modules_raw)
+    else:
+        jlink_baseline_modules = None
 
     jvm_flags_raw = (
         cli_jvm_flags

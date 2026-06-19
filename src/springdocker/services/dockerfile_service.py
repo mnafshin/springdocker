@@ -14,6 +14,7 @@ from ..dockerfile import (
 )
 from ..dockerfile_explain import explain_dockerfile_text
 from ..plugins import apply_dockerfile_mutators, render_recipe_from_plugins
+from ..project_detect import has_spring_web_dependency
 
 DEFAULT_DOCKERIGNORE = (
     ".git",
@@ -78,6 +79,15 @@ def ensure_default_dockerignore(project_root: Path) -> Path:
     return destination
 
 
+def _resolve_jlink_baseline_modules(
+    configured: tuple[str, ...] | None,
+    project_root: Path,
+) -> tuple[str, ...]:
+    if configured is not None:
+        return configured
+    return JLINK_BASELINE_MODULES if has_spring_web_dependency(project_root) else ()
+
+
 def _resolve_healthcheck_path(
     configured: str,
     project_root: Path,
@@ -96,12 +106,13 @@ def dockerfile_options_from_config(
 ) -> DockerfileOptions:
     must_have_modules = parse_must_have_modules(project_root, config.must_have_modules_file)
     healthcheck_path = _resolve_healthcheck_path(config.healthcheck_path, project_root)
+    jlink_baseline_modules = _resolve_jlink_baseline_modules(config.jlink_baseline_modules, project_root)
     return DockerfileOptions(
         build_tool=build_tool,
         recipe=config.recipe,
         java_version=config.java_version,
         must_have_modules=must_have_modules,
-        jlink_baseline_modules=config.jlink_baseline_modules,
+        jlink_baseline_modules=jlink_baseline_modules,
         runtime_image=config.runtime_image,
         use_buildkit_cache=config.use_buildkit_cache,
         use_jlink=config.use_jlink,
@@ -127,7 +138,7 @@ def generate_dockerfile(
     build_tool: str,
     java_version: int,
     must_have_modules_file: str | None,
-    jlink_baseline_modules: tuple[str, ...] = JLINK_BASELINE_MODULES,
+    jlink_baseline_modules: tuple[str, ...] | None = None,
     recipe: str = "jvm-balanced",
 ) -> GeneratedDockerfile:
     config = DockerfileGenerateConfig(

@@ -19,7 +19,8 @@ from springdocker.digest_pins import (
 )
 from springdocker.runtime_images import SUPPORTED_RUNTIME_IMAGES
 
-# Auto-merged into jlink MUSTHAVE_MODULES when jlink is enabled (see merge_jlink_must_have_modules).
+# Auto-merged into jlink MUSTHAVE_MODULES when jlink is enabled and Spring Web is detected
+# (see project_detect.has_spring_web_dependency and ADR 0007).
 JLINK_BASELINE_MODULES: tuple[str, ...] = ("java.desktop", "java.logging", "java.naming")
 
 DEFAULT_JVM_FLAGS: tuple[str, ...] = (

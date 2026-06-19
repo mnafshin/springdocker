@@ -16,7 +16,6 @@ from springdocker.config import (
     resolve_dockerfile_generate_config,
     resolve_doctor_config,
 )
-from springdocker.dockerfile import JLINK_BASELINE_MODULES
 
 _NO_CLI: tuple[None, ...] = (None,) * 21
 
@@ -106,7 +105,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(dockerfile.java_version, 21)
         self.assertEqual(dockerfile.recipe, "spring-aot")
         self.assertEqual(dockerfile.must_have_modules_file, "must-have.txt")
-        self.assertEqual(dockerfile.jlink_baseline_modules, JLINK_BASELINE_MODULES)
+        self.assertEqual(dockerfile.jlink_baseline_modules, None)
         self.assertEqual(bench_generate.java_version, 21)
         self.assertTrue(bench_generate.use_legacy_scripts)
         self.assertEqual(
@@ -184,10 +183,14 @@ class ConfigTests(unittest.TestCase):
         empty_resolved = _resolve_dockerfile(empty_loaded)
         self.assertEqual(empty_resolved.jlink_baseline_modules, ())
 
+    def test_resolve_jlink_baseline_modules_defaults_to_auto(self) -> None:
+        resolved = _resolve_dockerfile({})
+        self.assertIsNone(resolved.jlink_baseline_modules)
+
     def test_render_default_config_documents_jlink_baseline_modules(self) -> None:
         text = render_default_config("maven")
         self.assertIn("jlink_baseline_modules", text)
-        self.assertIn("java.desktop", text)
+        self.assertIn("Omit jlink_baseline_modules to auto-detect", text)
         self.assertIn("Default generator runtime: distroless", text)
         self.assertIn("HEALTHCHECK is omitted", text)
 

@@ -13,6 +13,7 @@ from springdocker.project_detect import (
     analyze_multi_module_layout,
     detect_build_tool,
     has_spring_project_markers,
+    has_spring_web_dependency,
     inspect_project_details,
 )
 
@@ -52,6 +53,37 @@ class ProjectDetectTests(unittest.TestCase):
             app_props.mkdir(parents=True)
             (app_props / "application.properties").write_text("spring.application.name=x\n", encoding="utf-8")
             self.assertTrue(has_spring_project_markers(root))
+
+    def test_has_spring_web_dependency_detects_web_starters(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "pom.xml").write_text(
+                "<project><dependencies><dependency>"
+                "<groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId>"
+                "</dependency></dependencies></project>",
+                encoding="utf-8",
+            )
+            self.assertTrue(has_spring_web_dependency(root))
+
+    def test_has_spring_web_dependency_false_for_non_web_starter(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "pom.xml").write_text(
+                "<project><dependencies><dependency>"
+                "<groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter</artifactId>"
+                "</dependency></dependencies></project>",
+                encoding="utf-8",
+            )
+            self.assertFalse(has_spring_web_dependency(root))
+
+    def test_has_spring_web_dependency_detects_webflux(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "build.gradle").write_text(
+                "dependencies { implementation 'org.springframework.boot:spring-boot-starter-webflux' }\n",
+                encoding="utf-8",
+            )
+            self.assertTrue(has_spring_web_dependency(root))
 
     def test_inspect_details_maven_namespace_and_reflection(self) -> None:
         with tempfile.TemporaryDirectory() as td:

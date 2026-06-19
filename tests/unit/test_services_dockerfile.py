@@ -69,6 +69,43 @@ class DockerfileServiceTests(unittest.TestCase):
             self.assertIn("gcr.io/distroless/base-debian", rendered)
             self.assertNotIn("HEALTHCHECK --interval=15s", rendered)
 
+    def test_generate_dockerfile_injects_jlink_baseline_for_web_project(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "pom.xml").write_text(
+                "<project><dependencies><dependency><groupId>org.springframework.boot</groupId>"
+                "<artifactId>spring-boot-starter-web</artifactId></dependency></dependencies></project>",
+                encoding="utf-8",
+            )
+            generated = generate_dockerfile(
+                project_root=root,
+                output_path="Dockerfile.generated",
+                build_tool="maven",
+                java_version=21,
+                must_have_modules_file=None,
+            )
+            rendered = generated.path.read_text("utf-8")
+            self.assertIn('ARG MUSTHAVE_MODULES="java.desktop,java.logging,java.naming"', rendered)
+
+    def test_generate_dockerfile_omits_jlink_baseline_for_non_web_project(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "pom.xml").write_text(
+                "<project><dependencies><dependency><groupId>org.springframework.boot</groupId>"
+                "<artifactId>spring-boot-starter</artifactId></dependency></dependencies></project>",
+                encoding="utf-8",
+            )
+            generated = generate_dockerfile(
+                project_root=root,
+                output_path="Dockerfile.generated",
+                build_tool="maven",
+                java_version=21,
+                must_have_modules_file=None,
+            )
+            rendered = generated.path.read_text("utf-8")
+            self.assertNotIn("java.desktop", rendered)
+            self.assertIn('ARG MUSTHAVE_MODULES=""', rendered)
+
     def test_generate_dockerfile_native_aot_recipe(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

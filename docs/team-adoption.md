@@ -235,7 +235,9 @@ Yes for emergencies, but CI `--check-config-drift` will fail until config is upd
 
 ### Where do must-have jlink modules go?
 
-List modules in a file (e.g. `must-have.txt`) and set `must_have_modules_file` in config. Baseline modules (`java.desktop`, `java.logging`, `java.naming`) are merged automatically unless disabled via `jlink_baseline_modules = []`.
+List modules in a file (e.g. `must-have.txt`) and set `must_have_modules_file` in config. When Spring Web
+starters are detected, baseline modules (`java.desktop`, `java.logging`, `java.naming`) are merged
+automatically unless disabled via `jlink_baseline_modules = []` or overridden explicitly.
 
 ## Sample project
 
