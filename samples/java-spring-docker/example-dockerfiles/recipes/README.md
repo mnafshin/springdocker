@@ -1,6 +1,8 @@
 # Recipe presets
 
 Reference Dockerfiles for each built-in `springdocker` recipe on the sample project's build tool.
+Options come from the project's `.springdocker.toml` `[dockerfile]` section (runtime base, jlink, SBOM,
+AppCDS, pinned digests, and so on); only the `recipe` field changes per file.
 
 | File | Recipe | Purpose |
 |---|---|---|

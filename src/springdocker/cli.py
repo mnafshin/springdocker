@@ -395,6 +395,7 @@ def _handle_benchmark_generate(args: argparse.Namespace, project_root: Path) -> 
         use_legacy_scripts=resolved.use_legacy_scripts,
         must_have_modules=must_have_modules,
         base_image_variants=resolved.base_image_variants,
+        dockerfile_config=dockerfile_resolved,
     )
 
 

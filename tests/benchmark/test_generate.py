@@ -14,6 +14,7 @@ from springdocker.benchmarks.generate import (
     default_scenarios,
     generate_benchmark_assets,
 )
+from springdocker.config import sample_dockerfile_config
 
 
 class GenerateScenarioTests(unittest.TestCase):
@@ -52,6 +53,25 @@ class GenerateScenarioTests(unittest.TestCase):
             self.assertIn("process-aot", spring_aot.read_text("utf-8"))
             self.assertIn("native:compile", native_aot.read_text("utf-8"))
             self.assertFalse((root / "example-dockerfiles" / "01-multi-stage-build-structure").exists())
+
+    def test_recipe_examples_use_dockerfile_config(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "musthave_modules.txt").write_text("java.base\n", encoding="utf-8")
+            dockerfile_config = sample_dockerfile_config(
+                must_have_modules_file="musthave_modules.txt",
+                enable_appcds=True,
+                enable_jep483_aot_cache=False,
+            )
+            generate_benchmark_assets(
+                project_root=root,
+                build_tool="maven",
+                java_version=25,
+                dockerfile_config=dockerfile_config,
+            )
+            jvm_balanced = (root / "example-dockerfiles" / "recipes" / "jvm-balanced.Dockerfile").read_text("utf-8")
+            self.assertIn("ArchiveClassesAtExit", jvm_balanced)
+            self.assertIn("SharedArchiveFile", jvm_balanced)
 
     def test_scenario_variants_match_intended_optimizations(self) -> None:
         scenarios = {scenario.id: scenario for scenario in default_scenarios(build_tool="maven", java_version=25)}
