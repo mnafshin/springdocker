@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import cast
 
@@ -384,6 +385,7 @@ def cmd_benchmark_generate(
     use_legacy_scripts: bool,
     must_have_modules: tuple[str, ...] = (),
     base_image_variants: tuple[str, ...] | None = None,
+    dockerfile_config: DockerfileGenerateConfig | None = None,
 ) -> int:
     try:
         benchmark_service.require_benchmark_dependencies()
@@ -410,12 +412,16 @@ def cmd_benchmark_generate(
             project_root,
         )
 
+    recipe_config = (
+        replace(dockerfile_config, java_version=java_version) if dockerfile_config is not None else None
+    )
     generate_benchmark_assets(
         project_root=project_root,
         build_tool=info.build_tool,
         java_version=java_version,
         must_have_modules=must_have_modules,
         base_image_variants=base_image_variants,
+        dockerfile_config=recipe_config,
     )
     print("generated benchmark scenarios")
     return EXIT_OK

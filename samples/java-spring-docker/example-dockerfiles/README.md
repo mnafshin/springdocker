@@ -1,6 +1,7 @@
 # Example generated Dockerfiles
 
 Versioned reference output from `springdocker` for the three built-in recipe presets on this sample project.
+Recipe files inherit `[dockerfile]` settings from `.springdocker.toml` (only `recipe` varies per file).
 
 Regenerate together with benchmark assets:
 

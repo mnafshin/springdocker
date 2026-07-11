@@ -4,8 +4,10 @@ import shutil
 from dataclasses import dataclass, replace
 from pathlib import Path
 
+from springdocker.config import DockerfileGenerateConfig
 from springdocker.dockerfile import BUILTIN_RECIPES, DockerfileOptions, build_dockerfile
 from springdocker.runtime_images import DEFAULT_BASE_IMAGE_VARIANTS, variant_slug
+from springdocker.services import dockerfile_service
 
 EXPECTED_CSV_HEADER = (
     "date,scenario,variant,run,build_ms,image_bytes,startup_ms,status,notes,host,docker_version,run_profile,"
@@ -28,6 +30,7 @@ EXAMPLE_DOCKERFILES_README = """\
 # Example generated Dockerfiles
 
 Versioned reference output from `springdocker` for the three built-in recipe presets on this sample project.
+Recipe files inherit `[dockerfile]` settings from `.springdocker.toml` (only `recipe` varies per file).
 
 Regenerate together with benchmark assets:
 
@@ -44,6 +47,8 @@ EXAMPLE_RECIPE_DOCKERFILES_README = """\
 # Recipe presets
 
 Reference Dockerfiles for each built-in `springdocker` recipe on the sample project's build tool.
+Options come from the project's `.springdocker.toml` `[dockerfile]` section (runtime base, jlink, SBOM,
+AppCDS, pinned digests, and so on); only the `recipe` field changes per file.
 
 | File | Recipe | Purpose |
 |---|---|---|
@@ -287,6 +292,7 @@ def generate_benchmark_assets(
     java_version: int,
     must_have_modules: tuple[str, ...] = (),
     base_image_variants: tuple[str, ...] | None = None,
+    dockerfile_config: DockerfileGenerateConfig | None = None,
 ) -> None:
     bench_root = project_root / "benchmarks"
     bench_root.mkdir(parents=True, exist_ok=True)
@@ -339,14 +345,38 @@ def generate_benchmark_assets(
         java_version=java_version,
         must_have_modules=must_have_modules,
         base_image_variants=base_image_variants,
+        dockerfile_config=dockerfile_config,
+    )
+
+
+def _recipe_dockerfile_options(
+    project_root: Path,
+    build_tool: str,
+    java_version: int,
+    recipe: str,
+    dockerfile_config: DockerfileGenerateConfig | None,
+    must_have_modules: tuple[str, ...],
+) -> DockerfileOptions:
+    if dockerfile_config is not None:
+        recipe_config = replace(dockerfile_config, recipe=recipe, java_version=java_version)
+        return dockerfile_service.dockerfile_options_from_config(project_root, build_tool, recipe_config)
+    return DockerfileOptions(
+        build_tool=build_tool,
+        java_version=java_version,
+        recipe=recipe,
+        must_have_modules=must_have_modules,
+        enable_appcds=False,
+        enable_jep483_aot_cache=False,
     )
 
 
 def _write_example_recipe_dockerfiles(
     example_root: Path,
+    project_root: Path,
     build_tool: str,
     java_version: int,
     must_have_modules: tuple[str, ...],
+    dockerfile_config: DockerfileGenerateConfig | None,
     expected_paths: set[Path],
 ) -> None:
     recipes_dir = example_root / "recipes"
@@ -354,13 +384,13 @@ def _write_example_recipe_dockerfiles(
     (recipes_dir / "README.md").write_text(EXAMPLE_RECIPE_DOCKERFILES_README, encoding="utf-8")
 
     for recipe in BUILTIN_RECIPES:
-        opts = DockerfileOptions(
+        opts = _recipe_dockerfile_options(
+            project_root=project_root,
             build_tool=build_tool,
             java_version=java_version,
             recipe=recipe,
+            dockerfile_config=dockerfile_config,
             must_have_modules=must_have_modules,
-            enable_appcds=False,
-            enable_jep483_aot_cache=False,
         )
         dockerfile_path = recipes_dir / f"{recipe}.Dockerfile"
         dockerfile_path.write_text(build_dockerfile(opts), encoding="utf-8")
@@ -373,6 +403,7 @@ def generate_example_dockerfiles(
     java_version: int,
     must_have_modules: tuple[str, ...] = (),
     base_image_variants: tuple[str, ...] | None = None,
+    dockerfile_config: DockerfileGenerateConfig | None = None,
 ) -> None:
     del base_image_variants  # recipe examples use generator defaults, not scenario matrices
     example_root = project_root / "example-dockerfiles"
@@ -387,9 +418,11 @@ def generate_example_dockerfiles(
     expected_paths: set[Path] = set()
     _write_example_recipe_dockerfiles(
         example_root=example_root,
+        project_root=project_root,
         build_tool=build_tool,
         java_version=java_version,
         must_have_modules=must_have_modules,
+        dockerfile_config=dockerfile_config,
         expected_paths=expected_paths,
     )
 
