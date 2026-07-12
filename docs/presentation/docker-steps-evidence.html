@@ -63,6 +63,7 @@
         </tbody>
       </table>
       <p class="scenario-foot">Standardize policy. Benchmark performance. Choose deliberately.</p>
+      <p class="tiny">Each scenario decision slide includes <code>[dockerfile]</code> config key → ON/OFF Dockerfile fragments.</p>
     </section>
 
     <section>
@@ -133,12 +134,43 @@ springdocker benchmark analyze benchmarks/03-custom-jre-jlink/results/raw.csv</c
         <div class="card"><h4>When to override</h4><p>Prototype pipelines where image size and CI cost do not matter yet.</p></div>
       </div>
       <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk AS build
-# deps layer → source layer → package → layertools extract
-FROM … AS jre-builder
-# jdeps + jlink custom runtime
+# deps → package → layertools extract
+FROM … AS jre-builder          # jdeps + jlink
 FROM gcr.io/distroless/base-debian13:nonroot
 COPY --from=build /layers/… ./
-ENTRYPOINT ["java", …, "org.springframework.boot.loader.launch.JarLauncher"]</code></pre>
+ENTRYPOINT ["java", …, "JarLauncher"]</code></pre>
+    </section>
+    <section>
+      <span class="badge">Decision 01 · Dockerfile</span>
+      <h2 style="font-size: 1.5em; margin-bottom: 0.3em;">use_layered_jar → multi-stage layout</h2>
+      <div class="config-map compact">
+        <div class="config-map-header">
+          <span class="config-key">use_layered_jar = true</span>
+          <span class="config-type perf">Performance · scenario 01</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>When ON — specialized multi-stage</h4>
+            <p>Generator emits build → jre-builder → runtime (or vendor-jre) stages.</p>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk AS build
+RUN java -Djarmode=layertools -jar … extract --destination /layers
+FROM … AS jre-builder
+FROM gcr.io/distroless/base-debian13:nonroot
+COPY --from=build /layers/dependencies/ ./
+COPY --from=build /layers/application/ ./</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>When OFF — simple two-stage</h4>
+            <p>Single fat JAR copied into runtime; no layertools extract.</p>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk AS build
+RUN ./mvnw package -DskipTests
+FROM eclipse-temurin:25-jre
+COPY --from=build /app/target/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot">TOML: <code>[dockerfile] use_layered_jar</code> · verify: <code>springdocker explain Dockerfile.generated</code></div>
+      </div>
     </section>
   </section>
 
@@ -174,6 +206,25 @@ ENTRYPOINT ["java", …, "org.springframework.boot.loader.launch.JarLauncher"]</
 spring-boot-loader/
 snapshot-dependencies/
 application/</code></pre>
+      <div class="config-map">
+        <div class="config-map-header">
+          <span class="config-key">use_buildkit_cache = true</span>
+          <span class="config-type perf">Performance · scenario 02</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>When ON — cache mount on package step</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>RUN --mount=type=cache,sharing=locked,target=/root/.m2 \
+    ./mvnw -B -q package -DskipTests
+# Gradle: --mount=type=cache,target=/root/.gradle</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>When OFF — plain RUN</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>RUN ./mvnw -B -q package -DskipTests</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot">Requires BuildKit (<code># syntax=docker/dockerfile:1</code>). Image size unchanged — CI rebuild time wins.</div>
+      </div>
     </section>
   </section>
 
@@ -202,6 +253,33 @@ application/</code></pre>
         <li class="warn">Merge <code>must-have.txt</code> modules jdeps misses (JNDI, logging, desktop APIs)</li>
         <li>Skip only when compatibility or tooling blockers are proven on your app</li>
       </ul>
+      <div class="config-map">
+        <div class="config-map-header">
+          <span class="config-key">use_jlink = true</span>
+          <span class="config-type perf">Performance · scenario 03</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>When ON — jre-builder stage + custom runtime</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk AS jre-builder
+RUN jdeps --print-module-deps app.jar > modules.txt
+ARG MUSTHAVE_MODULES="java.desktop,java.logging,…"
+RUN jlink --add-modules "$MODULES" … --output /jre/out
+# runtime stage:
+COPY --from=jre-builder /jre/out /opt/java
+ENV JAVA_HOME=/opt/java</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>When OFF — vendor JRE copied in</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jre AS vendor-jre
+# runtime stage:
+COPY --from=vendor-jre /opt/java/openjdk /opt/java
+ENV JAVA_HOME=/opt/java
+# distroless: gcr.io/distroless/java25-debian13 instead of base+jlink</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot">Also: <code>must_have_modules_file</code>, <code>jlink_baseline_modules</code> → <code>ARG MUSTHAVE_MODULES</code></div>
+      </div>
     </section>
   </section>
 
@@ -224,6 +302,29 @@ application/</code></pre>
       <h2>Adopt when startup tail latency matters</h2>
       <p>Average startup moved modestly; <strong>p95 improved more</strong> — that is often what autoscaling feels.</p>
       <div class="card warn" style="margin-top: 0.8em;"><h4>Override trigger</h4><p>No repeatable p95 gain on your service after a full-profile run.</p></div>
+      <div class="config-map">
+        <div class="config-map-header">
+          <span class="config-key">enable_jep483_aot_cache = true</span>
+          <span class="config-type perf">Performance · scenario 04 · requires use_jlink</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>When ON — aot-trainer stage + runtime flag</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jre AS aot-trainer
+COPY --from=jre-builder /jre/out /opt/java
+RUN java -XX:AOTCacheOutput=/app/app.aot … JarLauncher
+COPY --from=aot-trainer /app/app.aot /app/app.aot
+ENTRYPOINT ["java", "-XX:AOTCache=/app/app.aot", …]</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>When OFF — no trainer stage</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape># no aot-trainer stage
+# no COPY app.aot
+ENTRYPOINT ["java", …, "JarLauncher"]</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot">Mutually exclusive with <code>enable_appcds</code> · Java 24+ only</div>
+      </div>
     </section>
   </section>
 
@@ -256,6 +357,28 @@ application/</code></pre>
         <li class="warn">Aggressive GC tuning only after service-specific benchmarking</li>
         <li>GC logging is non-negotiable when distroless removes shell debugging</li>
       </ul>
+      <div class="config-map">
+        <div class="config-map-header">
+          <span class="config-key">tuned_jvm_flags = true</span>
+          <span class="config-type perf">Performance · scenario 05</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>When ON — flags in ENTRYPOINT</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>ENTRYPOINT ["java",
+  "-XX:MaxRAMPercentage=75",
+  "-XX:+ExitOnOutOfMemoryError",
+  "-Djava.io.tmpdir=/tmp",
+  "org.springframework.boot.loader.launch.JarLauncher"]</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>When OFF — bare java invocation</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>ENTRYPOINT ["java",
+  "org.springframework.boot.loader.launch.JarLauncher"]</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot">Override list via <code>jvm_flags = […]</code> in <code>[dockerfile]</code></div>
+      </div>
     </section>
   </section>
 
@@ -283,6 +406,30 @@ application/</code></pre>
         <div class="card"><h4>Pick alpine</h4><p>When every MB counts and musl compatibility is verified.</p></div>
         <div class="card"><h4>Pick distroless</h4><p>When non-root hardening and smaller pulls matter more than build speed.</p></div>
       </div>
+      <div class="config-map">
+        <div class="config-map-header">
+          <span class="config-key">runtime_image = "distroless"</span>
+          <span class="config-type perf">Performance · scenario 06</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>distroless (default profile)</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM gcr.io/distroless/base-debian13:nonroot@sha256:…
+COPY --from=jre-builder /jre/out /opt/java
+USER nonroot
+# no HEALTHCHECK — no shell</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>OS bases (debian / alpine / ubuntu)</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM debian:bookworm-slim@sha256:…
+RUN groupadd … && useradd … javauser
+COPY --chown=1001:1001 /layers/… ./
+USER 1001
+# optional HEALTHCHECK with wget</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot">Values: <code>distroless</code> · <code>debian-slim</code> · <code>alpine</code> · <code>ubuntu</code> · <code>temurin</code></div>
+      </div>
     </section>
   </section>
 
@@ -308,6 +455,29 @@ application/</code></pre>
         <div class="card warn"><h4>JVM wins when</h4><p>Sustained throughput, fast iteration, and reflection-heavy stacks matter.</p></div>
       </div>
       <p class="muted" style="margin-top: 0.8em;">springdocker generates a native scaffold Dockerfile; full native workflow is roadmap — not shipped yet.</p>
+      <div class="config-map">
+        <div class="config-map-header">
+          <span class="config-key">recipe = "native-aot"</span>
+          <span class="config-type perf">Performance · scenario 07 · scaffold</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>When ON — GraalVM native compile</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM ghcr.io/graalvm/native-image-community:25 AS build
+RUN ./mvnw -Pnative native:compile
+FROM gcr.io/distroless/base-debian13:nonroot@sha256:…
+COPY --from=build /app/target/nativeCompile/* /app/app
+ENTRYPOINT ["/app/app"]</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>Default — recipe = "jvm-balanced"</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk AS build
+RUN ./mvnw package -DskipTests
+# jlink + layered JAR runtime (scenarios 01–06)</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot">Experimental scaffold only — see <code>docs/native-image-roadmap.md</code></div>
+      </div>
     </section>
   </section>
 
@@ -336,6 +506,28 @@ java -XX:SharedArchiveFile=app.jsa -jar app.jar</code></pre>
         <li class="good">Lower startup latency without native-image complexity</li>
         <li class="warn">Compare against end-to-end readiness — not isolated micro-benchmarks alone</li>
       </ul>
+      <div class="config-map">
+        <div class="config-map-header">
+          <span class="config-key">enable_appcds = true</span>
+          <span class="config-type perf">Performance · scenario 08</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>When ON — train in build, load at runtime</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>RUN cd /layers && java -XX:ArchiveClassesAtExit=/layers/app.jsa \
+    -Dspring.context.exit=onRefresh JarLauncher || true
+COPY --from=build /layers/app.jsa /app/app.jsa
+ENTRYPOINT ["java", "-XX:SharedArchiveFile=/app/app.jsa", …]</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>When OFF — no archive</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape># no ArchiveClassesAtExit RUN
+# no COPY app.jsa
+ENTRYPOINT ["java", …, "JarLauncher"]</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot">Requires <code>use_layered_jar = true</code> · mutually exclusive with JEP 483 AOT cache</div>
+      </div>
     </section>
   </section>
 
@@ -353,6 +545,89 @@ java -XX:SharedArchiveFile=app.jsa -jar app.jar</code></pre>
           <tr><td>Readiness healthcheck</td><td class="good">✓ Actuator-aware</td><td class="risk">✗ missing</td></tr>
         </tbody>
       </table>
+    </section>
+    <section>
+      <span class="badge bad">Policy · digest pins</span>
+      <h2>pin_digests = true</h2>
+      <p class="muted">Immutable <code>@sha256:</code> on <code>FROM</code> lines — not a separate stage. Catalog: <code>src/springdocker/digest_pins.py</code></p>
+      <div class="config-map">
+        <div class="config-map-header">
+          <span class="config-key">pin_digests = true</span>
+          <span class="config-type policy">Policy</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>When ON — digest suffix on bases</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk@sha256:c2b7ea21… AS build
+FROM gcr.io/distroless/base-debian13:nonroot@sha256:ab7554b6…
+FROM debian:bookworm-slim@sha256:d5d3f9c2…</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>When OFF — floating tags</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk AS build
+FROM gcr.io/distroless/base-debian13:nonroot
+# ubuntu/alpine always float even when pin_digests=true</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot">CI: <code>python scripts/verify_digest_pins.py</code> · Renovate rotates pins in <code>digest_pins.py</code></div>
+      </div>
+    </section>
+    <section>
+      <span class="badge bad">Policy · SBOM</span>
+      <h2>include_embedded_sbom = true</h2>
+      <div class="config-map">
+        <div class="config-map-header">
+          <span class="config-key">include_embedded_sbom = true</span>
+          <span class="config-type policy">Policy</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>When ON — build + runtime copy</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape># build stage:
+RUN install -d /tmp/sbom && \
+    printf '{"spdxVersion":"SPDX-2.3",…}' > /tmp/sbom/spdx.json
+# runtime stage:
+COPY --from=build /tmp/sbom/spdx.json /usr/share/sbom/spdx.json</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>When OFF — omitted</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape># no /tmp/sbom RUN
+# no /usr/share/sbom/spdx.json COPY</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot"><code>springdocker verify --check-config-drift</code> fails if config says ON but path missing</div>
+      </div>
+    </section>
+    <section>
+      <span class="badge bad">Policy · non-root &amp; labels</span>
+      <h2>non_root · OCI labels · reproducible controls</h2>
+      <div class="config-map">
+        <div class="config-map-header">
+          <span class="config-key">non_root · include_oci_labels · include_reproducible_controls</span>
+          <span class="config-type policy">Policy</span>
+        </div>
+        <div class="config-map-grid">
+          <div class="config-map-col">
+            <h4>When ON — typical runtime tail</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape>ARG OCI_SOURCE=""
+ARG OCI_REVISION=""
+ARG OCI_CREATED=""
+LABEL org.opencontainers.image.source="${OCI_SOURCE}" …
+USER nonroot          # distroless
+USER 1001             # debian/alpine/ubuntu
+ARG SOURCE_DATE_EPOCH=0
+ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"
+STOPSIGNAL SIGTERM</code></pre>
+          </div>
+          <div class="config-map-col off">
+            <h4>When OFF — runs as root, no metadata</h4>
+            <pre><code class="language-dockerfile" data-trim data-noescape># no USER line
+# no LABEL / SOURCE_DATE_EPOCH
+# no STOPSIGNAL</code></pre>
+          </div>
+        </div>
+        <div class="config-map-foot">Healthcheck: <code>healthcheck_path</code> → <code>HEALTHCHECK … wget</code> (OS bases only; omitted on distroless)</div>
+      </div>
     </section>
     <section>
       <span class="badge bad">Anti-pattern</span>
@@ -459,9 +734,9 @@ springdocker verify --project-root . Dockerfile.generated --check-config-drift</
     slideNumber: 'c/t',
     transition: 'slide',
     backgroundTransition: 'fade',
-    width: 1280,
-    height: 760,
-    margin: 0.06,
+    width: 1347,
+    height: 840,
+    margin: 0.08,
     plugins: [RevealHighlight, RevealNotes]
   });
 </script>

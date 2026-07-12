@@ -116,7 +116,7 @@ Scenario **07 (native)** is not measured by the runner (`--skip-native` by defau
 ## Files
 
 - `springdocker-features.html` — features & workflow (config-first CLI)
-- `docker-steps-evidence.html` — scenarios 01–08 with benefits
+- `docker-steps-evidence.html` — scenarios 01–08 with benefits and **config key → Dockerfile** ON/OFF blocks per decision slide
 - `benchmark-summary.md` — generated markdown summary (gitignored)
 - `assets/evidence-deck.css` — shared styling for `docker-steps-evidence.html`
 

@@ -1,4 +1,5 @@
 /* Shared styling for JUG / evidence-based Docker+JVM decks */
+/* Reveal canvas 1347×840 — larger logical slide + margin for laptop viewports */
 
 :root {
   --accent: #6cf0c2;
@@ -387,4 +388,117 @@ body {
 .reveal .progress {
   color: var(--accent);
   height: 3px;
+}
+
+/* Config key → Dockerfile fragment blocks (evidence deck) */
+
+.config-map {
+  margin-top: 0.75em;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.config-map-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  flex-wrap: wrap;
+  padding: 0.45em 0.75em;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-strong);
+}
+
+.config-map-header .config-key {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58em;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.config-map-header .config-type {
+  font-size: 0.48em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2em 0.55em;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.config-map-header .config-type.policy {
+  color: var(--danger);
+  border-color: rgba(255, 93, 110, 0.35);
+}
+
+.config-map-header .config-type.perf {
+  color: var(--accent-2);
+  border-color: rgba(255, 184, 107, 0.35);
+}
+
+.config-map-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.config-map-col {
+  padding: 0.5em 0.6em;
+  border-right: 1px solid var(--border);
+}
+
+.config-map-col:last-child {
+  border-right: none;
+}
+
+.config-map-col h4 {
+  font-size: 0.56em;
+  margin: 0 0 0.25em 0;
+  color: var(--accent);
+}
+
+.config-map-col.off h4 {
+  color: var(--accent-2);
+}
+
+.config-map-col p {
+  font-size: 0.48em;
+  color: var(--muted);
+  margin: 0 0 0.25em 0;
+}
+
+.config-map pre {
+  margin: 0;
+}
+
+.config-map pre code {
+  font-size: 0.4em;
+  padding: 0.5em 0.65em;
+  line-height: 1.28;
+}
+
+.config-map-foot {
+  padding: 0.35em 0.75em;
+  border-top: 1px dashed var(--border);
+  font-size: 0.44em;
+  color: var(--muted);
+}
+
+/* Optional extra tightening (e.g. dedicated Dockerfile-only slides) */
+.config-map.compact {
+  margin-top: 0.35em;
+}
+
+.config-map.compact .config-map-header {
+  padding: 0.4em 0.7em;
+}
+
+.config-map.compact .config-map-col {
+  padding: 0.45em 0.55em;
+}
+
+.config-map.compact pre code {
+  font-size: 0.38em;
+  padding: 0.45em 0.55em;
 }
