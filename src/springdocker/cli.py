@@ -131,6 +131,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Verify Dockerfile matches config SSOT (drift, SBOM, non-root, JVM flags)",
     )
+    verify.add_argument(
+        "--trivy-scan-project-root",
+        action="store_true",
+        help="Scan the full project root with trivy (default: Dockerfile path and its directory only)",
+    )
 
     dockerfile = sub.add_parser("dockerfile", help="Dockerfile operations")
     dockerfile_sub = dockerfile.add_subparsers(dest="dockerfile_command", required=True)
@@ -372,6 +377,7 @@ def _handle_verify(args: argparse.Namespace, project_root: Path) -> int:
         output_path=args.output,
         check_config_drift=args.check_config_drift,
         build_tool=getattr(args, "build_tool", None),
+        trivy_scan_project_root=args.trivy_scan_project_root,
     )
 
 

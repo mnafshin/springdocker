@@ -41,6 +41,18 @@ class VerifyContext:
     smoke_url: str | None
     check_config_drift: bool = False
     build_tool: str | None = None
+    trivy_scan_project_root: bool = False
+
+
+def _trivy_scan_targets(context: VerifyContext) -> tuple[tuple[Path, ...], str]:
+    if context.trivy_scan_project_root:
+        return (context.project_root.resolve(),), "project root"
+    dockerfile = context.dockerfile_path.resolve()
+    dockerfile_dir = dockerfile.parent
+    targets: list[Path] = [dockerfile]
+    if dockerfile_dir not in targets:
+        targets.append(dockerfile_dir)
+    return tuple(targets), "dockerfile build context"
 
 
 def _run_tool(args: list[str], ok_exit_codes: tuple[int, ...] = (0,)) -> tuple[VerifyStatus, str]:
@@ -58,7 +70,8 @@ def _verify_hadolint(context: VerifyContext) -> tuple[VerifyStatus, str]:
 
 
 def _verify_trivy(context: VerifyContext) -> tuple[VerifyStatus, str]:
-    return _run_tool(
+    targets, scope_label = _trivy_scan_targets(context)
+    status, detail = _run_tool(
         [
             "trivy",
             "fs",
@@ -67,9 +80,13 @@ def _verify_trivy(context: VerifyContext) -> tuple[VerifyStatus, str]:
             "--exit-code",
             "1",
             "--no-progress",
-            str(context.project_root),
+            *[str(path) for path in targets],
         ],
     )
+    if status != "passed":
+        return status, detail
+    scanned = ", ".join(str(path) for path in targets)
+    return status, f"ok ({scope_label}: {scanned})"
 
 
 def _verify_dive(context: VerifyContext) -> tuple[VerifyStatus, str]:

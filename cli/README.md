@@ -316,7 +316,10 @@ springdocker verify --project-root tests/fixtures/maven-only Dockerfile.generate
   --format junit \
   --output reports/verify.junit.xml
 springdocker verify --project-root . --dockerfile Dockerfile.generated --check-config-drift
+springdocker verify --project-root . --dockerfile nested/Dockerfile.generated --trivy-scan-project-root
 ```
+
+By default, `trivy` scans the Dockerfile path and the directory that contains it (the Docker build context). On monorepos with nested Dockerfiles, this avoids scanning unrelated modules. Pass `--trivy-scan-project-root` to restore the previous full-tree scan.
 
 `--check-config-drift` adds config SSOT checks when `.springdocker.toml` is present:
 
@@ -332,7 +335,7 @@ springdocker verify --project-root . --dockerfile Dockerfile.generated --check-c
 | Check | Requires | Missing prerequisite | Check failure |
 |---|---|---|---|
 | `hadolint` | `hadolint` on `PATH` | **skipped** (`hadolint not installed`) | non-zero exit |
-| `trivy` | `trivy` on `PATH` | **skipped** (`trivy not installed`) | HIGH/CRITICAL findings |
+| `trivy` | `trivy` on `PATH` | **skipped** (`trivy not installed`) | HIGH/CRITICAL findings in scanned paths (default: Dockerfile + its directory; use `--trivy-scan-project-root` for full tree) |
 | `dive` | `--image` and `dive` on `PATH` | **skipped** (`no image provided` or `dive not installed`) | non-zero exit |
 | `cosign` | `--image` and `cosign` on `PATH` | **skipped** (`no image provided` or `cosign not installed`) | non-zero exit |
 | `sbom` | `sbom.spdx.json` in project root | n/a (always runs) | **failed** if file missing, invalid JSON, or missing `spdxVersion` |

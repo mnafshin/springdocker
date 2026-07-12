@@ -199,6 +199,7 @@ def cmd_verify(
     *,
     check_config_drift: bool = False,
     build_tool: str | None = None,
+    trivy_scan_project_root: bool = False,
 ) -> int:
     path = Path(dockerfile_path)
     if not path.is_absolute():
@@ -215,6 +216,7 @@ def cmd_verify(
             smoke_url=smoke_url,
             check_config_drift=check_config_drift,
             build_tool=build_tool,
+            trivy_scan_project_root=trivy_scan_project_root,
         )
     )
 

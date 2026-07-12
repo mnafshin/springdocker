@@ -15,6 +15,7 @@ from springdocker.services.verify_service import (
     VerifyContext,
     VerifyOutcome,
     VerifyResult,
+    _trivy_scan_targets,
     render_verify_json,
     render_verify_junit,
     render_verify_sarif,
@@ -135,8 +136,69 @@ class VerifyServiceTests(unittest.TestCase):
             cosign = next(item for item in outcome.results if item.name == "cosign")
             self.assertEqual(hadolint.status, "passed")
             self.assertEqual(trivy.status, "passed")
+            self.assertIn("dockerfile build context", trivy.detail)
             self.assertEqual(dive.status, "passed")
             self.assertEqual(cosign.status, "passed")
+
+    def test_trivy_scan_targets_default_to_dockerfile_build_context(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            service_dir = root / "service"
+            service_dir.mkdir()
+            dockerfile = service_dir / "Dockerfile.generated"
+            dockerfile.write_text("FROM scratch\n", encoding="utf-8")
+            (root / "other-module").mkdir()
+            context = VerifyContext(
+                project_root=root,
+                dockerfile_path=dockerfile,
+                image=None,
+                smoke_url=None,
+            )
+            targets, label = _trivy_scan_targets(context)
+            self.assertEqual(label, "dockerfile build context")
+            self.assertEqual(set(targets), {dockerfile.resolve(), service_dir.resolve()})
+            self.assertNotIn(root.resolve(), targets)
+
+    def test_trivy_scan_targets_project_root_opt_in(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dockerfile = root / "Dockerfile.generated"
+            dockerfile.write_text("FROM scratch\n", encoding="utf-8")
+            context = VerifyContext(
+                project_root=root,
+                dockerfile_path=dockerfile,
+                image=None,
+                smoke_url=None,
+                trivy_scan_project_root=True,
+            )
+            targets, label = _trivy_scan_targets(context)
+            self.assertEqual(label, "project root")
+            self.assertEqual(targets, (root.resolve(),))
+
+    def test_run_verification_trivy_uses_build_context_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            service_dir = root / "service"
+            service_dir.mkdir()
+            dockerfile = service_dir / "Dockerfile.generated"
+            dockerfile.write_text("FROM scratch\n", encoding="utf-8")
+            (root / "sbom.spdx.json").write_text(json.dumps({"spdxVersion": "SPDX-2.3"}), encoding="utf-8")
+            context = VerifyContext(
+                project_root=root,
+                dockerfile_path=dockerfile,
+                image=None,
+                smoke_url=None,
+            )
+            with (
+                patch("springdocker.services.verify_service.shutil.which", return_value="/usr/bin/fake"),
+                patch("springdocker.services.verify_service.subprocess.run", return_value=_Completed()) as run_mock,
+            ):
+                run_verification(context)
+            trivy_calls = [call.args[0] for call in run_mock.call_args_list if call.args[0][0] == "trivy"]
+            self.assertEqual(len(trivy_calls), 1)
+            self.assertIn(str(dockerfile.resolve()), trivy_calls[0])
+            self.assertIn(str(service_dir.resolve()), trivy_calls[0])
+            self.assertNotIn(str(root.resolve()), trivy_calls[0])
 
     def test_run_verification_marks_tool_nonzero_exit_as_failed(self) -> None:
         with tempfile.TemporaryDirectory() as td:

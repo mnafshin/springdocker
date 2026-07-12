@@ -49,6 +49,12 @@ class CliParseTests(unittest.TestCase):
         self.assertEqual(args.format, "sarif")
         self.assertEqual(args.output, "verify.sarif")
         self.assertTrue(args.check_config_drift)
+        self.assertFalse(args.trivy_scan_project_root)
+
+    def test_verify_parse_trivy_scan_project_root(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["verify", "--trivy-scan-project-root"])
+        self.assertTrue(args.trivy_scan_project_root)
 
     def test_verify_parse_accepts_plugin_format(self) -> None:
         parser = build_parser()

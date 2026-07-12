@@ -224,10 +224,9 @@ class ConfigureWizardFlowTests(unittest.TestCase):
             config_path = root / ".springdocker.toml"
             with (
                 patch("springdocker.configure_wizard.ask_choice", return_value="production-balanced"),
-                patch("springdocker.configure_wizard.ask_bool", return_value=False),
+                patch("springdocker.configure_wizard.ask_bool", return_value=False),self.assertRaises(SystemExit)
             ):
-                with self.assertRaises(SystemExit):
-                    run_configure_wizard(root, config_path)
+                run_configure_wizard(root, config_path)
             self.assertFalse(config_path.exists())
 
     def test_run_configure_wizard_generate_after_hint(self) -> None:
