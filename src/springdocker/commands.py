@@ -281,7 +281,7 @@ def cmd_init(
         return EXIT_OK
 
     print(f"wrote config: {config_path}")
-    print("next: springdocker benchmark run")
+    print("next: springdocker dockerfile generate")
     return EXIT_OK
 
 
