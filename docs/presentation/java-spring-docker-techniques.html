@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Spring Boot in Docker — Techniques &amp; How to Apply Them</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" id="theme">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="assets/evidence-deck.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="reveal">
+<div class="slides">
+
+  <!-- OPENING -->
+  <section>
+    <section data-background-gradient="linear-gradient(135deg,#0a0d12 0%,#14201f 100%)">
+      <span class="badge">JUG · Spring Boot containers</span>
+      <h1 class="hero-title">Spring Boot<br>in <em>Docker</em></h1>
+      <p class="muted" style="margin-top: 0.6em; max-width: 36ch;">Techniques for production images — what to do, why it matters, and how to write it in a Dockerfile.</p>
+      <p class="tiny" style="margin-top: 1.2em;">Press → · Speaker notes: <kbd>S</kbd></p>
+      <aside class="notes">Frame: this is a Java/Spring engineering talk, not a product demo. Goal is transferable Dockerfile craft.</aside>
+    </section>
+
+    <section>
+      <span class="badge">Agenda</span>
+      <h2>Four layers of container craft</h2>
+      <ol class="step-list">
+        <li><strong>Build pipeline</strong> — multi-stage layout, BuildKit cache, layered JAR</li>
+        <li><strong>Runtime image</strong> — custom JRE with jlink, base image tradeoffs</li>
+        <li><strong>Cold start</strong> — AppCDS, JEP&nbsp;483 AOT cache, JVM flags, native image</li>
+        <li><strong>Production hygiene</strong> — non-root, digest pins, SBOM, health checks</li>
+      </ol>
+    </section>
+
+    <section>
+      <span class="badge bad">The gap</span>
+      <h2>Most teams can build a Java container</h2>
+      <p style="font-size: 1.1em; margin-top: 0.6em;">Few teams can <span class="accent">explain and defend each line</span> in the Dockerfile.</p>
+      <div class="grid grid-2" style="margin-top: 1.2em;">
+        <div class="card danger"><h4>Typical copy-paste</h4><p>Single stage, full JDK in prod, root user, floating tags, fat JAR only.</p></div>
+        <div class="card"><h4>Deliberate Dockerfile</h4><p>Specialized stages, minimal runtime, cache-friendly layers, security baseline.</p></div>
+      </div>
+    </section>
+  </section>
+
+  <!-- BUILD PIPELINE -->
+  <section>
+    <section>
+      <span class="badge">1 · Build pipeline</span>
+      <h2>Multi-stage builds for Spring Boot</h2>
+      <p>Separate <strong>compile</strong>, <strong>JRE assembly</strong>, and <strong>runtime</strong> concerns. The runtime stage should not carry Maven, Gradle, or a full JDK.</p>
+      <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk AS build
+WORKDIR /app
+COPY . .
+RUN ./mvnw package -DskipTests
+
+FROM … AS jre-builder          # optional: jdeps + jlink
+FROM gcr.io/distroless/base-debian13:nonroot
+COPY --from=build /layers/… ./
+ENTRYPOINT ["java", …, "JarLauncher"]</code></pre>
+      <aside class="notes">Name stages by purpose (build, jre-builder, runtime) — not by arbitrary numbers alone.</aside>
+    </section>
+
+    <section>
+      <span class="badge">Layered JAR</span>
+      <h2>Spring Boot layertools — cache-friendly runtime</h2>
+      <p>Extract dependencies, loader, and application into separate directories. Docker layer cache reuses dependency layers when only app code changes.</p>
+      <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk AS build
+RUN java -Djarmode=layertools -jar target/*.jar extract --destination /layers
+
+FROM … AS runtime
+COPY --from=build /layers/dependencies/ ./
+COPY --from=build /layers/spring-boot-loader/ ./
+COPY --from=build /layers/snapshot-dependencies/ ./
+COPY --from=build /layers/application/ ./
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]</code></pre>
+      <p class="muted" style="margin-top: 0.6em;">Requires Spring Boot 2.3+ layered JAR packaging in your build.</p>
+    </section>
+
+    <section>
+      <span class="badge pink">BuildKit cache</span>
+      <h2>Cache mounts — biggest CI win</h2>
+      <p>Without a persistent <code>.m2</code> or <code>.gradle</code> on ephemeral runners, every build re-downloads dependencies.</p>
+      <pre><code class="language-dockerfile" data-trim data-noescape># syntax=docker/dockerfile:1
+RUN --mount=type=cache,sharing=locked,target=/root/.m2 \
+    ./mvnw -B -q package -DskipTests
+
+# Gradle:
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew build -x test</code></pre>
+      <ul style="margin-top: 0.6em;">
+        <li class="good">Enable BuildKit: <code>export DOCKER_BUILDKIT=1</code></li>
+        <li class="good">Pair with layered JAR for registry-level cache hits too</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="badge">Layer ordering</span>
+      <h2>Put slow-changing files first</h2>
+      <div class="grid grid-2" style="margin-top: 0.8em;">
+        <div class="card danger"><h4>Anti-pattern</h4><pre><code class="language-dockerfile" data-trim data-noescape>COPY . .
+RUN ./mvnw package</code></pre><p>Any source edit invalidates the package layer.</p></div>
+        <div class="card"><h4>Better</h4><pre><code class="language-dockerfile" data-trim data-noescape>COPY pom.xml mvnw .mvn/ ./
+RUN ./mvnw dependency:go-offline
+COPY src/ src/
+RUN ./mvnw package -DskipTests</code></pre><p>Dependencies cached until POM changes.</p></div>
+      </div>
+    </section>
+  </section>
+
+  <!-- RUNTIME IMAGE -->
+  <section>
+    <section>
+      <span class="badge">2 · Runtime image</span>
+      <h2>Custom runtime with jlink</h2>
+      <p>Use <code>jdeps</code> on your JAR to discover modules, then <code>jlink</code> to build a trimmed runtime — smaller than shipping a full vendor JRE.</p>
+      <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk AS jre-builder
+COPY --from=build /app/target/*.jar app.jar
+RUN jdeps --print-module-deps app.jar > modules.txt
+RUN jlink --add-modules $(cat modules.txt),java.logging,java.naming \
+  --strip-debug --compress=2 --no-header-files --no-man-pages \
+  --output /customjre
+
+FROM gcr.io/distroless/base-debian13:nonroot
+COPY --from=jre-builder /customjre /opt/java
+ENV JAVA_HOME=/opt/java PATH="/opt/java/bin:$PATH"</code></pre>
+      <p class="muted" style="margin-top: 0.6em;">Maintain a <code>must-have</code> module list for APIs jdeps misses (JNDI, logging, etc.).</p>
+    </section>
+
+    <section>
+      <span class="badge">Base image choice</span>
+      <h2>Smallest image ≠ always best</h2>
+      <table>
+        <thead><tr><th>Base</th><th>When to pick it</th><th>Tradeoff</th></tr></thead>
+        <tbody>
+          <tr><td><code>distroless</code> non-root</td><td class="good">Default for hardened prod</td><td>No shell — harder to debug in-container</td></tr>
+          <tr><td><code>debian-slim</code></td><td class="good">Fast builds, glibc, healthcheck with wget</td><td>Larger than distroless + jlink</td></tr>
+          <tr><td><code>alpine</code></td><td class="warn">Minimum footprint</td><td>musl — verify JNI/native libs first</td></tr>
+          <tr><td>Full <code>temurin-jre</code></td><td class="warn">Simplicity / legacy</td><td>Largest pull size</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <span class="badge">Distroless runtime</span>
+      <h2>Typical production tail</h2>
+      <pre><code class="language-dockerfile" data-trim data-noescape>FROM gcr.io/distroless/base-debian13:nonroot@sha256:…
+COPY --from=jre-builder /customjre /opt/java
+COPY --from=build --chown=nonroot:nonroot /layers/dependencies/ ./
+COPY --from=build --chown=nonroot:nonroot /layers/application/ ./
+ENV JAVA_HOME=/opt/java PATH="/opt/java/bin:$PATH"
+USER nonroot
+ENTRYPOINT ["java", "-jar", "org.springframework.boot.loader.launch.JarLauncher"]</code></pre>
+      <p class="muted">Distroless has no shell — use <code>HEALTHCHECK</code> on OS bases; rely on K8s probes on distroless.</p>
+    </section>
+  </section>
+
+  <!-- COLD START -->
+  <section>
+    <section>
+      <span class="badge">3 · Cold start</span>
+      <h2>Faster startup without native image</h2>
+      <p>Spring Boot on the JVM can still improve time-to-readiness. Pick one primary lever and measure on <em>your</em> service.</p>
+      <div class="grid grid-3" style="margin-top: 0.8em;">
+        <div class="card"><h4>AppCDS</h4><p>Shared class archive trained at build, loaded at runtime.</p></div>
+        <div class="card"><h4>JEP 483 AOT cache</h4><p>Java 24+ class-loading cache — needs custom jlink runtime.</p></div>
+        <div class="card warn"><h4>JVM flags</h4><p>Container-aware memory — tune after baseline works.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <span class="badge">AppCDS</span>
+      <h2>Application Class Data Sharing</h2>
+      <p>Train a <code>.jsa</code> archive during the build stage; ship it with the image. Works well with layered JAR layouts.</p>
+      <pre><code class="language-dockerfile" data-trim data-noescape># Build stage — train archive
+RUN cd /layers && java -XX:ArchiveClassesAtExit=/layers/app.jsa \
+    -Dspring.context.exit=onRefresh \
+    org.springframework.boot.loader.launch.JarLauncher || true
+
+# Runtime stage
+COPY --from=build /layers/app.jsa /app/app.jsa
+ENTRYPOINT ["java", "-XX:SharedArchiveFile=/app/app.jsa", …, "JarLauncher"]</code></pre>
+      <p class="muted" style="margin-top: 0.6em;">Mutually exclusive with JEP 483 AOT cache in the same image — choose one path.</p>
+    </section>
+
+    <section>
+      <span class="badge warn">JEP 483</span>
+      <h2>AOT class-loading cache (Java 24+)</h2>
+      <p>Add an <code>aot-trainer</code> stage that runs the app once to produce <code>app.aot</code>, then load it at runtime.</p>
+      <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jre AS aot-trainer
+COPY --from=jre-builder /customjre /opt/java
+COPY --from=build /layers/… ./
+RUN java -XX:AOTCacheOutput=/app/app.aot … JarLauncher
+
+# Runtime
+COPY --from=aot-trainer /app/app.aot /app/app.aot
+ENTRYPOINT ["java", "-XX:AOTCache=/app/app.aot", …, "JarLauncher"]</code></pre>
+      <p class="muted">Best when tail latency (p95 startup) matters more than average — validate on your workload.</p>
+    </section>
+
+    <section>
+      <span class="badge">JVM in containers</span>
+      <h2>Safe baseline flags</h2>
+      <p>Start conservative; aggressive GC tuning only after service-specific testing.</p>
+      <pre><code class="language-dockerfile" data-trim data-noescape>ENTRYPOINT ["java",
+  "-XX:+UseContainerSupport",
+  "-XX:MaxRAMPercentage=75",
+  "-XX:+ExitOnOutOfMemoryError",
+  "-Djava.io.tmpdir=/tmp",
+  "org.springframework.boot.loader.launch.JarLauncher"]</code></pre>
+      <ul style="margin-top: 0.6em;">
+        <li class="good">Respect cgroup memory limits</li>
+        <li class="good">Fail fast on OOM instead of limping</li>
+        <li class="warn">On distroless, enable GC logging — no shell to attach later</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="badge warn">Native image</span>
+      <h2>GraalVM native — when it fits</h2>
+      <div class="grid grid-2" style="margin-top: 0.8em;">
+        <div class="card"><h4>Native wins when</h4><p>Cold start and footprint dominate — scale-to-zero, edge, burst traffic.</p></div>
+        <div class="card warn"><h4>JVM wins when</h4><p>Sustained throughput, fast iteration, reflection-heavy stacks.</p></div>
+      </div>
+      <pre><code class="language-dockerfile" data-trim data-noescape>FROM ghcr.io/graalvm/native-image-community:25 AS build
+RUN ./mvnw -Pnative native:compile
+FROM gcr.io/distroless/base-debian13:nonroot
+COPY --from=build /app/target/nativeCompile/* /app/app
+ENTRYPOINT ["/app/app"]</code></pre>
+      <p class="muted">Build time is much longer — budget CI accordingly; test compatibility early.</p>
+    </section>
+  </section>
+
+  <!-- PRODUCTION HYGIENE -->
+  <section>
+    <section>
+      <span class="badge bad">4 · Production hygiene</span>
+      <h2>Non-negotiable baseline</h2>
+      <table>
+        <thead><tr><th>Control</th><th>Why</th><th>In Dockerfile</th></tr></thead>
+        <tbody>
+          <tr><td>Non-root runtime</td><td class="good">Limit blast radius</td><td><code>USER nonroot</code> or numeric UID</td></tr>
+          <tr><td>Digest-pinned bases</td><td class="good">Reproducible, immutable pulls</td><td><code>FROM …@sha256:…</code></td></tr>
+          <tr><td>SBOM</td><td class="good">Supply chain audit</td><td>SPDX JSON in image layer</td></tr>
+          <tr><td>Readiness probe</td><td class="good">Orchestrator knows when ready</td><td><code>HEALTHCHECK</code> or K8s probe → Actuator</td></tr>
+          <tr><td>OCI labels</td><td class="good">Trace image to source/revision</td><td><code>LABEL org.opencontainers.image.*</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <span class="badge bad">Digest pins</span>
+      <h2>Pin base images by digest</h2>
+      <pre><code class="language-dockerfile" data-trim data-noescape>FROM eclipse-temurin:25-jdk@sha256:c2b7ea21… AS build
+FROM gcr.io/distroless/base-debian13:nonroot@sha256:ab7554b6…
+FROM debian:bookworm-slim@sha256:d5d3f9c2…</code></pre>
+      <p class="muted" style="margin-top: 0.6em;">Rotate digests deliberately (Renovate, Dependabot, or internal catalog) — not floating <code>:latest</code>.</p>
+    </section>
+
+    <section>
+      <span class="badge bad">Anti-pattern</span>
+      <h2>What not to ship</h2>
+      <pre><code class="language-dockerfile" data-trim data-noescape>FROM ubuntu:latest
+RUN apt-get update && apt-get install -y curl vim
+COPY target/*.jar app.jar
+USER root
+ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
+      <ul>
+        <li class="risk">Full OS + debug tools = large attack surface</li>
+        <li class="risk">Root + floating tag = supply chain and runtime risk</li>
+        <li class="good">Prefer distroless non-root + digest pins + CI image scanning</li>
+      </ul>
+    </section>
+  </section>
+
+  <!-- WRAP-UP -->
+  <section>
+    <section>
+      <span class="badge">Checklist</span>
+      <h2>Monday-morning order</h2>
+      <ol class="step-list">
+        <li>Enforce security baseline — non-root, digest pins, SBOM</li>
+        <li>Multi-stage + layered JAR + BuildKit cache on every build</li>
+        <li>Trim runtime with jlink; pick base image for your constraints</li>
+        <li>Add one startup lever (AppCDS or JEP 483) only if you measure a win</li>
+        <li>Consider native image only when cold start truly dominates</li>
+      </ol>
+    </section>
+
+    <section>
+      <span class="badge">Decision map</span>
+      <h2>When to override defaults</h2>
+      <table>
+        <thead><tr><th>Technique</th><th>Default stance</th><th>Override when</th></tr></thead>
+        <tbody>
+          <tr><td>Security baseline</td><td class="good">Always ON</td><td>Never in production</td></tr>
+          <tr><td>BuildKit cache</td><td class="good">ON</td><td>Platform cannot cache deterministically</td></tr>
+          <tr><td>Layered JAR + multi-stage</td><td class="good">ON</td><td>Throwaway prototype only</td></tr>
+          <tr><td>JLink / jdeps</td><td class="good">ON</td><td>Proven module compatibility blocker</td></tr>
+          <tr><td>AppCDS</td><td class="good">ON with layered JAR</td><td>Build cannot train archive</td></tr>
+          <tr><td>JEP 483 AOT cache</td><td class="warn">Try on Java 24+</td><td>No measurable startup gain</td></tr>
+          <tr><td>Native image</td><td class="warn">Selective</td><td>Throughput or build time priority</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </section>
+
+  <!-- CLOSE -->
+  <section data-background-gradient="radial-gradient(circle at 50% 40%,#1d3c34 0%,#0a0d12 60%)">
+    <span class="badge">Side project</span>
+    <h2>I built a tool for this</h2>
+    <p style="font-size: 0.95em; max-width: 42ch; margin-top: 0.6em;">After applying these techniques by hand on several services, I open-sourced <strong>springdocker</strong> — a CLI that encodes the patterns from this talk into generated Dockerfiles and CI checks.</p>
+    <p class="muted" style="margin-top: 0.8em;">Optional if you want automation — everything in this deck works without it.</p>
+    <div class="pill-row" style="margin-top: 1.2em;">
+      <span class="pill">github.com/mnafshin/springdocker</span>
+      <span class="pill">pip install springdocker</span>
+    </div>
+    <aside class="notes">Keep this to 30 seconds. Offer to chat after Q&amp;A — do not demo unless asked.</aside>
+  </section>
+
+  <section data-background-gradient="radial-gradient(circle at 50% 40%,#1d3c34 0%,#0a0d12 60%)">
+    <h1>Questions?</h1>
+    <p class="muted" style="margin-top: 0.8em;">Build deliberately · secure by default · measure on your workload</p>
+  </section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    controls: true,
+    progress: true,
+    slideNumber: 'c/t',
+    transition: 'slide',
+    backgroundTransition: 'fade',
+    width: 1347,
+    height: 840,
+    margin: 0.08,
+    plugins: [RevealHighlight, RevealNotes]
+  });
+</script>
+
+</body>
+</html>
