@@ -50,6 +50,8 @@ IMAGE_PINS: tuple[ImagePin, ...] = (
     ImagePin("distroless-base-debian12", "gcr.io", "distroless/base-debian12", "nonroot", "sha256:7a75a36f4bec82a7542c64195e402907486f9a4dd2f8797a976aa0cf31cfb470"),
     ImagePin("distroless-base-debian13", "gcr.io", "distroless/base-debian13", "nonroot", "sha256:ab7554b6d07ad354fad31957f8a1a813e65dfb93a8ad160568c79c3f2be6884f"),
     ImagePin("debian-bookworm-slim", "registry-1.docker.io", "library/debian", "bookworm-slim", "sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c"),
+    ImagePin("ubuntu-noble", "registry-1.docker.io", "library/ubuntu", "24.04", "sha256:52df9b1ee71626e0088f7d400d5c6b5f7bb916f8f0c82b474289a4ece6cf3faf"),
+    ImagePin("alpine-3-21", "registry-1.docker.io", "library/alpine", "3.21", "sha256:f27cad9117495d32d067133afff942cb2dc745dfe9163e949f6bfe8a6a245339"),
 )
 
 
@@ -74,10 +76,12 @@ DISTROLESS_BASE_DIGESTS: dict[int, str] = {
     if pin.label.startswith("distroless-base-debian")
 }
 DEBIAN_BOOKWORM_SLIM_DIGEST: str = next(pin.digest for pin in IMAGE_PINS if pin.label == "debian-bookworm-slim")
+UBUNTU_2404_DIGEST: str = next(pin.digest for pin in IMAGE_PINS if pin.label == "ubuntu-noble")
+ALPINE_321_DIGEST: str = next(pin.digest for pin in IMAGE_PINS if pin.label == "alpine-3-21")
 OS_RUNTIME_IMAGES: dict[str, tuple[str, str | None]] = {
     "debian-slim": ("debian:bookworm-slim", DEBIAN_BOOKWORM_SLIM_DIGEST),
-    "ubuntu": ("ubuntu:24.04", None),
-    "alpine": ("alpine:3.21", None),
+    "ubuntu": ("ubuntu:24.04", UBUNTU_2404_DIGEST),
+    "alpine": ("alpine:3.21", ALPINE_321_DIGEST),
 }
 
 

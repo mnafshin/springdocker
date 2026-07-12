@@ -98,7 +98,7 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
             )
         )
         self.assertIn("FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk-alpine AS jre-builder", rendered)
-        self.assertIn("FROM --platform=$TARGETPLATFORM alpine:3.21", rendered)
+        self.assertIn("FROM --platform=$TARGETPLATFORM alpine:3.21@", rendered)
 
     def test_debian_slim_runtime_renders_with_jlink(self) -> None:
         rendered = build_dockerfile(

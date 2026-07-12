@@ -13,8 +13,10 @@ Generated Dockerfiles and snapshot tests inherit those pins through `dockerfile.
 | `distroless-base-debian12` | `gcr.io/distroless/base-debian12:nonroot` | Google Container Registry (Java < 25 jlink/native runtime) |
 | `distroless-base-debian13` | `gcr.io/distroless/base-debian13:nonroot` | Google Container Registry (Java 25+ jlink/native runtime) |
 | `debian-bookworm-slim` | `debian:bookworm-slim` | Docker Hub |
+| `ubuntu-noble` | `ubuntu:24.04` | Docker Hub |
+| `alpine-3-21` | `alpine:3.21` | Docker Hub |
 
-OS runtime variants `ubuntu` and `alpine` intentionally use floating tags (no digest in catalog).
+All OS runtime variants in `OS_RUNTIME_IMAGES` (`debian-slim`, `ubuntu`, `alpine`) use digest pins when `pin_digests = true`.
 
 **Debian release line:** `dockerfile.py` selects `distroless/base-debian13` for Java 25+ and `distroless/base-debian12` (or `java*-debian12` without jlink) for older Java versions.
 

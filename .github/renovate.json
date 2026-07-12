@@ -73,6 +73,26 @@
       "datasourceTemplate": "docker",
       "depNameTemplate": "debian",
       "currentValueTemplate": "bookworm-slim"
+    },
+    {
+      "description": "Ubuntu noble digests in digest_pins.py",
+      "fileMatch": ["^src/springdocker/digest_pins\\.py$"],
+      "matchStrings": [
+        "ImagePin\\(\"ubuntu-noble\", \"registry-1.docker.io\", \"library/ubuntu\", \"24.04\", \"(?<currentDigest>sha256:[a-f0-9]{64})\"\\)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "ubuntu",
+      "currentValueTemplate": "24.04"
+    },
+    {
+      "description": "Alpine digests in digest_pins.py",
+      "fileMatch": ["^src/springdocker/digest_pins\\.py$"],
+      "matchStrings": [
+        "ImagePin\\(\"alpine-3-21\", \"registry-1.docker.io\", \"library/alpine\", \"3.21\", \"(?<currentDigest>sha256:[a-f0-9]{64})\"\\)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "alpine",
+      "currentValueTemplate": "3.21"
     }
   ],
   "packageRules": [

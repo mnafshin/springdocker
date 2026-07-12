@@ -27,8 +27,26 @@ class DigestPinCatalogTests(unittest.TestCase):
         self.assertEqual(set(TEMURIN_JRE_DIGESTS), {17, 21, 25})
         self.assertEqual(set(DISTROLESS_BASE_DIGESTS), {12, 13})
         debian_digest = next(pin.digest for pin in IMAGE_PINS if pin.label == "debian-bookworm-slim")
+        ubuntu_digest = next(pin.digest for pin in IMAGE_PINS if pin.label == "ubuntu-noble")
+        alpine_digest = next(pin.digest for pin in IMAGE_PINS if pin.label == "alpine-3-21")
         self.assertEqual(OS_RUNTIME_IMAGES["debian-slim"], ("debian:bookworm-slim", debian_digest))
-        self.assertIsNone(OS_RUNTIME_IMAGES["ubuntu"][1])
+        self.assertEqual(OS_RUNTIME_IMAGES["ubuntu"], ("ubuntu:24.04", ubuntu_digest))
+        self.assertEqual(OS_RUNTIME_IMAGES["alpine"], ("alpine:3.21", alpine_digest))
+        self.assertEqual({pin.label for pin in IMAGE_PINS}, {
+            "temurin-jdk-17",
+            "temurin-jdk-21",
+            "temurin-jdk-25",
+            "temurin-jre-17",
+            "temurin-jre-21",
+            "temurin-jre-25",
+            "distroless-java-17",
+            "distroless-java-21",
+            "distroless-base-debian12",
+            "distroless-base-debian13",
+            "debian-bookworm-slim",
+            "ubuntu-noble",
+            "alpine-3-21",
+        })
 
     def test_image_ref_format(self) -> None:
         pin = next(item for item in IMAGE_PINS if item.label == "temurin-jdk-21")
