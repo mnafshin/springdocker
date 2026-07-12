@@ -141,6 +141,25 @@ class DockerfileServiceTests(unittest.TestCase):
                 )
             self.assertEqual(generated.path.read_text("utf-8"), "FROM scratch\n")
 
+    def test_generate_dockerfile_uses_kotlin_gradle_descriptors(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "build.gradle.kts").write_text(
+                'plugins { id("org.springframework.boot") version "3.3.0" }\n',
+                encoding="utf-8",
+            )
+            (root / "settings.gradle.kts").write_text('rootProject.name = "demo"\n', encoding="utf-8")
+            generated = generate_dockerfile(
+                project_root=root,
+                output_path="Dockerfile.generated",
+                build_tool="gradle",
+                java_version=21,
+                must_have_modules_file=None,
+            )
+            rendered = generated.path.read_text("utf-8")
+            self.assertIn("COPY gradlew build.gradle.kts settings.gradle.kts ./", rendered)
+            self.assertNotIn("COPY gradlew build.gradle settings.gradle ./", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()

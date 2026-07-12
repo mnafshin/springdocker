@@ -9,6 +9,7 @@ from tests.test_support import add_src_to_path
 
 add_src_to_path()
 
+from springdocker.gradle_descriptors import resolve_gradle_descriptor_files
 from springdocker.project_detect import (
     analyze_multi_module_layout,
     detect_build_tool,
@@ -186,6 +187,35 @@ class ProjectDetectTests(unittest.TestCase):
             self.assertEqual(info.layout, "gradle-multi-project")
             self.assertEqual(info.java_version, 17)
             self.assertTrue(any("app" in note for note in info.recommendations))
+
+    def test_resolve_gradle_descriptor_files_kotlin_only(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "build.gradle.kts").write_text("plugins { id(\"org.springframework.boot\") }\n", encoding="utf-8")
+            (root / "settings.gradle.kts").write_text('rootProject.name = "demo"\n', encoding="utf-8")
+            self.assertEqual(
+                resolve_gradle_descriptor_files(root),
+                ("build.gradle.kts", "settings.gradle.kts"),
+            )
+
+    def test_resolve_gradle_descriptor_files_includes_version_catalog(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "build.gradle.kts").write_text("plugins { id(\"org.springframework.boot\") }\n", encoding="utf-8")
+            (root / "settings.gradle.kts").write_text('rootProject.name = "demo"\n', encoding="utf-8")
+            catalog = root / "gradle" / "libs.versions.toml"
+            catalog.parent.mkdir(parents=True)
+            catalog.write_text('[versions]\n', encoding="utf-8")
+            self.assertEqual(
+                resolve_gradle_descriptor_files(root),
+                ("build.gradle.kts", "settings.gradle.kts", "gradle/libs.versions.toml"),
+            )
+
+    def test_resolve_gradle_descriptor_files_defaults_when_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "gradlew").write_text("#!/bin/sh\n", encoding="utf-8")
+            self.assertEqual(resolve_gradle_descriptor_files(root), ("build.gradle", "settings.gradle"))
 
 
 if __name__ == "__main__":

@@ -47,6 +47,7 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
                 "enable_jep483_aot_cache",
                 "jvm_flags",
                 "pin_digests",
+                "gradle_descriptor_files",
             },
         )
 
@@ -228,6 +229,24 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
         self.assertFalse(spec.supply_chain.include_stopsignal)
         self.assertFalse(spec.supply_chain.include_embedded_sbom)
         self.assertFalse(spec.supply_chain.include_reproducible_controls)
+
+
+    def test_build_dockerfile_uses_kotlin_gradle_descriptors(self) -> None:
+        rendered = build_dockerfile(
+            DockerfileOptions(
+                build_tool="gradle",
+                java_version=21,
+                gradle_descriptor_files=("build.gradle.kts", "settings.gradle.kts"),
+                use_buildkit_cache=False,
+                use_jlink=False,
+                non_root=False,
+                tuned_jvm_flags=False,
+                platform_aware=False,
+                enable_appcds=False,
+            )
+        )
+        self.assertIn("COPY gradlew build.gradle.kts settings.gradle.kts ./", rendered)
+        self.assertNotIn("build.gradle settings.gradle", rendered)
 
 
 if __name__ == "__main__":

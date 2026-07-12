@@ -17,6 +17,21 @@ class DockerfileSnapshotTests(unittest.TestCase):
         actual = build_dockerfile(options)
         self.assertEqual(actual, expected)
 
+    def test_gradle_kts_minimal_snapshot(self) -> None:
+        self.assert_snapshot(
+            "gradle-kts-minimal",
+            DockerfileOptions(
+                build_tool="gradle",
+                java_version=21,
+                gradle_descriptor_files=("build.gradle.kts", "settings.gradle.kts"),
+                use_buildkit_cache=False,
+                use_jlink=False,
+                non_root=False,
+                tuned_jvm_flags=False,
+                platform_aware=False,
+            ),
+        )
+
     def test_maven_default_snapshot(self) -> None:
         self.assert_snapshot("maven-default", DockerfileOptions(build_tool="maven", java_version=25))
 

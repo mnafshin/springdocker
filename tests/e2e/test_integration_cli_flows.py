@@ -135,6 +135,17 @@ class CliIntegrationTests(unittest.TestCase):
         self.assertEqual(payload["build_tool"], "maven")
         self.assertIn("jlink runtime", [feature["name"] for feature in payload["features"]])
 
+    def test_gradle_kts_fixture_generates_kotlin_descriptor_copy(self) -> None:
+        td, project = self._workspace_from_fixture("gradle-kts-only")
+        self.addCleanup(td.cleanup)
+        self.assertEqual(
+            main(["dockerfile", "generate", "--project-root", str(project), "--output", "Dockerfile.generated"]),
+            0,
+        )
+        generated = (project / "Dockerfile.generated").read_text(encoding="utf-8")
+        self.assertIn("COPY gradlew build.gradle.kts settings.gradle.kts ./", generated)
+        self.assertNotIn("COPY gradlew build.gradle settings.gradle ./", generated)
+
     def test_golden_maven_and_gradle_paths_cover_core_generation_flows(self) -> None:
         for fixture_name, expected_build_tool in (("maven-only", "maven"), ("gradle-only", "gradle")):
             with self.subTest(fixture=fixture_name):

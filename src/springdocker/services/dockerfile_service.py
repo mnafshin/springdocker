@@ -13,6 +13,7 @@ from ..dockerfile import (
     build_dockerfile,
 )
 from ..dockerfile_explain import explain_dockerfile_text
+from ..gradle_descriptors import resolve_gradle_descriptor_files
 from ..plugins import apply_dockerfile_mutators, render_recipe_from_plugins
 from ..project_detect import has_spring_web_dependency
 
@@ -107,6 +108,7 @@ def dockerfile_options_from_config(
     must_have_modules = parse_must_have_modules(project_root, config.must_have_modules_file)
     healthcheck_path = _resolve_healthcheck_path(config.healthcheck_path, project_root)
     jlink_baseline_modules = _resolve_jlink_baseline_modules(config.jlink_baseline_modules, project_root)
+    gradle_descriptor_files = resolve_gradle_descriptor_files(project_root) if build_tool == "gradle" else ()
     return DockerfileOptions(
         build_tool=build_tool,
         recipe=config.recipe,
@@ -129,6 +131,7 @@ def dockerfile_options_from_config(
         tuned_jvm_flags=config.tuned_jvm_flags,
         jvm_flags=config.jvm_flags,
         healthcheck_path=healthcheck_path,
+        gradle_descriptor_files=gradle_descriptor_files,
     )
 
 

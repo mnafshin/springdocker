@@ -17,6 +17,7 @@ from springdocker.digest_pins import (
     TEMURIN_JDK_DIGESTS,
     TEMURIN_JRE_DIGESTS,
 )
+from springdocker.gradle_descriptors import DEFAULT_GRADLE_DESCRIPTOR_FILES
 from springdocker.runtime_images import SUPPORTED_RUNTIME_IMAGES
 
 # Auto-merged into jlink MUSTHAVE_MODULES when jlink is enabled and Spring Web is detected
@@ -111,6 +112,7 @@ class DockerfileSpec:
     build: BuildConfig
     runtime: RuntimeConfig
     supply_chain: SupplyChainConfig
+    gradle_descriptor_files: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -161,6 +163,7 @@ class DockerfileOptions:
     enable_jep483_aot_cache: bool = False
     jvm_flags: tuple[str, ...] = ()
     pin_digests: bool = True
+    gradle_descriptor_files: tuple[str, ...] = ()
 
     def resolved_jvm_flags(self) -> tuple[str, ...]:
         if self.jvm_flags:
@@ -198,10 +201,21 @@ class DockerfileOptions:
                 include_reproducible_controls=self.include_reproducible_controls,
                 pin_digests=self.pin_digests,
             ),
+            gradle_descriptor_files=self.gradle_descriptor_files,
         )
 
 
-def _build_setup(build_tool: str, recipe: str) -> tuple[list[str], str, str]:
+def _gradle_descriptor_copy_line(descriptor_files: tuple[str, ...]) -> str:
+    files = descriptor_files or DEFAULT_GRADLE_DESCRIPTOR_FILES
+    return f"COPY {' '.join(('gradlew', *files))} ./"
+
+
+def _build_setup(
+    build_tool: str,
+    recipe: str,
+    *,
+    gradle_descriptor_files: tuple[str, ...] = (),
+) -> tuple[list[str], str, str]:
     if build_tool == "maven":
         build_cmd = "./mvnw -B -q package -DskipTests"
         if recipe == "spring-aot":
@@ -225,7 +239,7 @@ def _build_setup(build_tool: str, recipe: str) -> tuple[list[str], str, str]:
         build_cmd = "./gradlew --no-daemon nativeCompile -x test"
     return (
         [
-            "COPY gradlew build.gradle settings.gradle ./",
+            _gradle_descriptor_copy_line(gradle_descriptor_files),
             "COPY gradle ./gradle",
             "RUN chmod +x gradlew",
             "COPY src ./src",
@@ -356,7 +370,11 @@ def _compose_os_runtime_section(
 
 
 def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
-    setup, build_cmd, jar_path = _build_setup(spec.build_tool, spec.build.recipe)
+    setup, build_cmd, jar_path = _build_setup(
+        spec.build_tool,
+        spec.build.recipe,
+        gradle_descriptor_files=spec.gradle_descriptor_files,
+    )
     build_step = (
         "RUN --mount=type=cache,sharing=locked,target=/root/.m2 " + build_cmd
         if spec.build.use_buildkit_cache and spec.build_tool == "maven"
