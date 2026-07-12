@@ -4,14 +4,14 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..config import render_default_config, write_default_config
-from ..project_detect import inspect_project, inspect_project_details
+from ..project_detect import InspectInfo, ProjectInfo, inspect_project, inspect_project_details
 
 
-def load_project_info(project_root: Path, build_tool: str | None):
+def load_project_info(project_root: Path, build_tool: str | None) -> ProjectInfo:
     return inspect_project(project_root, build_tool)
 
 
-def load_project_details(project_root: Path, build_tool: str | None):
+def load_project_details(project_root: Path, build_tool: str | None) -> InspectInfo:
     return inspect_project_details(project_root, build_tool)
 
 

@@ -25,7 +25,19 @@ METRICS = (
 
 
 def _metric_value(summary: VariantSummary, field: str) -> float | None:
-    return getattr(summary, field)
+    if field == "startup_avg_ms":
+        return summary.startup_avg_ms
+    if field == "startup_p95_ms":
+        return summary.startup_p95_ms
+    if field == "image_mb_avg":
+        return summary.image_mb_avg
+    return None
+
+
+def _optional_str(value: object) -> str | None:
+    if value is None:
+        return None
+    return str(value)
 
 
 def _pct_change(current: float, baseline: float) -> float:
@@ -78,9 +90,9 @@ def load_summaries(path: Path) -> list[VariantSummary]:
                 success_rate_pct=round_metric(float(item.get("success_rate_pct", 0.0))) or 0.0,
                 rss_mb_avg=_optional_metric(item.get("rss_mb_avg")),
                 cpu_pct_avg=_optional_metric(item.get("cpu_pct_avg")),
-                host=item.get("host"),
-                docker_version=item.get("docker_version"),
-                run_profile=item.get("run_profile"),
+                host=_optional_str(item.get("host")),
+                docker_version=_optional_str(item.get("docker_version")),
+                run_profile=_optional_str(item.get("run_profile")),
             )
         )
     return summaries

@@ -33,18 +33,16 @@ These modules use **per-module overrides** with `disallow_untyped_defs` and `war
 
 When a module is listed under `[[tool.mypy.overrides]]`, new functions in that file must have complete annotations and avoid untyped `Any` returns.
 
-## Phase 2 — services and small helpers (next)
+## Phase 2 — services and small helpers (shipped)
 
-Target modules:
+These modules use the same **per-module overrides** as Phase 1 (`disallow_untyped_defs`, `warn_return_any`):
 
-- `springdocker.services.project_service` — add return types on `load_project_info` / `load_project_details`
+- `springdocker.services.project_service`
 - `springdocker.services.dockerfile_service`
 - `springdocker.services.benchmark_service`
-- `springdocker.regression` — fix `no-any-return` on dynamic field access
+- `springdocker.regression`
 
-**Gate:** `mypy src` clean; move each module into the overrides list when it passes locally with `--disallow-untyped-defs --warn-return-any`.
-
-## Phase 3 — CLI surface and config
+## Phase 3 — CLI surface and config (next)
 
 - `springdocker.cli`
 - `springdocker.commands`

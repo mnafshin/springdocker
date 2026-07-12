@@ -71,6 +71,10 @@ module = [
     "springdocker.config_audit",
     "springdocker.runtime_images",
     "springdocker.services.verify_service",
+    "springdocker.services.project_service",
+    "springdocker.services.dockerfile_service",
+    "springdocker.services.benchmark_service",
+    "springdocker.regression",
 ]
 disallow_untyped_defs = true
 warn_return_any = true
