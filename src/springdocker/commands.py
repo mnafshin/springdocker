@@ -285,10 +285,26 @@ def cmd_init(
     return EXIT_OK
 
 
+LEGACY_BENCHMARK_SCRIPTS_REMOVAL_VERSION = "2.0.0"
+
+
+def _legacy_benchmark_scripts_warning() -> str:
+    return (
+        "benchmark legacy scripts (--use-legacy-scripts, SPRINGDOCKER_LEGACY_SCRIPTS, "
+        "or [benchmark].legacy_scripts in .springdocker.toml) are deprecated and will be "
+        f"removed in v{LEGACY_BENCHMARK_SCRIPTS_REMOVAL_VERSION}; "
+        "use the internal benchmark implementation (default since 1.0.x)"
+    )
+
+
 def _use_legacy_scripts(explicit: bool) -> bool:
     if explicit:
         return True
     return os.environ.get("SPRINGDOCKER_LEGACY_SCRIPTS", "").lower() in {"1", "true", "yes", "on"}
+
+
+def _warn_legacy_benchmark_scripts() -> None:
+    print_warning(_legacy_benchmark_scripts_warning())
 
 
 def cmd_configure(
@@ -395,6 +411,7 @@ def cmd_benchmark_generate(
         return EXIT_USAGE
 
     if _use_legacy_scripts(use_legacy_scripts):
+        _warn_legacy_benchmark_scripts()
         script = project_root / "benchmarks" / "setup_benchmark_folders.py"
         if not script.exists():
             print_error(f"missing script: {script}")
@@ -460,6 +477,7 @@ def cmd_benchmark_run(
         return EXIT_USAGE
 
     if _use_legacy_scripts(use_legacy_scripts):
+        _warn_legacy_benchmark_scripts()
         script = project_root / "benchmarks" / "common" / "run_all_benchmarks.py"
         if not script.exists():
             print_error(f"missing script: {script}")

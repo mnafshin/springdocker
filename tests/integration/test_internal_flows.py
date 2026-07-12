@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -96,6 +97,45 @@ class InternalFlowTests(unittest.TestCase):
             self.assertIn("=== Scenario: 01-multi-stage-build-structure", stdout.getvalue())
             self.assertIn("run 1:", stdout.getvalue())
             self.assertIn("Skipping native scaffold scenario: 07-native-benchmark", stdout.getvalue())
+
+    def test_benchmark_generate_warns_when_legacy_scripts_requested(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "pom.xml").write_text("<project/>", encoding="utf-8")
+            script_dir = root / "benchmarks"
+            script_dir.mkdir()
+            (script_dir / "setup_benchmark_folders.py").write_text("# legacy\n", encoding="utf-8")
+            stderr = StringIO()
+            with patch("springdocker.commands.run_checked", return_value=0), redirect_stderr(stderr):
+                code = cmd_benchmark_generate(
+                    project_root=root,
+                    build_tool=None,
+                    java_version=25,
+                    use_legacy_scripts=True,
+                )
+            self.assertEqual(code, 0)
+            self.assertIn("deprecated", stderr.getvalue())
+            self.assertIn("v2.0.0", stderr.getvalue())
+
+    def test_benchmark_generate_warns_when_legacy_scripts_env_set(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "pom.xml").write_text("<project/>", encoding="utf-8")
+            script_dir = root / "benchmarks"
+            script_dir.mkdir()
+            (script_dir / "setup_benchmark_folders.py").write_text("# legacy\n", encoding="utf-8")
+            stderr = StringIO()
+            with patch.dict(os.environ, {"SPRINGDOCKER_LEGACY_SCRIPTS": "1"}, clear=False), patch(
+                "springdocker.commands.run_checked", return_value=0
+            ), redirect_stderr(stderr):
+                code = cmd_benchmark_generate(
+                    project_root=root,
+                    build_tool=None,
+                    java_version=25,
+                    use_legacy_scripts=False,
+                )
+            self.assertEqual(code, 0)
+            self.assertIn("SPRINGDOCKER_LEGACY_SCRIPTS", stderr.getvalue())
 
     def test_dockerfile_generate_round_trips_to_explain(self) -> None:
         with tempfile.TemporaryDirectory() as td:

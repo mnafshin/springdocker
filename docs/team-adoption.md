@@ -210,6 +210,18 @@ Map common wizard choices:
 - **Native / AOT experiments** → `recipe = "spring-aot"` or scaffold `native-aot` (see [native-image-roadmap.md](native-image-roadmap.md)).
 - **Runtime base** → `runtime_image` in config (`distroless`, `alpine`, `debian-slim`, …).
 
+## Migration from legacy benchmark scripts
+
+Benchmark `legacy_scripts` / `--use-legacy-scripts` / `SPRINGDOCKER_LEGACY_SCRIPTS` delegated to Python scripts under `benchmarks/` in the sample project. That path is **deprecated** (CLI warning when enabled) and **removed in v2.0.0**.
+
+| Legacy | Replacement |
+|---|---|
+| `legacy_scripts = true` in `.springdocker.toml` | Remove the key (default is internal runner) |
+| `--use-legacy-scripts` on `benchmark generate` / `run` | Omit the flag |
+| `SPRINGDOCKER_LEGACY_SCRIPTS=1` | Unset the variable |
+
+Use `springdocker benchmark generate` and `springdocker benchmark run` without legacy flags. Reproducibility controls (`--cpuset-cpus`, `--warmup-runs`, etc.) require the internal runner.
+
 ## FAQ
 
 ### Should we commit `Dockerfile.generated` or only `.springdocker.toml`?

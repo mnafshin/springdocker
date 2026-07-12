@@ -251,13 +251,15 @@ Use `--force` on `init` to overwrite an existing skeleton; use `configure --forc
 
 See [docs/team-adoption.md](../docs/team-adoption.md) for first-time setup, CI examples, and migration from the retired `tools/dockerfile_wizard.py`.
 
-## Legacy benchmark scripts
+## Legacy benchmark scripts (deprecated)
 
-Benchmark commands still support `--use-legacy-scripts` (or `SPRINGDOCKER_LEGACY_SCRIPTS=1`) to delegate to project scripts under `benchmarks/` when needed:
+`benchmark generate` and `benchmark run` still accept `--use-legacy-scripts`, `SPRINGDOCKER_LEGACY_SCRIPTS=1`, or `legacy_scripts = true` in `.springdocker.toml` to delegate to project scripts under `benchmarks/`. **This path is deprecated and will be removed in v2.0.0.** The CLI prints a warning when legacy mode is used.
+
+Migrate by removing legacy flags and config keys — the internal implementation is the default:
 
 ```bash
-springdocker benchmark generate --use-legacy-scripts ...
-springdocker benchmark run --use-legacy-scripts ...
+springdocker benchmark generate --project-root .
+springdocker benchmark run --project-root .
 ```
 
 Dockerfile generation always uses the internal config-driven generator. Use `springdocker configure` for interactive setup instead of the retired `tools/dockerfile_wizard.py` script.

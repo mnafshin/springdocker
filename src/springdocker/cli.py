@@ -196,7 +196,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--use-legacy-scripts",
         action=argparse.BooleanOptionalAction,
         default=None,
-        help="Use project scripts instead of internal implementation (or set SPRINGDOCKER_LEGACY_SCRIPTS=1)",
+        help=(
+            "Deprecated: delegate to project scripts under benchmarks/ (removed in v2.0.0). "
+            "Prefer the internal implementation (default)"
+        ),
     )
 
     bench_run = bench_sub.add_parser("run", help="Run benchmark orchestration")
@@ -237,7 +240,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--use-legacy-scripts",
         action=argparse.BooleanOptionalAction,
         default=None,
-        help="Use project scripts instead of internal implementation (or set SPRINGDOCKER_LEGACY_SCRIPTS=1)",
+        help=(
+            "Deprecated: delegate to project scripts under benchmarks/ (removed in v2.0.0). "
+            "Prefer the internal implementation (default)"
+        ),
     )
 
     bench_analyze = bench_sub.add_parser("analyze", help="Analyze benchmark CSV")
