@@ -15,7 +15,11 @@ COPY gradle ./gradle
 RUN chmod +x gradlew
 COPY src ./src
 RUN ./gradlew --no-daemon bootJar -x test
-RUN java -Djarmode=layertools -jar /app/build/libs/*-SNAPSHOT.jar extract --destination /layers
+RUN set -eux; \
+    boot_jar=$(ls build/libs/*.jar | grep -v -- '-plain.jar$' | head -1); \
+    test -n "$boot_jar"; \
+    cp "$boot_jar" build/libs/application.jar
+RUN java -Djarmode=layertools -jar /app/build/libs/application.jar extract --destination /layers
 RUN cd /layers && java -XX:ArchiveClassesAtExit=/layers/app.jsa -Dspring.context.exit=onRefresh org.springframework.boot.loader.launch.JarLauncher || true
 RUN install -d /tmp/sbom && printf '{"spdxVersion":"SPDX-2.3","name":"springdocker-generated-image"}' > /tmp/sbom/spdx.json
 

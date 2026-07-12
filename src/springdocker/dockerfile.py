@@ -41,6 +41,8 @@ NATIVE_AOT_DOCKERFILE_SCAFFOLD_COMMENT = (
     "# scaffold: experimental native-image Dockerfile; not a production-ready springdocker workflow"
 )
 
+GRADLE_BOOT_JAR_PATH = "build/libs/application.jar"
+
 
 def merge_jlink_must_have_modules(
     curated: tuple[str, ...],
@@ -205,6 +207,16 @@ class DockerfileOptions:
         )
 
 
+def _gradle_boot_jar_select_run_lines() -> tuple[str, ...]:
+    """Pick the boot JAR (snapshot or release) and copy it to a stable path for later stages."""
+    return (
+        "RUN set -eux; \\",
+        "    boot_jar=$(ls build/libs/*.jar | grep -v -- '-plain.jar$' | head -1); \\",
+        '    test -n "$boot_jar"; \\',
+        f'    cp "$boot_jar" {GRADLE_BOOT_JAR_PATH}',
+    )
+
+
 def _gradle_descriptor_copy_line(descriptor_files: tuple[str, ...]) -> str:
     files = descriptor_files or DEFAULT_GRADLE_DESCRIPTOR_FILES
     return f"COPY {' '.join(('gradlew', *files))} ./"
@@ -245,7 +257,7 @@ def _build_setup(
             "COPY src ./src",
         ],
         build_cmd,
-        "build/libs/*-SNAPSHOT.jar" if recipe != "native-aot" else "build/native/nativeCompile/*",
+        GRADLE_BOOT_JAR_PATH if recipe != "native-aot" else "build/native/nativeCompile/*",
     )
 
 
@@ -410,12 +422,18 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
     )
     if spec.build.recipe == "native-aot":
         build_base = f"ghcr.io/graalvm/native-image-community:{spec.java_version}"
+    gradle_boot_jar_select = (
+        _gradle_boot_jar_select_run_lines()
+        if spec.build_tool == "gradle" and spec.build.recipe != "native-aot"
+        else ()
+    )
     sections.append(
         _section(
             f"FROM --platform=$BUILDPLATFORM {build_base} AS build",
             "WORKDIR /app",
             *setup,
             build_step,
+            *gradle_boot_jar_select,
             f"RUN java -Djarmode=layertools -jar /app/{jar_path} extract --destination /layers"
             if spec.build.use_layered_jar
             else "",

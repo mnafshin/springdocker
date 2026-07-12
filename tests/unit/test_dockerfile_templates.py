@@ -248,6 +248,23 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
         self.assertIn("COPY gradlew build.gradle.kts settings.gradle.kts ./", rendered)
         self.assertNotIn("build.gradle settings.gradle", rendered)
 
+    def test_build_dockerfile_gradle_normalizes_boot_jar_for_release_versions(self) -> None:
+        rendered = build_dockerfile(
+            DockerfileOptions(
+                build_tool="gradle",
+                java_version=21,
+                use_buildkit_cache=False,
+                use_jlink=False,
+                non_root=False,
+                tuned_jvm_flags=False,
+                platform_aware=False,
+                enable_appcds=False,
+            )
+        )
+        self.assertIn("build/libs/application.jar", rendered)
+        self.assertNotIn("*-SNAPSHOT.jar", rendered)
+        self.assertIn("grep -v -- '-plain.jar$'", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()
