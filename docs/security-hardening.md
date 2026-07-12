@@ -31,8 +31,17 @@ docker run --read-only --cap-drop=ALL --security-opt=no-new-privileges --tmpfs /
 
 ## Current scope
 
-This repository now automates baseline supply-chain controls in GitHub Actions:
+This repository automates baseline supply-chain controls in GitHub Actions:
 
-- CI generates and publishes an SPDX SBOM artifact.
-- CI runs a CRITICAL-severity vulnerability scan gate.
+- CI generates and publishes an SPDX SBOM artifact (`supply-chain` job).
+- CI runs a **blocking** Trivy filesystem scan for unfixed **CRITICAL** vulnerabilities on every push and pull request. The job fails when CRITICAL issues are found; HIGH and below are not gated in that job.
 - The release workflow signs build artifacts with keyless Cosign and emits provenance attestations.
+
+### Trivy policy (repository CI vs `springdocker verify`)
+
+| Surface | Scope | Severities | Blocks CI / exit code |
+|---|---|---|---|
+| GitHub Actions `supply-chain` job | Full repository checkout | CRITICAL only | **Yes** — unfixed CRITICAL fails the job |
+| `springdocker verify` (optional tool) | Dockerfile build context by default (`--trivy-scan-project-root` for full tree) | HIGH, CRITICAL | Only when you run `verify` with `trivy` installed |
+
+The repository scan and `verify` serve different purposes: CI guards the whole tree for catastrophic issues; `verify` is an opt-in, container-focused gate teams can add to their own pipelines.

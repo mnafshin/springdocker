@@ -54,6 +54,19 @@ when you change Dockerfile generation or runtime startup behavior:
 python scripts/docker_smoke_build.py
 ```
 
+## Supply chain CI
+
+The `supply-chain` job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and pull request:
+
+| Step | Behavior |
+|---|---|
+| SPDX SBOM | Uploaded as a workflow artifact (`sbom-spdx`) |
+| Trivy filesystem scan | **Blocking** on unfixed **CRITICAL** vulnerabilities in the repository tree |
+
+HIGH and lower severities do not fail that job. To gate Dockerfile build context on HIGH+CRITICAL locally or in your service pipeline, install `trivy` and run `springdocker verify` (see [`cli/README.md`](cli/README.md#verify-command) and [`docs/security-hardening.md`](docs/security-hardening.md)).
+
+If a CRITICAL finding is a false positive or has no fix upstream, document the exception in `.trivyignore` and link the advisory in the pull request.
+
 ## Change shape
 
 - Keep commits small and focused.
