@@ -1,7 +1,7 @@
 # springdocker
 
 [![CI](https://github.com/mnafshin/springdocker/actions/workflows/ci.yml/badge.svg)](https://github.com/mnafshin/springdocker/actions/workflows/ci.yml)
-[![Release](https://github.com/mnafshin/springdocker/actions/workflows/release.yml/badge.svg)](https://github.com/mnafshin/springdocker/actions/workflows/release.yml)
+[![Release](https://img.shields.io/github/v/release/mnafshin/springdocker)](https://github.com/mnafshin/springdocker/releases/latest)
 [![Lint](https://img.shields.io/badge/lint-ruff-blue)](https://github.com/astral-sh/ruff)
 [![Coverage](https://img.shields.io/badge/coverage-%3E%3D80%25-brightgreen)](./CONTRIBUTING.md#coverage-policy)
 [![Benchmark](https://img.shields.io/badge/benchmark-regression--gated-orange)](./docs/benchmark-methodology.md)
