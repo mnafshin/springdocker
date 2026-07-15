@@ -40,7 +40,7 @@ class ExplainCommandTests(unittest.TestCase):
             self.assertIn("multi-architecture build", [feature["name"] for feature in payload["features"]])
             self.assertEqual(
                 payload["jlink_modules"]["baseline"],
-                ["java.desktop", "java.logging", "java.naming"],
+                ["java.desktop", "java.logging", "java.naming", "java.management"],
             )
             self.assertEqual(payload["jlink_modules"]["curated"], [])
             feature_names = [feature["name"] for feature in payload["features"]]
@@ -68,7 +68,7 @@ class ExplainCommandTests(unittest.TestCase):
             payload = json.loads(stdout.getvalue())
             self.assertEqual(
                 payload["jlink_modules"]["baseline"],
-                ["java.desktop", "java.logging", "java.naming"],
+                ["java.desktop", "java.logging", "java.naming", "java.management"],
             )
             self.assertEqual(payload["jlink_modules"]["curated"], ["jdk.crypto.ec"])
             feature_names = [feature["name"] for feature in payload["features"]]
@@ -90,7 +90,10 @@ class ExplainCommandTests(unittest.TestCase):
             output = stdout.getvalue()
             self.assertIn("| Field | Value |", output)
             self.assertIn("BuildKit cache", output)
-            self.assertIn("| Jlink baseline modules | java.desktop, java.logging, java.naming |", output)
+            self.assertIn(
+                "| Jlink baseline modules | java.desktop, java.logging, java.naming, java.management |",
+                output,
+            )
             self.assertIn("| Curated must-have modules | - |", output)
 
     def test_explain_manual_dockerfile_succeeds(self) -> None:

@@ -23,7 +23,7 @@ class DockerfileExplainTests(unittest.TestCase):
         self.assertIn("jlink baseline modules", feature_names)
         self.assertEqual(
             payload["jlink_modules"]["baseline"],
-            ["java.desktop", "java.logging", "java.naming"],
+            ["java.desktop", "java.logging", "java.naming", "java.management"],
         )
 
     def test_explain_distinguishes_baseline_and_curated_modules(self) -> None:

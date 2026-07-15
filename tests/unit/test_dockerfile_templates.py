@@ -55,7 +55,7 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
         merged = merge_jlink_must_have_modules(("java.naming", "jdk.crypto.ec"), JLINK_BASELINE_MODULES)
         self.assertEqual(
             merged,
-            ("java.naming", "jdk.crypto.ec", "java.desktop", "java.logging"),
+            ("java.naming", "jdk.crypto.ec", "java.desktop", "java.logging", "java.management"),
         )
 
     def test_build_dockerfile_respects_pin_digests_false(self) -> None:
@@ -168,8 +168,8 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
             )
         )
         self.assertIn("AS aot-trainer", rendered)
-        self.assertIn("-XX:AOTCacheOutput=/app/app.aot", rendered)
-        self.assertIn("-XX:AOTCache=/app/app.aot", rendered)
+        self.assertIn("-XX:AOTCacheOutput=/app/application.aot", rendered)
+        self.assertIn("-XX:AOTCache=application.aot", rendered)
         self.assertNotIn("ArchiveClassesAtExit", rendered)
 
     def test_toggle_markers_render_as_expected(self) -> None:
