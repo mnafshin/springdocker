@@ -85,7 +85,7 @@ class CliIntegrationTests(unittest.TestCase):
             ),
             (
                 "maven-only",
-                'ARG MUSTHAVE_MODULES="jdk.crypto.ec,java.naming,java.desktop,java.logging"',
+                'ARG MUSTHAVE_MODULES="jdk.crypto.ec,java.naming,java.desktop,java.logging,java.management"',
             ),
         )
         for fixture_name, expected_modules_arg in cases:

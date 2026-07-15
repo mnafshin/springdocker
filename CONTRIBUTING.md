@@ -54,6 +54,53 @@ when you change Dockerfile generation or runtime startup behavior:
 python scripts/docker_smoke_build.py
 ```
 
+## Consumer smoke — spring-petclinic (P3)
+
+The `consumer-smoke-petclinic` workflow runs `python scripts/consumer_smoke_petclinic.py` against a **pinned**
+[`spring-projects/spring-petclinic`](https://github.com/spring-projects/spring-petclinic) commit. It exercises
+the documented onboarding path (`doctor` → `init` → `configure` → `dockerfile generate` →
+`verify --check-config-drift`) and then performs a real `docker build` plus actuator readiness on port 8080.
+
+Pinned upstream revision: `scripts/consumer_smoke_petclinic.manifest.json`.
+
+The smoke run selects the **`build-speed`** configure profile (debian-slim, no jlink) because jlink module
+sets are application-specific; `production-balanced` + jlink is validated separately by the in-repo
+`docker-smoke` job on `samples/java-spring-docker/`.
+
+**Local run** (requires Docker, git, and `springdocker` on `PATH`):
+
+```bash
+pip install -e .
+export DOCKER_BUILDKIT=1
+python scripts/consumer_smoke_petclinic.py
+```
+
+Do not pipe this script through `tee` without `set -o pipefail` — a failed `docker build` would otherwise report the pipe's exit code (0) instead of the script's.
+
+PyPI-style install (no editable checkout):
+
+```bash
+pipx install springdocker
+export DOCKER_BUILDKIT=1
+python scripts/consumer_smoke_petclinic.py --springdocker-cmd springdocker
+```
+
+Useful flags while iterating:
+
+```bash
+# Onboarding + verify only (no docker build)
+python scripts/consumer_smoke_petclinic.py --skip-docker-build
+
+# Keep clone for inspection
+python scripts/consumer_smoke_petclinic.py --keep-work-dir --work-dir .consumer-smoke-petclinic
+
+# Re-run build against an existing clone
+python scripts/consumer_smoke_petclinic.py --skip-clone --work-dir .consumer-smoke-petclinic
+```
+
+The job is scheduled weekly and on `main` changes to generator code; it is intentionally **not** part of the
+fast PR matrix because Petclinic image builds can take 30–60+ minutes.
+
 ## Supply chain CI
 
 The `supply-chain` job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and pull request:

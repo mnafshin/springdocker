@@ -18,15 +18,23 @@ COPY .mvn ./.mvn
 RUN chmod +x mvnw
 COPY src ./src
 RUN --mount=type=cache,sharing=locked,target=/root/.m2 ./mvnw -B -q package -DskipTests
-RUN java -Djarmode=layertools -jar /app/target/*.jar extract --destination /layers
-RUN cd /layers && java -XX:ArchiveClassesAtExit=/layers/app.jsa -Dspring.context.exit=onRefresh org.springframework.boot.loader.launch.JarLauncher || true
+RUN set -eux; \
+    boot_jar=$(ls target/*.jar | grep -v -- '-plain.jar$' | head -1); \
+    test -n "$boot_jar"; \
+    cp "$boot_jar" target/application.jar
+RUN java -Djarmode=tools -jar /app/target/application.jar extract --layers --destination /layers
+RUN mkdir -p /cds-work && \
+    cp -a /layers/dependencies /layers/spring-boot-loader /layers/snapshot-dependencies /cds-work/ && \
+    cp -a /layers/application/. /cds-work/ && \
+    cd /cds-work && \
+    java -XX:ArchiveClassesAtExit=application.jsa -Dspring.context.exit=onRefresh -jar application.jar || true
 RUN install -d /tmp/sbom && printf '{"spdxVersion":"SPDX-2.3","name":"springdocker-generated-image"}' > /tmp/sbom/spdx.json
 
 FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk@sha256:c2b7ea21649875fb9052237ac4e3cd4ef63968a2a389a0a1b1a72a5e53e5c93f AS jre-builder
 WORKDIR /jre
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/application.jar app.jar
 RUN jdeps --ignore-missing-deps --recursive --multi-release 25 --print-module-deps app.jar > modules.txt
-ARG MUSTHAVE_MODULES="jakarta.persistence,org.slf4j,java.desktop,java.logging,java.naming"
+ARG MUSTHAVE_MODULES="jakarta.persistence,org.slf4j,java.desktop,java.logging,java.naming,java.management"
 RUN set -eux; \
     MODULES=$( (tr ',' '\n' < modules.txt; printf '%s\n' "$MUSTHAVE_MODULES" | tr ',' '\n') \
       | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | sort -u | paste -sd, -); \
@@ -41,7 +49,7 @@ COPY --from=build /layers/dependencies/ ./
 COPY --from=build /layers/spring-boot-loader/ ./
 COPY --from=build /layers/snapshot-dependencies/ ./
 COPY --from=build /layers/application/ ./
-COPY --from=build /layers/app.jsa /app/app.jsa
+COPY --from=build /cds-work/application.jsa /app/application.jsa
 LABEL org.opencontainers.image.source="${OCI_SOURCE}" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}"
@@ -52,5 +60,5 @@ USER nonroot
 COPY --from=build /tmp/sbom/spdx.json /usr/share/sbom/spdx.json
 ENV SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}"
 STOPSIGNAL SIGTERM
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "-Djava.io.tmpdir=/tmp", "-XX:SharedArchiveFile=/app/app.jsa", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "-Djava.io.tmpdir=/tmp", "-XX:SharedArchiveFile=application.jsa", "-jar", "application.jar"]
 # Runtime hardening tip: run with --read-only --cap-drop=ALL --security-opt=no-new-privileges --tmpfs /tmp

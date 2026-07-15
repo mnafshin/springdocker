@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/spring-projects/spring-petclinic.git",
+  "ref": "51045d1648dad955df586150c1a1a6e22ef400c2",
+  "ref_note": "spring-projects/spring-petclinic@main — Spring Boot 4.1 / Java 17 (dual Maven+Gradle markers)",
+  "build_tool": "maven",
+  "dockerfile": "Dockerfile.generated",
+  "image": "springdocker-consumer-petclinic:latest",
+  "host_port": 18080,
+  "container_port": 8080,
+  "readiness_path": "/actuator/health/readiness",
+  "configure_wizard_input": "4\n\n",
+  "configure_profile_note": "build-speed (debian-slim, no jlink) — jlink module sets are app-specific; production-balanced is covered by in-repo docker-smoke",
+  "build_timeout_seconds": 3600,
+  "readiness_timeout_seconds": 180.0
+}

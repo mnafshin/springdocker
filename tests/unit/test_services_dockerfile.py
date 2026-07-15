@@ -85,7 +85,7 @@ class DockerfileServiceTests(unittest.TestCase):
                 must_have_modules_file=None,
             )
             rendered = generated.path.read_text("utf-8")
-            self.assertIn('ARG MUSTHAVE_MODULES="java.desktop,java.logging,java.naming"', rendered)
+            self.assertIn('ARG MUSTHAVE_MODULES="java.desktop,java.logging,java.naming,java.management"', rendered)
 
     def test_generate_dockerfile_omits_jlink_baseline_for_non_web_project(self) -> None:
         with tempfile.TemporaryDirectory() as td:

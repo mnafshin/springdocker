@@ -77,10 +77,11 @@ def run_configure_wizard(
     project_root: Path,
     config_path: Path,
     *,
+    build_tool: str | None = None,
     force: bool = False,
     generate_after: bool = False,
 ) -> DockerfileGenerateConfig:
-    info = inspect_project_details(project_root, explicit_build_tool=None)
+    info = inspect_project_details(project_root, explicit_build_tool=build_tool)
     print("Project context:")
     print(f"  build_tool: {info.build_tool}")
     print(f"  java_version: {info.java_version if info.java_version is not None else '-'}")

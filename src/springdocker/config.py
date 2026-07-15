@@ -120,7 +120,7 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         '# recipe = "native-aot"  # scaffold only; see docs/native-image-roadmap.md\n'
         '# must_have_modules_file = "must-have.txt"\n'
         "# When jlink is enabled, these modules are auto-merged into the jlink module list.\n"
-        '# jlink_baseline_modules = ["java.desktop", "java.logging", "java.naming"]\n'
+        '# jlink_baseline_modules = ["java.desktop", "java.logging", "java.naming", "java.management"]\n'
         "# Omit jlink_baseline_modules to auto-detect from Spring Web starters at generate time.\n"
         "# Set jlink_baseline_modules = [] to disable built-in baseline injection.\n"
         "# Config-first workflow: run `springdocker configure` to set options interactively.\n"

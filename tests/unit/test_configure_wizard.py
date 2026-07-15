@@ -6,7 +6,7 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from tests.test_support import add_src_to_path
+from tests.test_support import ROOT, add_src_to_path
 
 add_src_to_path()
 
@@ -75,6 +75,22 @@ class ConfigureCliTests(unittest.TestCase):
             resolved = resolve_dockerfile_generate_config(*([None] * 21), loaded)
             self.assertEqual(resolved.runtime_image, "distroless")
             self.assertEqual(resolved.profile, "production-balanced")
+
+    def test_configure_respects_build_tool_for_mixed_markers(self) -> None:
+        fixture = ROOT / "tests" / "fixtures" / "mixed-markers"
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            root.mkdir()
+            for name in ("pom.xml", "build.gradle", "gradlew"):
+                (root / name).write_text((fixture / name).read_text(encoding="utf-8"), encoding="utf-8")
+            with (
+                patch("springdocker.configure_wizard.ask_choice", return_value="production-balanced"),
+                patch("springdocker.configure_wizard.ask_bool", return_value=True),
+            ):
+                code = cmd_configure(root, "maven", root / ".springdocker.toml", force=True, generate_after=False)
+            self.assertEqual(code, 0)
+            loaded = load_config(root / ".springdocker.toml")
+            self.assertEqual(loaded["project"]["build_tool"], "maven")
 
 
 class ConfigureWizardHelperTests(unittest.TestCase):

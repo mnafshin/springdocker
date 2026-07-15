@@ -119,7 +119,10 @@ def explain_dockerfile_text(text: str) -> dict[str, object]:
                 "reason": "Applies container-friendly JVM memory and failure defaults.",
             }
         )
-    if "jarmode=layertools" in text and "/layers/application/" in text:
+    if (
+        ("jarmode=tools" in text and "extract --layers" in text)
+        or ("jarmode=layertools" in text)
+    ) and "/layers/application/" in text:
         features.append(
             {
                 "name": "layered jar",

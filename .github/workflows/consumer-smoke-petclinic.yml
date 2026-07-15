@@ -1,0 +1,37 @@
+name: Consumer smoke (spring-petclinic)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly — full onboarding + docker build is slow; not run on every PR.
+    - cron: "0 4 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - "src/springdocker/**"
+      - "scripts/consumer_smoke_petclinic.py"
+      - "scripts/consumer_smoke_petclinic.manifest.json"
+      - ".github/workflows/consumer-smoke-petclinic.yml"
+
+jobs:
+  petclinic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install springdocker (editable)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Consumer smoke — petclinic onboarding + docker build
+        env:
+          DOCKER_BUILDKIT: "1"
+        run: python scripts/consumer_smoke_petclinic.py

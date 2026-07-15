@@ -265,6 +265,23 @@ class DockerfileTemplateRenderingTests(unittest.TestCase):
         self.assertNotIn("*-SNAPSHOT.jar", rendered)
         self.assertIn("grep -v -- '-plain.jar$'", rendered)
 
+    def test_build_dockerfile_maven_normalizes_boot_jar_for_layered_extract(self) -> None:
+        rendered = build_dockerfile(
+            DockerfileOptions(
+                build_tool="maven",
+                java_version=21,
+                use_buildkit_cache=False,
+                use_jlink=False,
+                non_root=False,
+                tuned_jvm_flags=False,
+                platform_aware=False,
+                enable_appcds=False,
+            )
+        )
+        self.assertIn("target/application.jar", rendered)
+        self.assertIn("grep -v -- '-plain.jar$'", rendered)
+        self.assertIn("jarmode=tools -jar /app/target/application.jar extract --layers", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()

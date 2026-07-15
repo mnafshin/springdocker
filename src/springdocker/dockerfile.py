@@ -22,7 +22,12 @@ from springdocker.runtime_images import SUPPORTED_RUNTIME_IMAGES
 
 # Auto-merged into jlink MUSTHAVE_MODULES when jlink is enabled and Spring Web is detected
 # (see project_detect.has_spring_web_dependency and ADR 0007).
-JLINK_BASELINE_MODULES: tuple[str, ...] = ("java.desktop", "java.logging", "java.naming")
+JLINK_BASELINE_MODULES: tuple[str, ...] = (
+    "java.desktop",
+    "java.logging",
+    "java.naming",
+    "java.management",
+)
 
 DEFAULT_JVM_FLAGS: tuple[str, ...] = (
     "-XX:MaxRAMPercentage=75",
@@ -42,6 +47,12 @@ NATIVE_AOT_DOCKERFILE_SCAFFOLD_COMMENT = (
 )
 
 GRADLE_BOOT_JAR_PATH = "build/libs/application.jar"
+MAVEN_BOOT_JAR_PATH = "target/application.jar"
+LAYER_EXTRACT_DEST = "/layers"
+LAYERED_RUNTIME_JAR = "application.jar"
+LAYERED_APP_CDS_ARCHIVE = "application.jsa"
+LAYERED_APP_CDS_WORKDIR = "/cds-work"
+LAYERED_JEP483_AOT_CACHE = "application.aot"
 
 
 def merge_jlink_must_have_modules(
@@ -217,6 +228,39 @@ def _gradle_boot_jar_select_run_lines() -> tuple[str, ...]:
     )
 
 
+def _maven_boot_jar_select_run_lines() -> tuple[str, ...]:
+    """Pick the executable boot JAR and copy it to a stable path for later stages."""
+    return (
+        "RUN set -eux; \\",
+        "    boot_jar=$(ls target/*.jar | grep -v -- '-plain.jar$' | head -1); \\",
+        '    test -n "$boot_jar"; \\',
+        f'    cp "$boot_jar" {MAVEN_BOOT_JAR_PATH}',
+    )
+
+
+def _layered_runtime_workspace_copy_lines(*, source_stage: str = "build", chown_flag: str = "") -> tuple[str, ...]:
+    prefix = f"COPY --from={source_stage} {chown_flag}"
+    dest = LAYER_EXTRACT_DEST
+    return (
+        f"{prefix}{dest}/dependencies/ ./",
+        f"{prefix}{dest}/spring-boot-loader/ ./",
+        f"{prefix}{dest}/snapshot-dependencies/ ./",
+        f"{prefix}{dest}/application/ ./",
+    )
+
+
+def _layered_appcds_training_run_lines() -> tuple[str, ...]:
+    dest = LAYER_EXTRACT_DEST
+    return (
+        f"RUN mkdir -p {LAYERED_APP_CDS_WORKDIR} && \\",
+        f"    cp -a {dest}/dependencies {dest}/spring-boot-loader {dest}/snapshot-dependencies {LAYERED_APP_CDS_WORKDIR}/ && \\",
+        f"    cp -a {dest}/application/. {LAYERED_APP_CDS_WORKDIR}/ && \\",
+        f"    cd {LAYERED_APP_CDS_WORKDIR} && \\",
+        f"    java -XX:ArchiveClassesAtExit={LAYERED_APP_CDS_ARCHIVE} -Dspring.context.exit=onRefresh "
+        f"-jar {LAYERED_RUNTIME_JAR} || true",
+    )
+
+
 def _gradle_descriptor_copy_line(descriptor_files: tuple[str, ...]) -> str:
     files = descriptor_files or DEFAULT_GRADLE_DESCRIPTOR_FILES
     return f"COPY {' '.join(('gradlew', *files))} ./"
@@ -242,7 +286,7 @@ def _build_setup(
                 "COPY src ./src",
             ],
             build_cmd,
-            "target/*.jar" if recipe != "native-aot" else "target/*",
+            MAVEN_BOOT_JAR_PATH if recipe != "native-aot" else "target/*",
         )
     build_cmd = "./gradlew --no-daemon bootJar -x test"
     if recipe == "spring-aot":
@@ -345,18 +389,16 @@ def _compose_os_runtime_section(
         "EXPOSE 8081",
     ]
     if spec.build.use_layered_jar:
-        lines.extend(
-            [
-                f"COPY --from=build {chown_flag}/layers/dependencies/ ./",
-                f"COPY --from=build {chown_flag}/layers/spring-boot-loader/ ./",
-                f"COPY --from=build {chown_flag}/layers/snapshot-dependencies/ ./",
-                f"COPY --from=build {chown_flag}/layers/application/ ./",
-            ]
-        )
+        lines.extend(_layered_runtime_workspace_copy_lines(source_stage="build", chown_flag=chown_flag))
         if spec.build.enable_appcds:
-            lines.append(f"COPY --from=build {chown_flag}/layers/app.jsa /app/app.jsa")
+            lines.append(
+                f"COPY --from=build {chown_flag}{LAYERED_APP_CDS_WORKDIR}/{LAYERED_APP_CDS_ARCHIVE} "
+                f"/app/{LAYERED_APP_CDS_ARCHIVE}"
+            )
         if spec.build.enable_jep483_aot_cache:
-            lines.append(f"COPY --from=aot-trainer {chown_flag}/app/app.aot /app/app.aot")
+            lines.append(
+                f"COPY --from=aot-trainer {chown_flag}/app/{LAYERED_JEP483_AOT_CACHE} /app/{LAYERED_JEP483_AOT_CACHE}"
+            )
     else:
         lines.append(f"COPY --from=build {chown_flag}/app/{jar_path} app.jar")
     if spec.supply_chain.include_oci_labels:
@@ -427,6 +469,11 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         if spec.build_tool == "gradle" and spec.build.recipe != "native-aot"
         else ()
     )
+    maven_boot_jar_select = (
+        _maven_boot_jar_select_run_lines()
+        if spec.build_tool == "maven" and spec.build.recipe != "native-aot"
+        else ()
+    )
     sections.append(
         _section(
             f"FROM --platform=$BUILDPLATFORM {build_base} AS build",
@@ -434,14 +481,11 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
             *setup,
             build_step,
             *gradle_boot_jar_select,
-            f"RUN java -Djarmode=layertools -jar /app/{jar_path} extract --destination /layers"
+            *maven_boot_jar_select,
+            f"RUN java -Djarmode=tools -jar /app/{jar_path} extract --layers --destination {LAYER_EXTRACT_DEST}"
             if spec.build.use_layered_jar
             else "",
-            (
-                "RUN cd /layers && "
-                "java -XX:ArchiveClassesAtExit=/layers/app.jsa -Dspring.context.exit=onRefresh "
-                "org.springframework.boot.loader.launch.JarLauncher || true"
-            )
+            *_layered_appcds_training_run_lines()
             if spec.build.use_layered_jar and spec.build.enable_appcds
             else "",
             (
@@ -520,15 +564,12 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
                 "ENV JAVA_HOME=/opt/java",
                 'ENV PATH="${JAVA_HOME}/bin:${PATH}"',
                 "WORKDIR /app",
-                "COPY --from=build /layers/dependencies/ ./",
-                "COPY --from=build /layers/spring-boot-loader/ ./",
-                "COPY --from=build /layers/snapshot-dependencies/ ./",
-                "COPY --from=build /layers/application/ ./",
+                *_layered_runtime_workspace_copy_lines(source_stage="build"),
                 (
-                    "RUN java -XX:AOTCacheOutput=/app/app.aot -Dspring.context.exit=onRefresh "
-                    "org.springframework.boot.loader.launch.JarLauncher; \\"
+                    f"RUN java -XX:AOTCacheOutput=/app/{LAYERED_JEP483_AOT_CACHE} -Dspring.context.exit=onRefresh "
+                    f"-jar {LAYERED_RUNTIME_JAR}; \\"
                 ),
-                "    test -f /app/app.aot",
+                f"    test -f /app/{LAYERED_JEP483_AOT_CACHE}",
                 "",
             )
         )
@@ -555,16 +596,11 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
             "EXPOSE 8081",
         ]
         if spec.build.use_layered_jar:
-            distroless_lines.extend(
-                [
-                    "COPY --from=build /layers/dependencies/ ./",
-                    "COPY --from=build /layers/spring-boot-loader/ ./",
-                    "COPY --from=build /layers/snapshot-dependencies/ ./",
-                    "COPY --from=build /layers/application/ ./",
-                ]
-            )
+            distroless_lines.extend(_layered_runtime_workspace_copy_lines(source_stage="build"))
             if spec.build.enable_appcds:
-                distroless_lines.append("COPY --from=build /layers/app.jsa /app/app.jsa")
+                distroless_lines.append(
+                    f"COPY --from=build {LAYERED_APP_CDS_WORKDIR}/{LAYERED_APP_CDS_ARCHIVE} /app/{LAYERED_APP_CDS_ARCHIVE}"
+                )
         else:
             distroless_lines.append(f"COPY --from=build /app/{jar_path} app.jar")
         if spec.supply_chain.include_oci_labels:
@@ -619,18 +655,16 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         )
         if spec.build.use_layered_jar:
             chown_flag = "--chown=1001:1001 " if spec.runtime.non_root else ""
-            temurin_lines.extend(
-                [
-                    f"COPY --from=build {chown_flag}/layers/dependencies/ ./",
-                    f"COPY --from=build {chown_flag}/layers/spring-boot-loader/ ./",
-                    f"COPY --from=build {chown_flag}/layers/snapshot-dependencies/ ./",
-                    f"COPY --from=build {chown_flag}/layers/application/ ./",
-                ]
-            )
+            temurin_lines.extend(_layered_runtime_workspace_copy_lines(source_stage="build", chown_flag=chown_flag))
             if spec.build.enable_appcds:
-                temurin_lines.append(f"COPY --from=build {chown_flag}/layers/app.jsa /app/app.jsa")
+                temurin_lines.append(
+                    f"COPY --from=build {chown_flag}{LAYERED_APP_CDS_WORKDIR}/{LAYERED_APP_CDS_ARCHIVE} "
+                    f"/app/{LAYERED_APP_CDS_ARCHIVE}"
+                )
             if spec.build.enable_jep483_aot_cache:
-                temurin_lines.append(f"COPY --from=aot-trainer {chown_flag}/app/app.aot /app/app.aot")
+                temurin_lines.append(
+                    f"COPY --from=aot-trainer {chown_flag}/app/{LAYERED_JEP483_AOT_CACHE} /app/{LAYERED_JEP483_AOT_CACHE}"
+                )
         else:
             temurin_lines.append(f"COPY --from=build {'--chown=1001:1001 ' if spec.runtime.non_root else ''}/app/{jar_path} app.jar")
         if spec.supply_chain.include_oci_labels:
@@ -671,11 +705,11 @@ def _compose_dockerfile(spec: DockerfileSpec) -> DockerfileDocument:
         )
 
     if spec.build.use_layered_jar and spec.build.enable_appcds:
-        jvm_args.append("-XX:SharedArchiveFile=/app/app.jsa")
+        jvm_args.append(f"-XX:SharedArchiveFile={LAYERED_APP_CDS_ARCHIVE}")
     if spec.build.enable_jep483_aot_cache:
-        jvm_args.append("-XX:AOTCache=/app/app.aot")
+        jvm_args.append(f"-XX:AOTCache={LAYERED_JEP483_AOT_CACHE}")
     entrypoint = (
-        ["java", *jvm_args, "org.springframework.boot.loader.launch.JarLauncher"]
+        ["java", *jvm_args, "-jar", LAYERED_RUNTIME_JAR]
         if spec.build.use_layered_jar
         else ["java", *jvm_args, "-jar", "app.jar"]
     )

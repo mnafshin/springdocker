@@ -120,7 +120,7 @@ def build_parser() -> argparse.ArgumentParser:
             "Contrast with `springdocker explain`, which is advisory static analysis only."
         ),
     )
-    add_common_options(verify, with_build_tool=False)
+    add_common_options(verify, with_build_tool=True)
     verify.add_argument("--dockerfile", default="Dockerfile.generated")
     verify.add_argument("--image", default=None, help="Optional built image reference for dive/cosign checks")
     verify.add_argument("--smoke-url", default=None, help="Optional HTTP endpoint for smoke verification")

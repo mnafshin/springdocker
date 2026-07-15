@@ -7,7 +7,7 @@ import urllib.error
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from tests.test_support import add_src_to_path
+from tests.test_support import ROOT, add_src_to_path
 
 add_src_to_path()
 
@@ -447,6 +447,44 @@ class VerifyServiceTests(unittest.TestCase):
         self.assertIn('<failure message="missing SBOM file"/>', junit)
         self.assertIn('<skipped message="hadolint not installed"/>', junit)
         self.assertIn("| overall | failed |", render_verify_table(outcome))
+
+    def test_config_drift_resolves_build_tool_from_config_for_mixed_markers(self) -> None:
+        fixture = ROOT / "tests" / "fixtures" / "mixed-markers"
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            for name in ("pom.xml", "build.gradle", "gradlew"):
+                (root / name).write_text((fixture / name).read_text(encoding="utf-8"), encoding="utf-8")
+            (root / ".springdocker.toml").write_text('[project]\nbuild_tool = "maven"\n', encoding="utf-8")
+            dockerfile = root / "Dockerfile.generated"
+            dockerfile.write_text("FROM scratch\n", encoding="utf-8")
+            (root / "sbom.spdx.json").write_text(json.dumps({"spdxVersion": "SPDX-2.3"}), encoding="utf-8")
+
+            def _unexpected_inspect(*_args, **_kwargs):  # type: ignore[no-untyped-def]
+                raise AssertionError("inspect_project should not run when config defines build_tool")
+
+            with (
+                patch("springdocker.project_detect.inspect_project", side_effect=_unexpected_inspect),
+                patch("springdocker.services.verify_service.shutil.which", return_value=None),
+                patch(
+                    "springdocker.config_audit.run_config_verify_checks",
+                    return_value=[("config-drift", "passed", "ok")],
+                ),
+                patch("springdocker.config_audit.load_config_audit") as load_audit,
+            ):
+                load_audit.return_value = object()
+                outcome = run_verification(
+                    VerifyContext(
+                        project_root=root,
+                        dockerfile_path=dockerfile,
+                        image=None,
+                        smoke_url=None,
+                        check_config_drift=True,
+                    )
+                )
+            drift = next(item for item in outcome.results if item.name == "config-drift")
+            self.assertEqual(drift.status, "passed")
+            load_audit.assert_called_once()
+            self.assertEqual(load_audit.call_args.args[1], "maven")
 
 
 if __name__ == "__main__":

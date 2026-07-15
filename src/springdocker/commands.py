@@ -331,6 +331,7 @@ def cmd_configure(
         run_configure_wizard(
             project_root=project_root,
             config_path=config_path,
+            build_tool=build_tool,
             force=force,
             generate_after=generate_after,
         )
