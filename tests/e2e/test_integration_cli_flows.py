@@ -164,7 +164,7 @@ class CliIntegrationTests(unittest.TestCase):
                     0,
                 )
                 generated = (project / "Dockerfile.generated").read_text(encoding="utf-8")
-                self.assertIn(f"# Java 25 | build-tool: {expected_build_tool}", generated)
+                self.assertIn(f"# Java 17 | build-tool: {expected_build_tool}", generated)
                 self.assertIn("FROM --platform=$BUILDPLATFORM", generated)
                 self.assertIn("ENTRYPOINT [\"java\"", generated)
 
