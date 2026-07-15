@@ -28,7 +28,15 @@ from .config import (
 )
 from .errors import print_warning
 from .plugins import register_command_plugins
+from .project_detect import inspect_project_details
 from .services import dockerfile_service
+
+
+def _detected_java_version(project_root: Path, build_tool: str | None) -> int | None:
+    try:
+        return inspect_project_details(project_root, build_tool).java_version
+    except ValueError:
+        return None
 
 # Type alias for dispatch handlers: each receives parsed args and resolved project root.
 _Handler = Callable[[argparse.Namespace, Path], int]
@@ -284,7 +292,11 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _resolve_dockerfile_config(args: argparse.Namespace, loaded: dict) -> DockerfileGenerateConfig:
+def _resolve_dockerfile_config(
+    args: argparse.Namespace,
+    loaded: dict,
+    project_root: Path,
+) -> DockerfileGenerateConfig:
     return resolve_dockerfile_generate_config(
         cli_build_tool=getattr(args, "build_tool", None),
         cli_output=getattr(args, "output", None),
@@ -308,6 +320,7 @@ def _resolve_dockerfile_config(args: argparse.Namespace, loaded: dict) -> Docker
         cli_jvm_flags=getattr(args, "jvm_flag", None),
         cli_healthcheck_path=getattr(args, "healthcheck_path", None),
         loaded_config=loaded,
+        detected_java_version=_detected_java_version(project_root, getattr(args, "build_tool", None)),
     )
 
 
@@ -383,7 +396,7 @@ def _handle_verify(args: argparse.Namespace, project_root: Path) -> int:
 
 def _handle_dockerfile_generate(args: argparse.Namespace, project_root: Path) -> int:
     loaded = load_config(project_root / ".springdocker.toml")
-    resolved = _resolve_dockerfile_config(args, loaded)
+    resolved = _resolve_dockerfile_config(args, loaded, project_root)
     return cmd_dockerfile_generate(project_root=project_root, config=resolved)
 
 
@@ -395,7 +408,7 @@ def _handle_benchmark_generate(args: argparse.Namespace, project_root: Path) -> 
         cli_use_legacy_scripts=args.use_legacy_scripts,
         loaded_config=loaded,
     )
-    dockerfile_resolved = _resolve_dockerfile_config(args, loaded)
+    dockerfile_resolved = _resolve_dockerfile_config(args, loaded, project_root)
     must_have_modules = dockerfile_service.parse_must_have_modules(
         project_root,
         dockerfile_resolved.must_have_modules_file,

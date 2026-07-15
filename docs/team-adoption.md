@@ -42,6 +42,8 @@ git add Dockerfile.generated
 git commit -m "Generate Dockerfile from config"
 ```
 
+Set `java_version` in `[dockerfile]` to your service toolchain (**17+**). When omitted, springdocker prefers the detected project Java, then falls back to **17**. JEP 483 AOT requires Java **24+**.
+
 `init --interactive` combines the skeleton and wizard:
 
 ```bash
@@ -154,7 +156,7 @@ Selected in `springdocker configure`; saved as explicit `[dockerfile]` keys (plu
 |---|---|---|
 | `production-balanced` | Default team standard | distroless + jlink + SBOM + digest pins + tuned JVM |
 | `smallest-image` | Minimum image size | alpine + jlink; AppCDS off |
-| `fast-cold-start` | Startup latency (Java 24+) | distroless + jlink + JEP 483 AOT cache |
+| `fast-cold-start` | Startup latency | Java 24+: JEP 483 AOT; Java 17–23: remaps to AppCDS |
 | `build-speed` | Faster image builds in dev | debian-slim, no jlink |
 | `simplest` | Onboarding / debugging | temurin JRE fat JAR, no jlink/layers |
 | `compliance` | Supply-chain heavy environments | SBOM, pins, OCI labels, reproducible controls |
@@ -232,10 +234,10 @@ Config-only repos work if every environment runs `dockerfile generate` before bu
 
 ### How do Java upgrades work with Renovate or manual bumps?
 
-1. Update `java_version` in `[dockerfile]` (and `[benchmark.generate]` if used).
+1. Update `java_version` in `[dockerfile]` (and `[benchmark.generate]` if used) to match your service (17+).
 2. Run `springdocker dockerfile generate`.
 3. Review digest-pinned base images in the regenerated Dockerfile.
-4. Re-run tests and optional benchmarks.
+4. Re-run tests and optional benchmarks (JEP 483 scenarios appear only when Java ≥ 24).
 
 ### Why is there no `HEALTHCHECK` with distroless?
 

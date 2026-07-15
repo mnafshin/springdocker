@@ -36,6 +36,10 @@ class RunnerTests(unittest.TestCase):
         self.assertTrue(options.skip_native)
         self.assertEqual(options.java_version, 21)
 
+    def test_parse_runner_args_defaults_java_to_17(self) -> None:
+        options = parse_runner_args("quick", ["--skip-native"])
+        self.assertEqual(options.java_version, 17)
+
     def test_parse_runner_args_rejects_removed_native_flags(self) -> None:
         with self.assertRaises(ValueError):
             parse_runner_args("quick", ["--native-duration", "30s"])

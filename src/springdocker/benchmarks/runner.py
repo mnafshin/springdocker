@@ -77,7 +77,7 @@ def parse_runner_args(profile: str, extra_args: list[str]) -> RunnerOptions:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--runs", type=int, default=None)
     parser.add_argument("--skip-native", action="store_true")
-    parser.add_argument("--java-version", type=int, default=25)
+    parser.add_argument("--java-version", type=int, default=17)
     parsed, unknown = parser.parse_known_args(extra_args)
     if unknown:
         raise ValueError(f"unknown runner arguments: {' '.join(unknown)}")

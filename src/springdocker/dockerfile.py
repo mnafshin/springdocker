@@ -18,6 +18,7 @@ from springdocker.digest_pins import (
     TEMURIN_JRE_DIGESTS,
 )
 from springdocker.gradle_descriptors import DEFAULT_GRADLE_DESCRIPTOR_FILES
+from springdocker.java_features import MIN_JAVA_VERSION, validate_dockerfile_options
 from springdocker.runtime_images import SUPPORTED_RUNTIME_IMAGES
 
 # Auto-merged into jlink MUSTHAVE_MODULES when jlink is enabled and Spring Web is detected
@@ -157,7 +158,7 @@ class DockerfileDocument:
 class DockerfileOptions:
     build_tool: str
     recipe: str = "jvm-balanced"
-    java_version: int = 25
+    java_version: int = MIN_JAVA_VERSION
     use_buildkit_cache: bool = True
     use_jlink: bool = True
     non_root: bool = True
@@ -312,20 +313,13 @@ def _section(*lines: str) -> DockerfileSection:
 def _validate_options(options: DockerfileOptions) -> None:
     if options.build_tool not in {"maven", "gradle"}:
         raise ValueError("build tool must be 'maven' or 'gradle'")
-    if options.java_version < 17:
-        raise ValueError("java version must be >= 17")
+    validate_dockerfile_options(options)
     if options.runtime_image not in SUPPORTED_RUNTIME_IMAGES:
         supported = ", ".join(sorted(SUPPORTED_RUNTIME_IMAGES))
         raise ValueError(f"runtime_image must be one of: {supported}")
     if options.recipe not in BUILTIN_RECIPES:
         supported = ", ".join(BUILTIN_RECIPES)
         raise ValueError(f"recipe must be one of: {supported}")
-    if options.enable_jep483_aot_cache and options.java_version < 24:
-        raise ValueError("JEP 483 AOT cache requires Java 24 or newer")
-    if options.enable_jep483_aot_cache and not options.use_jlink:
-        raise ValueError("JEP 483 AOT cache requires use_jlink=True")
-    if options.enable_jep483_aot_cache and options.enable_appcds:
-        raise ValueError("enable_jep483_aot_cache and enable_appcds are mutually exclusive")
     for flag in options.jvm_flags:
         if not flag.strip():
             raise ValueError("jvm_flags entries must be non-empty")

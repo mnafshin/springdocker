@@ -72,7 +72,14 @@ def resolve_dockerfile_audit_config(
     dockerfile_path: Path,
     loaded_config: dict[str, Any],
 ) -> DockerfileGenerateConfig:
+    from springdocker.project_detect import inspect_project_details
+
     output = _relative_output_path(project_root, dockerfile_path)
+    detected_java: int | None = None
+    try:
+        detected_java = inspect_project_details(project_root, build_tool).java_version
+    except ValueError:
+        detected_java = None
     return resolve_dockerfile_generate_config(
         cli_build_tool=build_tool,
         cli_output=output,
@@ -96,6 +103,7 @@ def resolve_dockerfile_audit_config(
         cli_jvm_flags=None,
         cli_healthcheck_path=None,
         loaded_config=loaded_config,
+        detected_java_version=detected_java,
     )
 
 

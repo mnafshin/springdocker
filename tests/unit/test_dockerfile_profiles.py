@@ -10,6 +10,7 @@ from springdocker.dockerfile import DEFAULT_JVM_FLAGS, DockerfileOptions, build_
 from springdocker.dockerfile_profiles import (
     PROFILE_NAMES,
     apply_profile,
+    apply_profile_for_java,
     default_jvm_flags_for_display,
     profile_description,
 )
@@ -39,6 +40,27 @@ class DockerfileProfilesTests(unittest.TestCase):
         applied = apply_profile(DockerfileOptions(build_tool="gradle", java_version=25), "fast-cold-start")
         self.assertTrue(applied.enable_jep483_aot_cache)
         self.assertFalse(applied.enable_appcds)
+
+    def test_fast_cold_start_remaps_to_appcds_on_java_21(self) -> None:
+        applied, warning = apply_profile_for_java(
+            DockerfileOptions(build_tool="gradle"),
+            "fast-cold-start",
+            21,
+        )
+        self.assertFalse(applied.enable_jep483_aot_cache)
+        self.assertTrue(applied.enable_appcds)
+        self.assertIsNotNone(warning)
+        self.assertIn("AppCDS", warning or "")
+
+    def test_fast_cold_start_keeps_aot_on_java_25(self) -> None:
+        applied, warning = apply_profile_for_java(
+            DockerfileOptions(build_tool="gradle"),
+            "fast-cold-start",
+            25,
+        )
+        self.assertTrue(applied.enable_jep483_aot_cache)
+        self.assertFalse(applied.enable_appcds)
+        self.assertIsNone(warning)
 
     def test_smallest_image_uses_alpine(self) -> None:
         applied = apply_profile(DockerfileOptions(build_tool="maven"), "smallest-image")

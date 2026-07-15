@@ -6,6 +6,7 @@ from dataclasses import replace
 from typing import Final, TypedDict
 
 from springdocker.dockerfile import DEFAULT_JVM_FLAGS, DockerfileOptions
+from springdocker.java_features import JEP483_MIN_JAVA, jep483_supported
 
 
 class _ProfileOverlay(TypedDict, total=False):
@@ -105,11 +106,34 @@ def apply_profile(base: DockerfileOptions, profile: str) -> DockerfileOptions:
     return replace(base, **overlay)
 
 
+def apply_profile_for_java(
+    base: DockerfileOptions,
+    profile: str,
+    java_version: int,
+) -> tuple[DockerfileOptions, str | None]:
+    """Apply a profile, remapping Java-gated options when needed.
+
+    ``fast-cold-start`` requests JEP 483 AOT on Java 24+. On Java 17–23 it
+    remaps to AppCDS and returns a one-line warning.
+    """
+    options = apply_profile(replace(base, java_version=java_version), profile)
+    if profile == "fast-cold-start" and not jep483_supported(java_version):
+        options = replace(options, enable_jep483_aot_cache=False, enable_appcds=True)
+        warning = (
+            f"JEP 483 requires Java {JEP483_MIN_JAVA}+; "
+            f"fast-cold-start remapped to AppCDS for Java {java_version}."
+        )
+        return options, warning
+    return options, None
+
+
 def profile_description(profile: str) -> str:
     descriptions = {
         "production-balanced": "distroless + jlink + supply-chain defaults (team standard)",
         "smallest-image": "alpine + jlink for minimum image size",
-        "fast-cold-start": "distroless + jlink + JEP 483 AOT cache (Java 24+)",
+        "fast-cold-start": (
+            "distroless + jlink + JEP 483 AOT (Java 24+); AppCDS fallback on Java 17–23"
+        ),
         "build-speed": "debian-slim without jlink for faster image builds",
         "simplest": "temurin JRE fat JAR — lowest complexity",
         "compliance": "SBOM, digest pins, OCI labels, reproducible controls",

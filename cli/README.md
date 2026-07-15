@@ -175,21 +175,23 @@ build_tool = "maven"
 
 [dockerfile]
 output = "Dockerfile.generated"
-java_version = 25
+java_version = 17
 recipe = "jvm-balanced"
 # profile = "production-balanced"  # set by `springdocker configure`
 # runtime_image = "distroless"
 # use_jlink = true
-# enable_jep483_aot_cache = false
+# enable_appcds = true  # available on Java 17+
+# enable_jep483_aot_cache = false  # requires Java 24+; mutually exclusive with AppCDS
 # include_embedded_sbom = true
 # pin_digests = true
 # tuned_jvm_flags = true
 # jvm_flags = ["-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "-Djava.io.tmpdir=/tmp"]
 # Generator default runtime: distroless (gcr.io/distroless/base-* + jlink + layered JAR).
+# Set java_version to your service toolchain (17+). Sample evidence project uses 25.
 must_have_modules_file = "must-have.txt"
 
 [benchmark.generate]
-java_version = 25
+java_version = 17
 legacy_scripts = false
 
 [benchmark.run]

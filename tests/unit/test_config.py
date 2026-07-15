@@ -187,6 +187,28 @@ class ConfigTests(unittest.TestCase):
         resolved = _resolve_dockerfile({})
         self.assertIsNone(resolved.jlink_baseline_modules)
 
+    def test_resolve_dockerfile_defaults_java_to_17(self) -> None:
+        resolved = _resolve_dockerfile({})
+        self.assertEqual(resolved.java_version, 17)
+
+    def test_resolve_dockerfile_prefers_detected_java_when_config_omits(self) -> None:
+        resolved = resolve_dockerfile_generate_config(
+            *_NO_CLI,
+            {},
+            detected_java_version=21,
+        )
+        self.assertEqual(resolved.java_version, 21)
+
+    def test_resolve_benchmark_generate_defaults_java_to_17(self) -> None:
+        resolved = resolve_benchmark_generate_config(None, None, None, {})
+        self.assertEqual(resolved.java_version, 17)
+
+    def test_render_default_config_uses_java_17(self) -> None:
+        text = render_default_config("maven")
+        self.assertIn("java_version = 17", text)
+        self.assertIn("enable_appcds = true", text)
+        self.assertIn("Java 24+", text)
+
     def test_render_default_config_documents_jlink_baseline_modules(self) -> None:
         text = render_default_config("maven")
         self.assertIn("jlink_baseline_modules", text)

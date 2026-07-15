@@ -120,10 +120,22 @@ class ConfigureWizardHelperTests(unittest.TestCase):
         with patch("builtins.input", return_value="n"):
             self.assertFalse(ask_bool("Enable feature?", True))
 
-    def test_startup_optimization_skips_jep483_on_java_23(self) -> None:
-        enable_appcds, enable_jep483 = _startup_optimization_choice(23)
-        self.assertFalse(enable_appcds)
+    def test_startup_optimization_offers_appcds_on_java_21(self) -> None:
+        with patch("springdocker.configure_wizard.ask_choice", return_value="AppCDS") as ask:
+            enable_appcds, enable_jep483 = _startup_optimization_choice(21)
+        self.assertTrue(enable_appcds)
         self.assertFalse(enable_jep483)
+        prompt = ask.call_args.args[0]
+        self.assertIn("AppCDS", ask.call_args.args[1])
+        self.assertNotIn("JEP 483 AOT cache", ask.call_args.args[1])
+        self.assertIn("24", prompt)
+
+    def test_startup_optimization_offers_aot_on_java_25(self) -> None:
+        with patch("springdocker.configure_wizard.ask_choice", return_value="JEP 483 AOT cache") as ask:
+            enable_appcds, enable_jep483 = _startup_optimization_choice(25)
+        self.assertFalse(enable_appcds)
+        self.assertTrue(enable_jep483)
+        self.assertIn("JEP 483 AOT cache", ask.call_args.args[1])
 
     def test_startup_optimization_appcds_choice(self) -> None:
         with patch("springdocker.configure_wizard.ask_choice", return_value="AppCDS"):
@@ -217,7 +229,7 @@ class ConfigureWizardFlowTests(unittest.TestCase):
             self.assertTrue(resolved.use_jlink)
             self.assertTrue(resolved.enable_jep483_aot_cache)
 
-    def test_run_configure_wizard_fast_cold_start_disables_jep483_on_java_21(self) -> None:
+    def test_run_configure_wizard_fast_cold_start_remaps_to_appcds_on_java_21(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             (root / "pom.xml").write_text(
@@ -232,6 +244,7 @@ class ConfigureWizardFlowTests(unittest.TestCase):
                 resolved = run_configure_wizard(root, config_path)
             self.assertEqual(resolved.profile, "fast-cold-start")
             self.assertFalse(resolved.enable_jep483_aot_cache)
+            self.assertTrue(resolved.enable_appcds)
 
     def test_run_configure_wizard_cancelled_before_write(self) -> None:
         with tempfile.TemporaryDirectory() as td:

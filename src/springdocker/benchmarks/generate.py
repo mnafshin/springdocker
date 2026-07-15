@@ -6,6 +6,7 @@ from pathlib import Path
 
 from springdocker.config import DockerfileGenerateConfig
 from springdocker.dockerfile import BUILTIN_RECIPES, DockerfileOptions, build_dockerfile
+from springdocker.java_features import jep483_supported
 from springdocker.runtime_images import DEFAULT_BASE_IMAGE_VARIANTS, variant_slug
 from springdocker.services import dockerfile_service
 
@@ -140,7 +141,7 @@ def default_scenarios(
         enable_appcds=False,
         enable_jep483_aot_cache=False,
     )
-    return [
+    scenarios: list[ScenarioDefinition] = [
         StandardScenarioDefinition(
             id="01-custom-jre-jlink",
             variants=(
@@ -182,56 +183,64 @@ def default_scenarios(
                 ),
             ),
         ),
-        StandardScenarioDefinition(
-            id="02-jep483-aot-cache",
-            variants=(
-                (
-                    "with-aot-cache",
-                    DockerfileOptions(
-                        build_tool=build_tool,
-                        java_version=java_version,
-                        must_have_modules=must_have_modules,
-                        enable_jep483_aot_cache=True,
-                        enable_appcds=False,
-                    ),
-                ),
-                ("without-aot-cache", base),
-            ),
-            run_overrides={"quick": 8, "full": 15},
-        ),
-        StandardScenarioDefinition(
-            id="03-base-image-choice",
-            variants=tuple(
-                (
-                    variant_slug(runtime_image),
-                    _base_image_variant_options(
-                        build_tool=build_tool,
-                        java_version=java_version,
-                        must_have_modules=must_have_modules,
-                        runtime_image=runtime_image,
-                    ),
-                )
-                for runtime_image in runtime_bases
-            ),
-        ),
-        StandardScenarioDefinition(
-            id="05-appcds",
-            variants=(
-                (
-                    "with-appcds",
-                    DockerfileOptions(
-                        build_tool=build_tool,
-                        java_version=java_version,
-                        must_have_modules=must_have_modules,
-                        enable_appcds=True,
-                        enable_jep483_aot_cache=False,
-                    ),
-                ),
-                ("without-appcds", base),
-            ),
-        ),
-        NativeScenarioDefinition(id="04-native-benchmark"),
     ]
+    if jep483_supported(java_version):
+        scenarios.append(
+            StandardScenarioDefinition(
+                id="02-jep483-aot-cache",
+                variants=(
+                    (
+                        "with-aot-cache",
+                        DockerfileOptions(
+                            build_tool=build_tool,
+                            java_version=java_version,
+                            must_have_modules=must_have_modules,
+                            enable_jep483_aot_cache=True,
+                            enable_appcds=False,
+                        ),
+                    ),
+                    ("without-aot-cache", base),
+                ),
+                run_overrides={"quick": 8, "full": 15},
+            )
+        )
+    scenarios.extend(
+        [
+            StandardScenarioDefinition(
+                id="03-base-image-choice",
+                variants=tuple(
+                    (
+                        variant_slug(runtime_image),
+                        _base_image_variant_options(
+                            build_tool=build_tool,
+                            java_version=java_version,
+                            must_have_modules=must_have_modules,
+                            runtime_image=runtime_image,
+                        ),
+                    )
+                    for runtime_image in runtime_bases
+                ),
+            ),
+            StandardScenarioDefinition(
+                id="05-appcds",
+                variants=(
+                    (
+                        "with-appcds",
+                        DockerfileOptions(
+                            build_tool=build_tool,
+                            java_version=java_version,
+                            must_have_modules=must_have_modules,
+                            enable_appcds=True,
+                            enable_jep483_aot_cache=False,
+                        ),
+                    ),
+                    ("without-appcds", base),
+                ),
+            ),
+            NativeScenarioDefinition(id="04-native-benchmark"),
+        ]
+    )
+    return scenarios
 
 
 def generate_benchmark_assets(

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
 from pathlib import Path
 
 from springdocker.config import HEALTHCHECK_AUTO, DockerfileGenerateConfig, write_default_config
@@ -10,10 +9,11 @@ from springdocker.config_serializer import dockerfile_options_to_table, merge_do
 from springdocker.dockerfile import DockerfileOptions
 from springdocker.dockerfile_profiles import (
     PROFILE_NAMES,
-    apply_profile,
+    apply_profile_for_java,
     default_jvm_flags_for_display,
     profile_description,
 )
+from springdocker.java_features import JEP483_MIN_JAVA, MIN_JAVA_VERSION, jep483_supported
 from springdocker.project_detect import inspect_project_details
 
 
@@ -40,14 +40,18 @@ def ask_bool(prompt: str, default: bool) -> bool:
 
 
 def _startup_optimization_choice(java_version: int) -> tuple[bool, bool]:
-    if java_version < 24:
-        print("\nStartup optimization: none (JEP 483 requires Java 24+)")
-        return False, False
-    choice = ask_choice(
-        "Startup optimization:",
-        ["none", "AppCDS", "JEP 483 AOT cache"],
-        default_index=1,
-    )
+    if jep483_supported(java_version):
+        choice = ask_choice(
+            "Startup optimization:",
+            ["none", "AppCDS", "JEP 483 AOT cache"],
+            default_index=1,
+        )
+    else:
+        choice = ask_choice(
+            f"Startup optimization (JEP 483 requires Java {JEP483_MIN_JAVA}+):",
+            ["none", "AppCDS"],
+            default_index=1,
+        )
     if choice == "AppCDS":
         return True, False
     if choice == "JEP 483 AOT cache":
@@ -93,7 +97,7 @@ def run_configure_wizard(
     selected_label = ask_choice("Choose Dockerfile profile:", profile_labels, default_index=1)
     profile = selected_label.split(" — ", 1)[0]
 
-    java_version = info.java_version or 25
+    java_version = info.java_version or MIN_JAVA_VERSION
     if profile == "custom":
         java_raw = input(f"\nJava major version [{java_version}]: ").strip()
         if java_raw.isdigit():
@@ -134,10 +138,9 @@ def run_configure_wizard(
         )
     else:
         base = DockerfileOptions(build_tool=info.build_tool, java_version=java_version)
-        options = apply_profile(base, profile)
-        if profile == "fast-cold-start" and java_version < 24:
-            print(f"Warning: JEP 483 requires Java 24+; disabling AOT cache for Java {java_version}.")
-            options = replace(options, enable_jep483_aot_cache=False)
+        options, remap_warning = apply_profile_for_java(base, profile, java_version)
+        if remap_warning:
+            print(f"Warning: {remap_warning}")
 
     print("\nSummary:")
     print(f"  profile: {profile}")

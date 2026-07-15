@@ -52,7 +52,7 @@ def sample_dockerfile_config(**overrides: object) -> DockerfileGenerateConfig:
     defaults: dict[str, object] = {
         "build_tool": None,
         "output": "Dockerfile.generated",
-        "java_version": 25,
+        "java_version": 17,
         "recipe": "jvm-balanced",
         "profile": None,
         "must_have_modules_file": None,
@@ -112,7 +112,7 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         f'build_tool = "{build_tool}"\n\n'
         "[dockerfile]\n"
         'output = "Dockerfile.generated"\n'
-        "java_version = 25\n"
+        "java_version = 17\n"
         'recipe = "jvm-balanced"\n'
         "# Default generator runtime: distroless (gcr.io/distroless/base-* + jlink + layered JAR).\n"
         "# OS bases (debian-slim, alpine, ubuntu, temurin) are benchmark/generator options — see cli/README.md.\n"
@@ -126,11 +126,13 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         "# Config-first workflow: run `springdocker configure` to set options interactively.\n"
         "# runtime_image = \"distroless\"\n"
         "# use_jlink = true\n"
+        "# enable_appcds = true  # available on Java 17+\n"
+        "# enable_jep483_aot_cache = true  # requires Java 24+; mutually exclusive with AppCDS\n"
         "# include_embedded_sbom = true\n"
         "# pin_digests = true\n"
         "# tuned_jvm_flags = true\n\n"
         "[benchmark.generate]\n"
-        "java_version = 25\n"
+        "java_version = 17\n"
         "legacy_scripts = false\n\n"
         "[benchmark.generate.base_image_choice]\n"
         "variants = [\"alpine\", \"debian-slim\", \"ubuntu\", \"distroless\"]\n\n"
@@ -363,11 +365,15 @@ def _pick_int(
     cli_value: int | None,
     config_value: int | None,
     default: int,
+    *,
+    detected_value: int | None = None,
 ) -> int:
     if cli_value is not None:
         return cli_value
     if config_value is not None:
         return config_value
+    if detected_value is not None:
+        return detected_value
     return default
 
 
@@ -394,6 +400,7 @@ def resolve_dockerfile_generate_config(
     cli_jvm_flags: list[str] | None,
     cli_healthcheck_path: str | None,
     loaded_config: dict[str, Any],
+    detected_java_version: int | None = None,
 ) -> DockerfileGenerateConfig:
     dockerfile = _expect_table(loaded_config, "dockerfile")
     build_tool = _resolve_build_tool(cli_build_tool, loaded_config, "project")
@@ -401,7 +408,8 @@ def resolve_dockerfile_generate_config(
     java_version = _pick_int(
         cli_java_version,
         _expect_optional_int(dockerfile.get("java_version"), "dockerfile.java_version"),
-        25,
+        17,
+        detected_value=detected_java_version,
     )
     recipe = cli_recipe or _expect_optional_str(dockerfile.get("recipe"), "dockerfile.recipe") or "jvm-balanced"
     profile = cli_profile or _expect_optional_str(dockerfile.get("profile"), "dockerfile.profile")
@@ -533,7 +541,7 @@ def resolve_benchmark_generate_config(
         raise ValueError("Config section 'benchmark.generate' must be a TOML table")
 
     build_tool = _resolve_build_tool(cli_build_tool, loaded_config, "project")
-    java_version = cli_java_version or _expect_optional_int(generate.get("java_version"), "benchmark.generate.java_version") or 25
+    java_version = cli_java_version or _expect_optional_int(generate.get("java_version"), "benchmark.generate.java_version") or 17
     if cli_use_legacy_scripts is not None:
         use_legacy = cli_use_legacy_scripts
     else:

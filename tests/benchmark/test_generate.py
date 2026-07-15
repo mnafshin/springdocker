@@ -121,6 +121,22 @@ class GenerateScenarioTests(unittest.TestCase):
         distroless = next(opts for name, opts in base_images.variants if name == "distroless")
         self.assertTrue(distroless.use_jlink)
 
+    def test_jep483_scenario_omitted_for_java_21(self) -> None:
+        scenarios = {scenario.id: scenario for scenario in default_scenarios(build_tool="maven", java_version=21)}
+        self.assertNotIn("02-jep483-aot-cache", scenarios)
+        self.assertIn("05-appcds", scenarios)
+
+    def test_jep483_scenario_present_for_java_25(self) -> None:
+        scenarios = {scenario.id for scenario in default_scenarios(build_tool="maven", java_version=25)}
+        self.assertIn("02-jep483-aot-cache", scenarios)
+
+    def test_generate_assets_omits_jep483_dir_for_java_21(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            generate_benchmark_assets(project_root=root, build_tool="maven", java_version=21)
+            self.assertFalse((root / "benchmarks" / "02-jep483-aot-cache").exists())
+            self.assertTrue((root / "benchmarks" / "05-appcds").exists())
+
     def test_custom_base_image_variants_from_config(self) -> None:
         scenarios = default_scenarios(
             build_tool="maven",
