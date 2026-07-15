@@ -3,6 +3,23 @@
 This repository uses scenario-based Docker benchmarks against the sample Spring Boot project in `samples/java-spring-docker/`.
 Benchmark commands are optional evidence workflows and require `springdocker[benchmark]`.
 
+## Scenario index
+
+Authoritative list under `samples/java-spring-docker/benchmarks/`. Regenerate with `springdocker benchmark generate`. Scenario **04** (native) is listed before **05** (AppCDS) by id; the generator emits AppCDS before the native scaffold.
+
+| ID | Directory | Purpose | Variants | Further reading |
+|---|---|---|---|---|
+| 01 | `01-custom-jre-jlink` | jlink vs vendor JRE vs Temurin image | `with-jlink-runtime`, `without-jlink-runtime`, `temurin-jre-image` | [jvm.md](jvm.md) |
+| 02 | `02-jep483-aot-cache` | JEP 483 AOT (Java 24+; **generated only when ≥ 24**) | `with-aot-cache`, `without-aot-cache` | [jvm.md](jvm.md) · 8 quick / 15 full runs |
+| 03 | `03-base-image-choice` | OS base tradeoffs (jlink on every base) | configurable | [base-image variants](#configuring-base-image-variants-scenario-03) · CI baseline |
+| 04 | `04-native-benchmark` | Native scaffold (`native-aot`); skipped by default | single Dockerfile at scenario root | [native-aot.md](native-aot.md) |
+| 05 | `05-appcds` | AppCDS shared archive | `with-appcds`, `without-appcds` | [jvm.md](jvm.md) |
+
+```bash
+springdocker benchmark analyze --project-root samples/java-spring-docker \
+  benchmarks/01-custom-jre-jlink/results/raw.csv --format table
+```
+
 ## Measurement model
 
 Each benchmark run records one row per build-and-startup attempt with these fields:
@@ -148,7 +165,7 @@ The repository pins one such pair for CI — see [CI regression baseline (scenar
 
 ## Current sample comparison snapshot
 
-For decision guidance per scenario, see the [benchmark scenario index in README.md](../README.md#benchmark-scenario-index).
+For decision guidance per scenario, see the [scenario index](#scenario-index).
 
 For the current checked-in reference snapshot, the high-level decision matrix is:
 
@@ -204,5 +221,5 @@ runtime stage (scenario 01 `without-jlink-runtime`). Scenario 01 `temurin-jre-im
 ## Current limitations
 
 - The runner assumes Docker is available on the host.
-- Native scenarios are scaffold-only: the internal runner skips them because native-image execution is not a shipped workflow yet (see `docs/native-image-roadmap.md`).
+- Native scenarios are scaffold-only: the internal runner skips them (see [native-aot.md](native-aot.md)).
 - The current reproducibility controls are opt-in and do not change defaults.

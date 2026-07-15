@@ -30,7 +30,7 @@ mypy src
 
 Ruff runs with **F**, **I**, **B** (bugbear), **UP** (pyupgrade), and **SIM** (simplify) — see `[tool.ruff.lint]` in `pyproject.toml`. Fix auto-fixable issues with `ruff check src tests --fix`.
 
-Mypy runs on `src/` with gradual strictness — baseline settings plus per-module overrides for core modules. See [`docs/typing-roadmap.md`](docs/typing-roadmap.md) before tightening types or adding `# type: ignore`.
+Mypy runs on `src/` with gradual strictness — baseline settings plus per-module overrides for core modules. See [`docs/internal/typing.md`](docs/internal/typing.md) before tightening types or adding `# type: ignore`.
 
 ## Coverage policy
 
@@ -110,7 +110,7 @@ The `supply-chain` job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 | SPDX SBOM | Uploaded as a workflow artifact (`sbom-spdx`) |
 | Trivy filesystem scan | **Blocking** on unfixed **CRITICAL** vulnerabilities in the repository tree |
 
-HIGH and lower severities do not fail that job. To gate Dockerfile build context on HIGH+CRITICAL locally or in your service pipeline, install `trivy` and run `springdocker verify` (see [`cli/README.md`](cli/README.md#verify-command) and [`docs/security-hardening.md`](docs/security-hardening.md)).
+HIGH and lower severities do not fail that job. To gate Dockerfile build context on HIGH+CRITICAL locally or in your service pipeline, install `trivy` and run `springdocker verify` (see [`cli/README.md`](cli/README.md#verify-command) and [`docs/security.md`](docs/security.md)).
 
 If a CRITICAL finding is a false positive or has no fix upstream, document the exception in `.trivyignore` and link the advisory in the pull request.
 
@@ -130,7 +130,7 @@ If a CRITICAL finding is a false positive or has no fix upstream, document the e
 - `tests/e2e/` for end-to-end CLI flows
 - `tests/benchmark/` for benchmark and snapshot coverage
 - `tests/fixtures/maven-only/` and `tests/fixtures/gradle-only/` for README quick-start Dockerfile workflows
-- `tests/fixtures/` for minimal CI/e2e golden samples ([`docs/golden-samples.md`](docs/golden-samples.md))
+- `tests/fixtures/` for minimal CI/e2e walkthroughs ([POSITIONING](docs/POSITIONING.md#sample-project-strategy-two-trees))
 - `samples/java-spring-docker/` for the full benchmark sample app and evidence assets
 
 ## Releases

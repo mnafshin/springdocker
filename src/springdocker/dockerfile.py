@@ -41,7 +41,7 @@ SPRINGDOCKER_REPO_URL = "https://github.com/mnafshin/springdocker"
 NATIVE_AOT_SCAFFOLD_WARNING = (
     "native-aot emits experimental scaffold output only; "
     "springdocker does not ship a production native-image workflow yet "
-    "(see docs/native-image-roadmap.md)"
+    "(see docs/native-aot.md)"
 )
 NATIVE_AOT_DOCKERFILE_SCAFFOLD_COMMENT = (
     "# scaffold: experimental native-image Dockerfile; not a production-ready springdocker workflow"

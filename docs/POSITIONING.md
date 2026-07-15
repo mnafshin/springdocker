@@ -22,7 +22,7 @@ Resolved in [#87](https://github.com/mnafshin/springdocker/issues/87) — see [A
 
 ### Java 25 / Spring Boot 4 in the reference sample (not CLI default)
 
-The benchmark sample uses bleeding-edge versions to exercise generator output and publish evidence. That is intentional for the **secondary** audience. The **CLI** falls back to **Java 17** when the project version is undetected. Production users configure `java_version` and profiles for their own LTS or current JDK — see [team-adoption.md](team-adoption.md). The sample version choice is a **feature for evidence depth**, not a requirement for adoption.
+The benchmark sample uses bleeding-edge versions to exercise generator output and publish evidence. That is intentional for the **secondary** audience. The **CLI** falls back to **Java 17** when the project version is undetected. Production users configure `java_version` and profiles for their own LTS or current JDK — see [adopt.md](adopt.md). The sample version choice is a **feature for evidence depth**, not a requirement for adoption.
 
 ## Distribution
 
@@ -82,7 +82,7 @@ Benchmarks are an **opt-in extra** (`pip install springdocker[benchmark]`):
 
 Use benchmarks to **inform** Dockerfile and JVM decisions on your service. They do not replace policy choices (non-root, digest pins, SBOM) or service-specific profiling.
 
-See [`benchmark-methodology.md`](benchmark-methodology.md) and [`samples/java-spring-docker/benchmarks/README.md`](../samples/java-spring-docker/benchmarks/README.md) for artifact policy.
+See [`benchmarks.md`](benchmarks.md) and [`samples/java-spring-docker/benchmarks/README.md`](../samples/java-spring-docker/benchmarks/README.md) for artifact policy.
 
 ## Sample project strategy (two trees)
 
@@ -93,7 +93,7 @@ The repository keeps two Spring Boot paths. They are not two products — they s
 | `tests/fixtures/{maven-only,gradle-only}/` | Humans learning the CLI and automated regression | unit, integration, e2e, benchmark tests |
 | `samples/java-spring-docker/` | Benchmark harness and reference evidence | generator hygiene + analyzer regression on pinned CSV + `docker-smoke` build/readiness |
 
-**Start with `tests/fixtures/…`** for Dockerfile workflows. Use **`samples/`** when you need benchmark scenarios or reference datasets. Do not copy the full benchmark tree into every consumer repo.
+Fixtures are minimal (CLI/output shape only). Full Docker builds and presentation numbers use **`samples/`**. Do not copy the full benchmark tree into every consumer repo.
 
 Resolved in [#95](https://github.com/mnafshin/springdocker/issues/95) — see [`adr/0004-sample-project-strategy.md`](adr/0004-sample-project-strategy.md).
 
@@ -105,7 +105,7 @@ Resolved in [#95](https://github.com/mnafshin/springdocker/issues/95) — see [`
 | Java | Floor **17**; init/undetected fallback **17**; JEP 483 AOT **24+** | **25** in sample `.springdocker.toml` (includes scenario 02) |
 | Python CLI | Requires Python ≥3.10 | 3.12 in CI |
 
-Feature matrix: [jvm-optimization.md](jvm-optimization.md) · support ranges: [compatibility-matrix.md](compatibility-matrix.md).
+Feature matrix and support ranges: [jvm.md](jvm.md).
 
 Production teams set `java_version` in `.springdocker.toml` for their service. The reference sample stays on current JDK/Spring Boot for benchmark and presentation refresh — see [ADR 0008](adr/0008-target-audience.md).
 

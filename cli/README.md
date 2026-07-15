@@ -52,28 +52,32 @@ python3 -m pip install -e ".[dev]"
 ## Quick usage
 
 ```bash
-springdocker init --project-root samples/java-spring-docker --build-tool maven --profile quick
-springdocker configure --project-root samples/java-spring-docker --force   # interactive → writes [dockerfile] in config
-springdocker dockerfile generate --project-root samples/java-spring-docker  # non-interactive; reads .springdocker.toml
-springdocker doctor --project-root samples/java-spring-docker
-springdocker inspect --project-root samples/java-spring-docker --format json
-springdocker explain --project-root samples/java-spring-docker Dockerfile.generated --format json
-springdocker benchmark compare --project-root samples/java-spring-docker benchmarks/01-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime --format json
-springdocker dockerfile generate --project-root samples/java-spring-docker --output Dockerfile.generated --recipe jvm-balanced
-springdocker dockerfile generate --project-root samples/java-spring-docker --recipe spring-aot
-# native-aot emits experimental scaffold output only (not a production workflow)
-springdocker dockerfile generate --project-root samples/java-spring-docker --recipe native-aot
-springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
-springdocker benchmark run --project-root samples/java-spring-docker --profile quick --runner-arg --skip-native
-springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/02-jep483-aot-cache/results/raw.csv --format table
-springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/02-jep483-aot-cache/results/raw.csv --format json --output benchmarks/02-jep483-aot-cache/results/summary.json
-springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/02-jep483-aot-cache/results/raw.csv --fail-on-success-rate-below 95
-springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/02-jep483-aot-cache/results/raw.csv --baseline benchmarks/02-jep483-aot-cache/results/baseline.json --fail-on-regression-above 20
+cd /path/to/your-spring-boot-app   # or: export PROJECT=.
+springdocker doctor --project-root .
+springdocker init --project-root . --build-tool maven
+springdocker configure --project-root . --force
+springdocker dockerfile generate --project-root .
+springdocker explain --project-root . Dockerfile.generated --format json --config-aware
+springdocker verify --project-root . --dockerfile Dockerfile.generated --check-config-drift
+
+# recipes
+springdocker dockerfile generate --project-root . --recipe jvm-balanced
+springdocker dockerfile generate --project-root . --recipe spring-aot
+# native-aot is experimental scaffold only — see docs/native-aot.md
+springdocker dockerfile generate --project-root . --recipe native-aot
 ```
 
-Benchmark commands are optional evidence workflows and require benchmark extras.
-Use `samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json` as the versioned CI regression baseline example (paired with committed `raw.csv`).
-Scenario index: [README.md](../README.md#benchmark-scenario-index).
+**Evidence on the sample app** (clone + `springdocker[benchmark]`; sample is Java 25):
+
+```bash
+springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
+springdocker benchmark run --project-root samples/java-spring-docker --profile quick --runner-arg --skip-native
+springdocker benchmark analyze --project-root samples/java-spring-docker \
+  samples/java-spring-docker/benchmarks/01-custom-jre-jlink/results/raw.csv --format table
+```
+
+Scenario index and methodology: [docs/benchmarks.md](../docs/benchmarks.md#scenario-index).
+CI regression baseline example: `samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json`.
 
 ## Dockerfile recipes
 
@@ -81,7 +85,7 @@ Scenario index: [README.md](../README.md#benchmark-scenario-index).
 |---|---|---|---|
 | `jvm-balanced` | Supported | **distroless** + jlink | Default production-oriented JVM Dockerfile. |
 | `spring-aot` | Supported | **distroless** + jlink | Spring Boot AOT processing on a JVM runtime. |
-| `native-aot` | Scaffold only | **distroless** base (static binary) | Experimental GraalVM native-image Dockerfile output. Not a production-ready workflow; see `docs/native-image-roadmap.md`. |
+| `native-aot` | Scaffold only | **distroless** base (static binary) | Experimental GraalVM native-image Dockerfile. Not production-ready — [docs/native-aot.md](../docs/native-aot.md). |
 
 The generator sets `runtime_image = "distroless"` internally for JVM recipes. That means `distroless/base-debian*` plus a copied jlink runtime — not the prebuilt `distroless/java*` image and not a full OS layer unless you change generator options (benchmark scenario **03** compares OS bases).
 
@@ -96,7 +100,7 @@ Supported runtime names: `distroless`, `debian-slim`, `alpine`, `ubuntu`, `temur
 
 ## Config-first workflow
 
-`.springdocker.toml` is the **single source of truth** for Dockerfile generation (see [ADR 0005](../docs/adr/0005-config-first-dockerfile-generation.md)). Team rollout guide: [docs/team-adoption.md](../docs/team-adoption.md).
+`.springdocker.toml` is the **single source of truth** for Dockerfile generation (see [ADR 0005](../docs/adr/0005-config-first-dockerfile-generation.md)). Team rollout: [docs/adopt.md](../docs/adopt.md).
 
 ### Command matrix
 
@@ -251,7 +255,7 @@ springdocker init --project-root . --build-tool maven --interactive
 
 Use `--force` on `init` to overwrite an existing skeleton; use `configure --force` to replace only the `[dockerfile]` section in an existing file.
 
-See [docs/team-adoption.md](../docs/team-adoption.md) for first-time setup, CI examples, and migration from the retired `tools/dockerfile_wizard.py`.
+See [docs/adopt.md](../docs/adopt.md) for first-time setup, CI examples, and migration from the retired `tools/dockerfile_wizard.py`.
 
 ## Legacy benchmark scripts (deprecated)
 
@@ -355,17 +359,17 @@ Optional tools are intentionally optional: install `hadolint`, `trivy`, `dive`, 
 
 Supported `--format` values: `table` (default), `json`, `junit`, `sarif`, plus plugin-provided formats.
 
-## Security hardening
+## Security
 
-See `docs/security-hardening.md` for the runtime hardening defaults and recommended `docker run` flags.
-
-## Binary distribution
-
-See `docs/distribution.md` for packaging notes and sample Homebrew, Scoop, standalone binary, and Docker runtime artifacts.
+See [docs/security.md](../docs/security.md) for runtime hardening and digest-pin rotation.
 
 ## Multi-architecture builds
 
-See `docs/multiarch.md` for the Buildx-friendly Dockerfile output and example multi-arch build command.
+Generated Dockerfiles are Buildx-friendly: `ARG TARGETPLATFORM` / `BUILDPLATFORM`, build stages on `$BUILDPLATFORM`, runtime on `$TARGETPLATFORM`.
+
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 -t app:multiarch .
+```
 
 ## Compare command
 

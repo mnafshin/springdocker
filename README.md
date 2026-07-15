@@ -4,7 +4,7 @@
 [![Release](https://img.shields.io/github/v/release/mnafshin/springdocker)](https://github.com/mnafshin/springdocker/releases/latest)
 [![Lint](https://img.shields.io/badge/lint-ruff-blue)](https://github.com/astral-sh/ruff)
 [![Coverage](https://img.shields.io/badge/coverage-%3E%3D80%25-brightgreen)](./CONTRIBUTING.md#coverage-policy)
-[![Benchmark](https://img.shields.io/badge/benchmark-regression--gated-orange)](./docs/benchmark-methodology.md)
+[![Benchmark](https://img.shields.io/badge/benchmark-regression--gated-orange)](./docs/benchmarks.md)
 
 Developer toolkit for **production teams** containerizing Spring Boot — with optional benchmark evidence for tuning and conference demos.
 
@@ -115,14 +115,14 @@ See [Sample project map](#sample-project-map) for which Spring Boot path to use.
 - Summarizes benchmark CSV output as a table or JSON.
 
 Digest pins are centralized in `src/springdocker/digest_pins.py` and verified in CI.
-Runbook: [`docs/digest-pin-runbook.md`](docs/digest-pin-runbook.md) · Renovate template: [`.github/renovate.json`](.github/renovate.json)
+Runbook: [`docs/security.md`](docs/security.md#digest-pins) · Renovate template: [`.github/renovate.json`](.github/renovate.json)
 
 ## Sample project map
 
 | Path | Role | Use when |
 |---|---|---|
-| `tests/fixtures/{maven-only,gradle-only}/` | Minimal Spring Boot apps for CLI walkthroughs and CI | Learning the CLI, trying Dockerfile generation, or extending tests ([`docs/golden-samples.md`](docs/golden-samples.md)) |
-| `samples/java-spring-docker/` | Benchmark harness + evidence | Running benchmark scenarios and comparing `raw.csv` results |
+| `tests/fixtures/{maven-only,gradle-only}/` | Minimal Spring Boot apps for CLI walkthroughs and CI | Learning the CLI, Dockerfile generation, or extending tests |
+| `samples/java-spring-docker/` | Benchmark harness + evidence (Java 25) | Reproducing scenarios / presentation numbers · [k8s](samples/java-spring-docker/k8s/) |
 
 Gradle walkthroughs use `tests/fixtures/gradle-only/` with the same commands below (Maven: `tests/fixtures/maven-only/`).
 
@@ -181,122 +181,49 @@ See `cli/README.md` for the command reference and config precedence rules.
 
 ## Benchmark methodology
 
-See `docs/benchmark-methodology.md` for the benchmark model, run profiles, and summary calculations.
+Optional evidence subsystem — see [`docs/benchmarks.md`](docs/benchmarks.md) for the measurement model, **scenario index**, run profiles, and artifact policy.
 
-Benchmarks are an optional evidence subsystem and require benchmark extras (`springdocker[benchmark]`).
-
-The sample project keeps benchmark scenarios under `samples/java-spring-docker/benchmarks/`.
-Generated variant Dockerfiles and most run output are **gitignored** — regenerate with `springdocker benchmark generate` and `springdocker benchmark run`.
-The scenario 03 CI regression baseline lives under `samples/java-spring-docker/benchmarks/03-base-image-choice/results/`.
-See `samples/java-spring-docker/benchmarks/README.md` for the full artifact policy.
-
-### Benchmark scenario index
-
-Authoritative list of generated scenarios under `samples/java-spring-docker/benchmarks/`.
-Regenerate directories with `springdocker benchmark generate`. Scenario **04** (native scaffold) is listed before **05** (AppCDS) by id; the generator emits AppCDS before the native scaffold.
-
-| ID | Directory | Purpose | Variants | Further reading |
-|---|---|---|---|---|
-| 01 | `01-custom-jre-jlink` | jlink vs vendor JRE on debian-slim vs stock Temurin image | `with-jlink-runtime`, `without-jlink-runtime`, `temurin-jre-image` | [`jvm-optimization.md`](docs/jvm-optimization.md), [`golden-samples.md`](docs/golden-samples.md) |
-| 02 | `02-jep483-aot-cache` | JEP 483 ahead-of-time class-loading cache (Java 24+; **generated only when project Java ≥ 24**) | `with-aot-cache`, `without-aot-cache` | [`jvm-optimization.md`](docs/jvm-optimization.md) · extra runs: 8 (`quick`) / 15 (`full`) |
-| 03 | `03-base-image-choice` | Runtime base image tradeoffs (jlink on every base) | `alpine`, `debian-slim`, `ubuntu`, `distroless` (configurable) | [`benchmark-methodology.md`](docs/benchmark-methodology.md#configuring-base-image-variants-scenario-03) · CI regression baseline |
-| 04 | `04-native-benchmark` | Native-image scaffold (`native-aot` recipe); skipped by default | _(single Dockerfile at scenario root — no variant dirs)_ | [`native-image-roadmap.md`](docs/native-image-roadmap.md) |
-| 05 | `05-appcds` | AppCDS shared archive at build time | `with-appcds`, `without-appcds` | [`jvm-optimization.md`](docs/jvm-optimization.md) |
-
-Example analyze commands (after `benchmark run`):
-
-```bash
-springdocker benchmark analyze --project-root samples/java-spring-docker \
-  benchmarks/01-custom-jre-jlink/results/raw.csv --format table
-springdocker benchmark analyze --project-root samples/java-spring-docker \
-  benchmarks/02-jep483-aot-cache/results/raw.csv --format json
-springdocker benchmark compare --project-root samples/java-spring-docker \
-  benchmarks/01-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime
-```
-
-Current reports focus on:
-
-- image size
-- build duration
-- startup latency
-- success rate
-
-Benchmark summaries can be rendered as:
-
-- terminal tables
-- JSON
+Requires `springdocker[benchmark]`. Sample scenarios live under `samples/java-spring-docker/benchmarks/` (most output gitignored). Scenario 03 CI baseline: `samples/java-spring-docker/benchmarks/03-base-image-choice/results/`.
 
 ## Supported stack
 
-| Layer | CI / fixtures | Reference sample (`samples/java-spring-docker/`) |
+| Layer | CLI / fixtures | Reference sample |
 |---|---|---|
-| Python CLI | 3.10–3.12 tested in CI | — |
-| Build tools | Maven and Gradle (minimal fixtures + examples) | Maven and Gradle |
-| Spring Boot | Projects with Spring Boot markers | 4.0.1 |
-| Java in generated Dockerfiles | ≥17 (generator validation) | 25 default in sample config |
+| Python | 3.10–3.12 in CI | — |
+| Java | **17+** (fallback **17**; AOT **24+**) | **25** in sample config |
+| Spring Boot | Projects with Boot markers | 4.0.1 sample |
 
-The reference sample uses bleeding-edge versions to stress-test generator output and benchmark scenarios. Your project does not need to match those versions to use the CLI.
+Details: [`docs/jvm.md`](docs/jvm.md).
 
-## Project docs
+## Documentation
 
-Documentation uses three status labels:
-
-| Status | Meaning |
+| Doc | For |
 |---|---|
-| **Implemented** | Shipped CLI behavior, runbooks, ADRs, or committed reference artifacts |
-| **Experimental** | Scaffold or opt-in capability — documented with explicit limits; not production-ready |
-| **Roadmap** | Planned capability or doc product not shipped yet |
+| [`cli/README.md`](cli/README.md) | Commands, config schema, recipes |
+| [`docs/adopt.md`](docs/adopt.md) | Team rollout, CI pipeline, FAQ |
+| [`docs/POSITIONING.md`](docs/POSITIONING.md) | Who it's for, CI guarantees, sample vs fixtures |
+| [`docs/benchmarks.md`](docs/benchmarks.md) | Scenario index & methodology |
+| [`docs/jvm.md`](docs/jvm.md) | Java feature matrix |
+| [`docs/security.md`](docs/security.md) | Runtime hardening & digest pins |
+| [`docs/project-detection.md`](docs/project-detection.md) | Maven/Gradle / monorepo |
+| [`docs/extensions.md`](docs/extensions.md) | Plugins |
+| [`docs/troubleshooting.md`](docs/troubleshooting.md) | Common failures |
+| [`docs/architecture.md`](docs/architecture.md) | Contributor internals |
+| [`docs/adr/`](docs/adr/) | Architecture decisions |
+| [`docs/presentation/README.md`](docs/presentation/README.md) | Talk decks (speakers) |
+| [`docs/examples/`](docs/examples/) | Committed Dockerfile / report stubs |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Dev setup (incl. typing) |
 
-### Implemented
-
-- `docs/project-detection.md` — Maven/Gradle detection boundaries and monorepo workflows
-- `docs/POSITIONING.md` — product scope, CI guarantees, sample-tree strategy
-- `docs/digest-pin-runbook.md`
-- `docs/architecture.md`
-- `docs/benchmark-methodology.md`
-- `docs/golden-samples.md`
-- `docs/extensions.md`
-- `docs/security-hardening.md`
-- `docs/observability.md`
-- `docs/kubernetes.md`
-- `docs/adr/README.md`
-- `docs/multiarch.md`
-- `docs/onboarding.md`
-- `docs/team-adoption.md`
-- `docs/troubleshooting.md`
-- `docs/typing-roadmap.md` — gradual mypy strictness and module rollout plan
-- `docs/jvm-optimization.md` — Java feature matrix (17+ floor; JEP 483 from 24+)
-- `docs/distribution.md`
-- `docs/presentation/README.md` — Reveal.js decks: ownership, update cadence, commit/publish policy; sample evidence is Java 25
-- `docs/example-gallery.md` — index of committed Dockerfile and benchmark JSON examples under `docs/examples/`
-- `docs/compatibility-matrix.md` — descriptive support ranges (Java 17+, AOT 24+, Python 3.10+, etc.)
-- `SECURITY.md`
-- `CONTRIBUTING.md`
-
-### Experimental
-
-- `docs/native-image-roadmap.md` — `native-aot` recipe and scenario 04 scaffold; runner skips native by default; production native-image workflow remains roadmap
-
-### Roadmap
-
-- `docs/benchmark-dashboard.md` — standalone trend dashboard (presentation decks and `benchmark analyze` JSON are substitutes today)
+Experimental: [`docs/native-aot.md`](docs/native-aot.md). Sample app: [`samples/java-spring-docker/README.md`](samples/java-spring-docker/README.md).
 
 ## Comparison with adjacent tools
 
 | Tool | Focus | What springdocker adds |
 |---|---|---|
-| Jib | Dockerless image build | benchmark-aware Dockerfile and runtime tuning workflows |
-| Buildpacks | Opinionated platform build | explicit Dockerfile generation and benchmark artifacts |
-| Manual Dockerfiles | Full control | project detection, config, and repeatable benchmark analysis |
-
-## Sample project docs
-
-- `docs/golden-samples.md` - fixture walkthroughs, CI coverage, and variant coverage
-- `samples/java-spring-docker/README.md` - full benchmark sample app
-- `samples/java-spring-docker/HELP.md`
-- `samples/java-spring-docker/k8s/kustomization.yaml`
-- `samples/java-spring-docker/tools/README.md`
+| Jib | Dockerless image build | reviewable Dockerfile + verify |
+| Buildpacks | Opinionated platform build | explicit Dockerfile + optional benchmarks |
+| Manual Dockerfiles | Full control | detection, config SSOT, explain/verify |
 
 ## Contributing
 
-Clone the repository and use an editable install — see [CONTRIBUTING.md](CONTRIBUTING.md). The main package is under `src/springdocker/`. Run `pytest` (≥80% line coverage gate), `ruff check src tests`, and `mypy src` before pushing changes.
+Clone and editable install — see [CONTRIBUTING.md](CONTRIBUTING.md). Run `pytest` (≥80% coverage), `ruff check src tests`, and `mypy src` before pushing.

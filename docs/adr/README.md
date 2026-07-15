@@ -1,6 +1,6 @@
 # ADR index
 
-This directory contains the current architecture decisions for `springdocker`.
+Architecture decisions for `springdocker`. User guides live under [`docs/`](../) (`adopt`, `benchmarks`, `jvm`, …) — not in this index.
 
 ## Decisions
 
@@ -12,6 +12,3 @@ This directory contains the current architecture decisions for `springdocker`.
 6. [ADR 0006: PyPI-first distribution](0006-pypi-first-distribution.md)
 7. [ADR 0007: Jlink baseline modules scoped to Spring Web detection](0007-jlink-baseline-modules-web-detection.md)
 8. [ADR 0008: Target audience](0008-target-audience.md)
-9. [Typing roadmap](../typing-roadmap.md) — gradual mypy strictness (#90)
-10. [Team adoption guide](../team-adoption.md) — config-first rollout for teams
-

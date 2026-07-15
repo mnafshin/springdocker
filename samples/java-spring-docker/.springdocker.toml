@@ -1,6 +1,6 @@
 # springdocker project configuration — team exemplar
 # Precedence: CLI flags > this file > built-in defaults
-# Guide: docs/team-adoption.md
+# Guide: docs/adopt.md
 
 [project]
 build_tool = "maven"

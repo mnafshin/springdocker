@@ -117,7 +117,7 @@ def render_default_config(build_tool: str, profile: str = "quick") -> str:
         "# Default generator runtime: distroless (gcr.io/distroless/base-* + jlink + layered JAR).\n"
         "# OS bases (debian-slim, alpine, ubuntu, temurin) are benchmark/generator options — see cli/README.md.\n"
         "# Distroless has no shell; HEALTHCHECK is omitted — use orchestrator readiness probes.\n"
-        '# recipe = "native-aot"  # scaffold only; see docs/native-image-roadmap.md\n'
+        '# recipe = "native-aot"  # scaffold only; see docs/native-aot.md\n'
         '# must_have_modules_file = "must-have.txt"\n'
         "# When jlink is enabled, these modules are auto-merged into the jlink module list.\n"
         '# jlink_baseline_modules = ["java.desktop", "java.logging", "java.naming", "java.management"]\n'

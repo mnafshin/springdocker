@@ -331,7 +331,7 @@ def run_benchmarks(
                 continue
             print(
                 f"Skipping native scaffold scenario in internal runner: {scenario.id} "
-                "(not production-ready; see docs/native-image-roadmap.md)"
+                "(not production-ready; see docs/native-aot.md)"
             )
             continue
         if not isinstance(scenario, StandardScenarioDefinition):  # pragma: no cover - defensive guard for future extensions

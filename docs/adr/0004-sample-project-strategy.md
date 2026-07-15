@@ -30,7 +30,7 @@ Maintaining separate walkthrough copies under `examples/` duplicated the minimal
 - README and CONTRIBUTING point walkthrough commands at `tests/fixtures/…` instead of `examples/…`.
 - Benchmark evidence, presentations, and `docker-smoke` CI continue to use `samples/java-spring-docker/`.
 
-See also [`docs/POSITIONING.md`](../POSITIONING.md#sample-project-strategy-two-trees) and [`docs/golden-samples.md`](../golden-samples.md).
+See also [`docs/POSITIONING.md`](../POSITIONING.md#sample-project-strategy-two-trees).
 
 ## Non-goals
 

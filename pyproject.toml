@@ -61,7 +61,7 @@ warn_unused_ignores = true
 no_implicit_optional = true
 ignore_missing_imports = true
 
-# Phase 1 strict modules — see docs/typing-roadmap.md (#90)
+# Phase 1 strict modules — see docs/internal/typing.md (#90)
 [[tool.mypy.overrides]]
 module = [
     "springdocker.errors",

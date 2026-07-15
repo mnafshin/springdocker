@@ -44,4 +44,4 @@ without interactive prompts.
 
 - Epic #113
 - ADR 0003 (Dockerfile generation philosophy)
-- `docs/jvm-optimization.md`
+- `docs/jvm.md`

@@ -16,7 +16,7 @@ springdocker explain Dockerfile.generated --config-aware --format json
 springdocker verify --project-root . --check-config-drift
 ```
 
-Commit `.springdocker.toml` as strategy; commit or CI-regenerate `Dockerfile.generated` as the build artifact. Full guide: [docs/team-adoption.md](../../docs/team-adoption.md).
+Commit `.springdocker.toml` as strategy; commit or CI-regenerate `Dockerfile.generated` as the build artifact. Full guide: [docs/adopt.md](../../docs/adopt.md).
 
 Legacy `tools/dockerfile_wizard.py` is retired — use `configure` + `dockerfile generate` instead ([tools/README.md](tools/README.md)).
 

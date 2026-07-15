@@ -38,7 +38,7 @@ pipx install 'springdocker[benchmark]'     # + benchmark run/analyze (needs Dock
 
 - Quick start docs target an installed CLI on the user's project root, not `git clone` + `pip install -e .`.
 - `samples/java-spring-docker/` stays the permanent benchmark harness (see ADR 0004); it is not deprecated in favor of PyPI-only distribution.
-- `docs/distribution.md` describes PyPI as the shipped channel; Homebrew/Scoop/standalone binary remain roadmap.
+- `docs/examples/distribution/` holds optional Homebrew/Scoop/standalone template stubs (roadmap; not required for PyPI).
 - CI and contributor docs continue to use editable installs from a clone.
 
 ## References

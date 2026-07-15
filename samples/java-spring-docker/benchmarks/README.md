@@ -45,8 +45,8 @@ springdocker benchmark analyze \
   --output benchmarks/03-base-image-choice/results/baseline.json
 ```
 
-Full process: [`docs/benchmark-methodology.md`](../../../docs/benchmark-methodology.md#ci-regression-baseline-scenario-03).
+Full process: [`docs/benchmarks.md`](../../../docs/benchmarks.md#ci-regression-baseline-scenario-03).
 
 Do not commit generated variant Dockerfiles or local run CSVs. CI runs `benchmark generate` and asserts the benchmarks tree stays clean afterward.
 
-See `docs/benchmark-methodology.md` for measurement details and `docs/native-image-roadmap.md` for native scaffold status.
+See `docs/benchmarks.md` for measurement details and `docs/native-aot.md` for native scaffold status.

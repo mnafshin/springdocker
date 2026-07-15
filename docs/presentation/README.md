@@ -126,5 +126,5 @@ Scenario **04 (native)** is not measured by the runner (`--skip-native` by defau
 
 - Reveal.js loads from CDN (no local npm setup required).
 - Numbers are sample evidence from `samples/java-spring-docker/` (**Spring Boot 4 / Java 25**) — reproduce on your machine before citing absolutes in a live talk.
-- **Product vs sample Java:** the CLI supports **Java 17+** (undetected fallback **17**). JEP 483 AOT and scenario `02-jep483-aot-cache` require **Java 24+** and appear in these decks because the sample runs 25. On Java 17–23, prefer AppCDS; profile `fast-cold-start` remaps to AppCDS automatically.
+- **Product vs sample Java:** see [jvm.md](../jvm.md). Scenario index: [benchmarks.md](../benchmarks.md#scenario-index). Team rollout: [adopt.md](../adopt.md).
 - After CLI Java-matrix or profile changes, update narrative slides (not only CSV bindings) — see cadence table above.

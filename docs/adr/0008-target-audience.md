@@ -64,5 +64,5 @@ benchmark and talk refresh.
 ## References
 
 - [docs/POSITIONING.md](../POSITIONING.md)
-- [docs/team-adoption.md](../team-adoption.md)
+- [docs/adopt.md](../adopt.md)
 - [#87 Define springdocker target audience](https://github.com/mnafshin/springdocker/issues/87)
