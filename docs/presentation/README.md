@@ -116,7 +116,7 @@ Scenario **04 (native)** is not measured by the runner (`--skip-native` by defau
 
 ## Files
 
-- `java-spring-docker-techniques.html` — **recommended for live talks**: multi-stage, jlink, AppCDS, security — technique + Dockerfile only; springdocker on closing slide
+- `java-spring-docker-techniques.html` — **recommended for live talks**: multi-stage, layered JAR, jlink, AppCDS, security — technique + Dockerfile only; springdocker on closing slide
 - `springdocker-features.html` — features & workflow (config-first CLI)
 - `docker-steps-evidence.html` — scenarios 01–05 with benefits and **config key → Dockerfile** ON/OFF blocks per decision slide
 - `benchmark-summary.md` — generated markdown summary (gitignored)

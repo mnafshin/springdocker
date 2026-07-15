@@ -32,9 +32,9 @@
       <span class="badge">Agenda</span>
       <h2>Four layers of container craft</h2>
       <ol class="step-list">
-        <li><strong>Build pipeline</strong> — multi-stage layout, BuildKit cache, layered JAR</li>
+        <li><strong>Build pipeline</strong> — multi-stage layout, layered JAR, dependency layering</li>
         <li><strong>Runtime image</strong> — custom JRE with jlink, base image tradeoffs</li>
-        <li><strong>Cold start</strong> — AppCDS, JEP&nbsp;483 AOT cache, JVM flags, native image</li>
+        <li><strong>Cold start</strong> — AppCDS, JEP&nbsp;483 AOT cache, native image</li>
         <li><strong>Production hygiene</strong> — non-root, digest pins, SBOM, health checks</li>
       </ol>
     </section>
@@ -85,9 +85,9 @@ ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]</code>
     </section>
 
     <section>
-      <span class="badge pink">BuildKit cache</span>
-      <h2>Cache mounts — biggest CI win</h2>
-      <p>Without a persistent <code>.m2</code> or <code>.gradle</code> on ephemeral runners, every build re-downloads dependencies.</p>
+      <span class="badge">Cache mounts</span>
+      <h2>Persist Maven / Gradle caches across builds</h2>
+      <p>On ephemeral CI runners, mount a cache directory so dependency downloads are reused. Useful craft — measure on your pipeline if rebuild time matters.</p>
       <pre><code class="language-dockerfile" data-trim data-noescape># syntax=docker/dockerfile:1
 RUN --mount=type=cache,sharing=locked,target=/root/.m2 \
     ./mvnw -B -q package -DskipTests
@@ -97,7 +97,7 @@ RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew build -x test</code></pre>
       <ul style="margin-top: 0.6em;">
         <li class="good">Enable BuildKit: <code>export DOCKER_BUILDKIT=1</code></li>
-        <li class="good">Pair with layered JAR for registry-level cache hits too</li>
+        <li>Pair with layered JAR so registry layers stay cache-friendly when only app code changes</li>
       </ul>
     </section>
 
@@ -171,7 +171,7 @@ ENTRYPOINT ["java", "-jar", "org.springframework.boot.loader.launch.JarLauncher"
       <div class="grid grid-3" style="margin-top: 0.8em;">
         <div class="card"><h4>AppCDS</h4><p>Shared class archive trained at build, loaded at runtime.</p></div>
         <div class="card"><h4>JEP 483 AOT cache</h4><p>Java 24+ class-loading cache — needs custom jlink runtime.</p></div>
-        <div class="card warn"><h4>JVM flags</h4><p>Container-aware memory — tune after baseline works.</p></div>
+        <div class="card warn"><h4>Native image</h4><p>Coldest start — longer builds and compatibility work.</p></div>
       </div>
     </section>
 
@@ -208,7 +208,7 @@ ENTRYPOINT ["java", "-XX:AOTCache=/app/app.aot", …, "JarLauncher"]</code></pre
     <section>
       <span class="badge">JVM in containers</span>
       <h2>Safe baseline flags</h2>
-      <p>Start conservative; aggressive GC tuning only after service-specific testing.</p>
+      <p>Use container-aware memory limits as hygiene — not a primary startup lever. Tune GC only after service-specific testing.</p>
       <pre><code class="language-dockerfile" data-trim data-noescape>ENTRYPOINT ["java",
   "-XX:+UseContainerSupport",
   "-XX:MaxRAMPercentage=75",
@@ -287,7 +287,7 @@ ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
       <h2>Monday-morning order</h2>
       <ol class="step-list">
         <li>Enforce security baseline — non-root, digest pins, SBOM</li>
-        <li>Multi-stage + layered JAR + BuildKit cache on every build</li>
+        <li>Multi-stage + layered JAR; use cache mounts if CI rebuilds are slow</li>
         <li>Trim runtime with jlink; pick base image for your constraints</li>
         <li>Add one startup lever (AppCDS or JEP 483) only if you measure a win</li>
         <li>Consider native image only when cold start truly dominates</li>
@@ -301,9 +301,9 @@ ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
         <thead><tr><th>Technique</th><th>Default stance</th><th>Override when</th></tr></thead>
         <tbody>
           <tr><td>Security baseline</td><td class="good">Always ON</td><td>Never in production</td></tr>
-          <tr><td>BuildKit cache</td><td class="good">ON</td><td>Platform cannot cache deterministically</td></tr>
           <tr><td>Layered JAR + multi-stage</td><td class="good">ON</td><td>Throwaway prototype only</td></tr>
           <tr><td>JLink / jdeps</td><td class="good">ON</td><td>Proven module compatibility blocker</td></tr>
+          <tr><td>Base image</td><td class="good">Distroless + jlink</td><td>Need shell tooling or musl-only footprint</td></tr>
           <tr><td>AppCDS</td><td class="good">ON with layered JAR</td><td>Build cannot train archive</td></tr>
           <tr><td>JEP 483 AOT cache</td><td class="warn">Try on Java 24+</td><td>No measurable startup gain</td></tr>
           <tr><td>Native image</td><td class="warn">Selective</td><td>Throughput or build time priority</td></tr>
