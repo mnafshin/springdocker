@@ -20,7 +20,7 @@ from springdocker.config import sample_dockerfile_config
 class GenerateScenarioTests(unittest.TestCase):
     def test_default_scenarios_use_explicit_native_type(self) -> None:
         scenarios = default_scenarios(build_tool="maven", java_version=21)
-        native = next(item for item in scenarios if item.id == "07-native-benchmark")
+        native = next(item for item in scenarios if item.id == "04-native-benchmark")
         self.assertIsInstance(native, NativeScenarioDefinition)
 
     def test_standard_scenario_rejects_empty_variants(self) -> None:
@@ -31,15 +31,17 @@ class GenerateScenarioTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             generate_benchmark_assets(project_root=root, build_tool="maven", java_version=25)
-            standard_variant = root / "benchmarks" / "01-multi-stage-build-structure" / "variants" / "specialized-multi-stage" / "Dockerfile"
+            standard_variant = (
+                root / "benchmarks" / "01-custom-jre-jlink" / "variants" / "with-jlink-runtime" / "Dockerfile"
+            )
             self.assertTrue(standard_variant.exists())
-            native_dockerfile = root / "benchmarks" / "07-native-benchmark" / "Dockerfile"
+            native_dockerfile = root / "benchmarks" / "04-native-benchmark" / "Dockerfile"
             self.assertTrue(native_dockerfile.exists())
             self.assertIn("scaffold: experimental native-image Dockerfile", native_dockerfile.read_text("utf-8"))
-            native_readme = root / "benchmarks" / "07-native-benchmark" / "README.md"
+            native_readme = root / "benchmarks" / "04-native-benchmark" / "README.md"
             self.assertTrue(native_readme.exists())
             self.assertIn("experimental scaffold output only", native_readme.read_text("utf-8"))
-            native_variants_dir = root / "benchmarks" / "07-native-benchmark" / "variants"
+            native_variants_dir = root / "benchmarks" / "04-native-benchmark" / "variants"
             self.assertFalse(native_variants_dir.exists())
             recipes = root / "example-dockerfiles" / "recipes"
             jvm_balanced = recipes / "jvm-balanced.Dockerfile"
@@ -52,7 +54,7 @@ class GenerateScenarioTests(unittest.TestCase):
             self.assertIn("gcr.io/distroless/base-debian", jvm_balanced.read_text("utf-8"))
             self.assertIn("process-aot", spring_aot.read_text("utf-8"))
             self.assertIn("native:compile", native_aot.read_text("utf-8"))
-            self.assertFalse((root / "example-dockerfiles" / "01-multi-stage-build-structure").exists())
+            self.assertFalse((root / "example-dockerfiles" / "01-custom-jre-jlink").exists())
 
     def test_recipe_examples_use_dockerfile_config(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -75,13 +77,22 @@ class GenerateScenarioTests(unittest.TestCase):
 
     def test_scenario_variants_match_intended_optimizations(self) -> None:
         scenarios = {scenario.id: scenario for scenario in default_scenarios(build_tool="maven", java_version=25)}
-        simple = next(opts for name, opts in scenarios["01-multi-stage-build-structure"].variants if name == "simple-two-stage")
-        self.assertFalse(simple.use_jlink)
-        self.assertFalse(simple.use_layered_jar)
+        self.assertEqual(
+            set(scenarios),
+            {
+                "01-custom-jre-jlink",
+                "02-jep483-aot-cache",
+                "03-base-image-choice",
+                "04-native-benchmark",
+                "05-appcds",
+            },
+        )
 
-        with_jlink = next(opts for name, opts in scenarios["03-custom-jre-jlink"].variants if name == "with-jlink-runtime")
-        without_jlink = next(opts for name, opts in scenarios["03-custom-jre-jlink"].variants if name == "without-jlink-runtime")
-        temurin_jre = next(opts for name, opts in scenarios["03-custom-jre-jlink"].variants if name == "temurin-jre-image")
+        with_jlink = next(opts for name, opts in scenarios["01-custom-jre-jlink"].variants if name == "with-jlink-runtime")
+        without_jlink = next(
+            opts for name, opts in scenarios["01-custom-jre-jlink"].variants if name == "without-jlink-runtime"
+        )
+        temurin_jre = next(opts for name, opts in scenarios["01-custom-jre-jlink"].variants if name == "temurin-jre-image")
         self.assertTrue(with_jlink.use_jlink)
         self.assertEqual(with_jlink.runtime_image, "debian-slim")
         self.assertFalse(without_jlink.use_jlink)
@@ -89,35 +100,18 @@ class GenerateScenarioTests(unittest.TestCase):
         self.assertFalse(temurin_jre.use_jlink)
         self.assertEqual(temurin_jre.runtime_image, "temurin")
 
-        with_aot = next(opts for name, opts in scenarios["04-jep483-aot-cache"].variants if name == "with-aot-cache")
-        without_aot = next(opts for name, opts in scenarios["04-jep483-aot-cache"].variants if name == "without-aot-cache")
+        with_aot = next(opts for name, opts in scenarios["02-jep483-aot-cache"].variants if name == "with-aot-cache")
+        without_aot = next(opts for name, opts in scenarios["02-jep483-aot-cache"].variants if name == "without-aot-cache")
         self.assertTrue(with_aot.enable_jep483_aot_cache)
         self.assertFalse(with_aot.enable_appcds)
         self.assertFalse(without_aot.enable_jep483_aot_cache)
 
-        tuned = next(opts for name, opts in scenarios["05-jvm-container-flags"].variants if name == "tuned-flags")
-        defaults = next(opts for name, opts in scenarios["05-jvm-container-flags"].variants if name == "defaults-like")
-        self.assertTrue(tuned.tuned_jvm_flags)
-        self.assertFalse(defaults.tuned_jvm_flags)
-        self.assertEqual(tuned.enable_jep483_aot_cache, defaults.enable_jep483_aot_cache)
-        self.assertEqual(tuned.enable_appcds, defaults.enable_appcds)
-
-        with_cache = next(opts for name, opts in scenarios["02-buildkit-gradle-cache"].variants if name == "with-buildkit-cache")
-        without_cache = next(
-            opts for name, opts in scenarios["02-buildkit-gradle-cache"].variants if name == "without-buildkit-cache"
-        )
-        self.assertTrue(with_cache.use_buildkit_cache)
-        self.assertFalse(without_cache.use_buildkit_cache)
-        self.assertEqual(with_cache.must_have_modules, without_cache.must_have_modules)
-        self.assertEqual(with_cache.use_jlink, without_cache.use_jlink)
-        self.assertEqual(with_cache.runtime_image, without_cache.runtime_image)
-
-        with_cds = next(opts for name, opts in scenarios["08-appcds"].variants if name == "with-appcds")
-        without_cds = next(opts for name, opts in scenarios["08-appcds"].variants if name == "without-appcds")
+        with_cds = next(opts for name, opts in scenarios["05-appcds"].variants if name == "with-appcds")
+        without_cds = next(opts for name, opts in scenarios["05-appcds"].variants if name == "without-appcds")
         self.assertTrue(with_cds.enable_appcds)
         self.assertFalse(without_cds.enable_appcds)
 
-        base_images = scenarios["06-base-image-choice"]
+        base_images = scenarios["03-base-image-choice"]
         self.assertEqual(len(base_images.variants), 4)
         names = {name for name, _ in base_images.variants}
         self.assertEqual(names, {"alpine", "debian-slim", "ubuntu", "distroless"})
@@ -133,7 +127,7 @@ class GenerateScenarioTests(unittest.TestCase):
             java_version=25,
             base_image_variants=("ubuntu", "temurin"),
         )
-        base_images = next(item for item in scenarios if item.id == "06-base-image-choice")
+        base_images = next(item for item in scenarios if item.id == "03-base-image-choice")
         self.assertEqual(tuple(name for name, _ in base_images.variants), ("ubuntu", "temurin"))
 
 

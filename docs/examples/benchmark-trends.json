@@ -1,11 +1,11 @@
 {
-  "note": "Trend payload shape example. Values from samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json (quick profile, host-specific — not universal guarantees).",
+  "note": "Trend payload shape example. Values from samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json (quick profile, host-specific — not universal guarantees).",
   "generated_at": "2026-06-18",
-  "source": "samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json",
+  "source": "samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json",
   "run_profile": "quick",
   "series": [
     {
-      "scenario": "06-base-image-choice",
+      "scenario": "03-base-image-choice",
       "metric": "startup_avg_ms",
       "points": [
         {"variant": "alpine", "value": 1583.0},
@@ -15,7 +15,7 @@
       ]
     },
     {
-      "scenario": "06-base-image-choice",
+      "scenario": "03-base-image-choice",
       "metric": "image_mb_avg",
       "points": [
         {"variant": "alpine", "value": 62.35},

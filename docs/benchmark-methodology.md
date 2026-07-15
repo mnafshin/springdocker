@@ -23,7 +23,7 @@ Each benchmark run records one row per build-and-startup attempt with these fiel
 If available, the analyzer also reports RSS memory and CPU usage columns.
 
 The runner writes rows into `results/raw.csv` next to each scenario.
-The CI regression gate uses a pinned sample pair under `benchmarks/06-base-image-choice/results/`.
+The CI regression gate uses a pinned sample pair under `benchmarks/03-base-image-choice/results/`.
 
 ## Repository artifact policy
 
@@ -32,11 +32,11 @@ Generated benchmark assets are **not committed** except where CI or docs explici
 | Artifact | Committed? | Purpose |
 |---|---|---|
 | `benchmarks/*/variants/` | No | Regenerate with `springdocker benchmark generate`. |
-| `benchmarks/*/results/raw.csv` | No (except scenario 06 sample file) | Local/CI run output. |
-| `benchmarks/07-native-benchmark/Dockerfile` | No | Native scaffold; generator-owned. |
-| `benchmarks/06-base-image-choice/results/raw.csv` | Yes | Pinned sample runs fed to the CI regression gate. |
-| `benchmarks/06-base-image-choice/results/baseline.json` | Yes | Expected `benchmark analyze` output for that CSV. |
-| `benchmarks/06-base-image-choice/results/baseline.manifest.json` | Yes | Documents how the baseline pair is regenerated. |
+| `benchmarks/*/results/raw.csv` | No (except scenario 03 sample file) | Local/CI run output. |
+| `benchmarks/04-native-benchmark/Dockerfile` | No | Native scaffold; generator-owned. |
+| `benchmarks/03-base-image-choice/results/raw.csv` | Yes | Pinned sample runs fed to the CI regression gate. |
+| `benchmarks/03-base-image-choice/results/baseline.json` | Yes | Expected `benchmark analyze` output for that CSV. |
+| `benchmarks/03-base-image-choice/results/baseline.manifest.json` | Yes | Documents how the baseline pair is regenerated. |
 
 After `benchmark generate`, `git status` under `samples/java-spring-docker/benchmarks/` should be clean.
 CI enforces this in the `benchmark-hygiene` job.
@@ -45,15 +45,15 @@ CI does **not** run full Docker benchmark builds on every push — the regressio
 
 See `samples/java-spring-docker/benchmarks/README.md` for the maintainer checklist.
 
-## CI regression baseline (scenario 06)
+## CI regression baseline (scenario 03)
 
 **Decision:** the regression gate uses **committed, paired artifacts** — not a baseline generated fresh in CI on every push.
 
 | File | Role |
 |---|---|
-| `06-base-image-choice/results/raw.csv` | Pinned sample benchmark rows (input). |
-| `06-base-image-choice/results/baseline.json` | Expected `springdocker benchmark analyze` summary for that CSV (source of truth). |
-| `06-base-image-choice/results/baseline.manifest.json` | Regeneration command and provenance metadata. |
+| `03-base-image-choice/results/raw.csv` | Pinned sample benchmark rows (input). |
+| `03-base-image-choice/results/baseline.json` | Expected `springdocker benchmark analyze` summary for that CSV (source of truth). |
+| `03-base-image-choice/results/baseline.manifest.json` | Regeneration command and provenance metadata. |
 
 ### What CI does
 
@@ -76,16 +76,16 @@ springdocker benchmark run --project-root samples/java-spring-docker --profile q
 # 2. Regenerate baseline.json from the CSV
 springdocker benchmark analyze \
   --project-root samples/java-spring-docker \
-  benchmarks/06-base-image-choice/results/raw.csv \
+  benchmarks/03-base-image-choice/results/raw.csv \
   --format json \
-  --output benchmarks/06-base-image-choice/results/baseline.json
+  --output benchmarks/03-base-image-choice/results/baseline.json
 
 # 3. Commit both files together
-git add samples/java-spring-docker/benchmarks/06-base-image-choice/results/raw.csv \
-        samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json
+git add samples/java-spring-docker/benchmarks/03-base-image-choice/results/raw.csv \
+        samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json
 ```
 
-Do not commit `baseline.json` without the matching `raw.csv`. Other scenarios keep `results/` gitignored; scenario 06 is the sole CI regression anchor today.
+Do not commit `baseline.json` without the matching `raw.csv`. Other scenarios keep `results/` gitignored; scenario 03 is the sole CI regression anchor today.
 
 Analyzer summaries round derived metrics to six decimal places so `baseline.json` stays byte-stable across Python 3.10+ (the stdlib `statistics.quantiles` implementation differs slightly before 3.11).
 
@@ -98,7 +98,7 @@ The CLI supports two profiles:
 
 Default run counts are scenario-aware:
 
-- `04-jep483-aot-cache`: 8 runs for `quick`, 15 for `full`
+- `02-jep483-aot-cache`: 8 runs for `quick`, 15 for `full`
 - all other standard scenarios: 3 runs for `quick`, 10 for `full`
 
 You can override the number of runs with `benchmark run --runner-arg --runs --runner-arg N`.
@@ -142,7 +142,7 @@ Confidence intervals use a 95% normal-approximation interval (`mean ± 1.96 * st
 
 For historical regression tracking, save a baseline summary with `--output baseline.json` and compare later runs with `--baseline baseline.json --fail-on-regression-above 20`.
 
-The repository pins one such pair for CI — see [CI regression baseline (scenario 06)](#ci-regression-baseline-scenario-06).
+The repository pins one such pair for CI — see [CI regression baseline (scenario 03)](#ci-regression-baseline-scenario-03).
 
 ## Current sample comparison snapshot
 
@@ -152,19 +152,16 @@ For the current checked-in reference snapshot, the high-level decision matrix is
 
 | Scenario | Preferred strategy | Why |
 |---|---|---|
-| 01 Multi-stage structure | specialized multi-stage | lower image size and better build cost |
-| 02 BuildKit cache | with-cache | much faster builds |
-| 03 JLink + JDeps | with-jlink | ~20% smaller image on same debian-slim base; startup within noise |
-| 04 JEP 483 AOT cache | with-aot-cache | better startup and tail latency |
-| 05 JVM flags | workload-dependent | host sensitivity makes the winner variable |
-| 06 Base image choice | distroless + jlink | `jvm-balanced` generator default; scenario 06 benchmarks alpine, debian-slim, ubuntu, and distroless when tuning |
-| 07 Native vs JVM | scaffold only | `native-aot` Dockerfile is generated for future comparison; the internal runner skips native scenarios |
-| 08 AppCDS | with-appcds | faster startup from shared class archive |
+| 01 JLink + JDeps | with-jlink | ~20% smaller image on same debian-slim base; startup within noise |
+| 02 JEP 483 AOT cache | with-aot-cache | better startup and tail latency |
+| 03 Base image choice | distroless + jlink | `jvm-balanced` generator default; scenario 03 benchmarks alpine, debian-slim, ubuntu, and distroless when tuning |
+| 04 Native vs JVM | scaffold only | `native-aot` Dockerfile is generated for future comparison; the internal runner skips native scenarios |
+| 05 AppCDS | with-appcds | faster startup from shared class archive |
 
-Pinned CI regression evidence (scenario 06 base-image choice):
+Pinned CI regression evidence (scenario 03 base-image choice):
 
-- `samples/java-spring-docker/benchmarks/06-base-image-choice/results/raw.csv`
-- `samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json`
+- `samples/java-spring-docker/benchmarks/03-base-image-choice/results/raw.csv`
+- `samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json`
 
 ## Reproducibility controls
 
@@ -186,7 +183,7 @@ When a metric is missing, the analyzer leaves the field empty instead of failing
 - Scenario variants are generated from the same `DockerfileOptions` inputs.
 - The CSV schema is fixed and validated by the analyzer before aggregation.
 
-### Configuring base-image variants (scenario 06)
+### Configuring base-image variants (scenario 03)
 
 Set runtime bases under `[benchmark.generate.base_image_choice]` in `.springdocker.toml`:
 
@@ -198,8 +195,8 @@ variants = ["alpine", "debian-slim", "ubuntu", "distroless"]
 Aliases such as `debian-bookworm-slim`, `ubuntu-noble`, and `eclipse-temurin-jre` are accepted.
 Slim OS images (`alpine`, `debian-slim`, `ubuntu`) default to a jlink-built JVM when `use_jlink=True`.
 When `use_jlink=False` on those bases, springdocker copies a pinned vendor Temurin JRE into the OS
-runtime stage (scenario 03 `without-jlink-runtime`). Scenario 03 `temurin-jre-image` uses the stock
-`eclipse-temurin` JRE container image as shipped. Scenario 06 enables jlink for every configured base
+runtime stage (scenario 01 `without-jlink-runtime`). Scenario 01 `temurin-jre-image` uses the stock
+`eclipse-temurin` JRE container image as shipped. Scenario 03 enables jlink for every configured base
 (`distroless/base` + copied jlink runtime).
 
 ## Current limitations

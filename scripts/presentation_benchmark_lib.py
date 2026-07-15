@@ -12,66 +12,56 @@ from springdocker.analyze import VariantSummary, format_json, format_table, summ
 DEFAULT_PROJECT_ROOT = Path("samples/java-spring-docker")
 
 SCENARIOS: tuple[tuple[str, str], ...] = (
-    ("01-multi-stage-build-structure", "Multi-stage build structure"),
-    ("02-buildkit-gradle-cache", "BuildKit cache mounts"),
-    ("03-custom-jre-jlink", "Custom JRE via jlink + jdeps"),
-    ("04-jep483-aot-cache", "JEP 483 AOT class-loading cache"),
-    ("05-jvm-container-flags", "JVM container flags"),
-    ("06-base-image-choice", "Runtime base image choice"),
-    ("08-appcds", "AppCDS shared class archive"),
+    ("01-custom-jre-jlink", "Custom JRE via jlink + jdeps"),
+    ("02-jep483-aot-cache", "JEP 483 AOT class-loading cache"),
+    ("03-base-image-choice", "Runtime base image choice"),
+    ("05-appcds", "AppCDS shared class archive"),
 )
 
-VARIANT_ALIASES: dict[str, str] = {
-    "debian-bookworm-slim": "debian-slim",
-    "temurin-jre": "temurin",
-}
-
 CROSS_CUTTING_ROWS: tuple[tuple[str, str, str], ...] = (
-    ("Image size", "03-custom-jre-jlink", "temurin-jre-image"),
-    ("Image size", "03-custom-jre-jlink", "without-jlink-runtime"),
-    ("Image size", "03-custom-jre-jlink", "with-jlink-runtime"),
-    ("Image size", "06-base-image-choice", "debian-slim"),
-    ("Image size", "06-base-image-choice", "alpine"),
-    ("Startup avg", "03-custom-jre-jlink", "without-jlink-runtime"),
-    ("Startup avg", "08-appcds", "without-appcds"),
-    ("Startup avg", "08-appcds", "with-appcds"),
-    ("Startup avg", "04-jep483-aot-cache", "without-aot-cache"),
-    ("Startup avg", "04-jep483-aot-cache", "with-aot-cache"),
-    ("Build avg", "02-buildkit-gradle-cache", "without-buildkit-cache"),
-    ("Build avg", "02-buildkit-gradle-cache", "with-buildkit-cache"),
+    ("Image size", "01-custom-jre-jlink", "temurin-jre-image"),
+    ("Image size", "01-custom-jre-jlink", "without-jlink-runtime"),
+    ("Image size", "01-custom-jre-jlink", "with-jlink-runtime"),
+    ("Image size", "03-base-image-choice", "debian-slim"),
+    ("Image size", "03-base-image-choice", "alpine"),
+    ("Startup avg", "01-custom-jre-jlink", "without-jlink-runtime"),
+    ("Startup avg", "05-appcds", "without-appcds"),
+    ("Startup avg", "05-appcds", "with-appcds"),
+    ("Startup avg", "02-jep483-aot-cache", "without-aot-cache"),
+    ("Startup avg", "02-jep483-aot-cache", "with-aot-cache"),
 )
 
 BAR_GROUPS: dict[str, tuple[str, ...]] = {
-    "scenario-03-image": (
-        "03-custom-jre-jlink/temurin-jre-image/image_mb_avg",
-        "03-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
-        "03-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
+    "scenario-01-image": (
+        "01-custom-jre-jlink/temurin-jre-image/image_mb_avg",
+        "01-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
+        "01-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
     ),
     "cross-image-size": (
-        "03-custom-jre-jlink/temurin-jre-image/image_mb_avg",
-        "03-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
-        "03-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
-        "06-base-image-choice/distroless/image_mb_avg",
-        "06-base-image-choice/alpine/image_mb_avg",
+        "01-custom-jre-jlink/temurin-jre-image/image_mb_avg",
+        "01-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
+        "01-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
+        "03-base-image-choice/distroless/image_mb_avg",
+        "03-base-image-choice/alpine/image_mb_avg",
     ),
     "cross-startup": (
-        "03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms",
-        "03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms",
-        "08-appcds/with-appcds/startup_avg_ms",
-        "04-jep483-aot-cache/with-aot-cache/startup_avg_ms",
+        "01-custom-jre-jlink/without-jlink-runtime/startup_avg_ms",
+        "01-custom-jre-jlink/with-jlink-runtime/startup_avg_ms",
+        "05-appcds/with-appcds/startup_avg_ms",
+        "02-jep483-aot-cache/with-aot-cache/startup_avg_ms",
     ),
     "features-image-size": (
-        "03-custom-jre-jlink/temurin-jre-image/image_mb_avg",
-        "03-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
-        "03-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
-        "06-base-image-choice/distroless/image_mb_avg",
-        "06-base-image-choice/alpine/image_mb_avg",
+        "01-custom-jre-jlink/temurin-jre-image/image_mb_avg",
+        "01-custom-jre-jlink/without-jlink-runtime/image_mb_avg",
+        "01-custom-jre-jlink/with-jlink-runtime/image_mb_avg",
+        "03-base-image-choice/distroless/image_mb_avg",
+        "03-base-image-choice/alpine/image_mb_avg",
     ),
     "features-cold-start": (
-        "03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms",
-        "03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms",
-        "08-appcds/with-appcds/startup_avg_ms",
-        "04-jep483-aot-cache/with-aot-cache/startup_avg_ms",
+        "01-custom-jre-jlink/without-jlink-runtime/startup_avg_ms",
+        "01-custom-jre-jlink/with-jlink-runtime/startup_avg_ms",
+        "05-appcds/with-appcds/startup_avg_ms",
+        "02-jep483-aot-cache/with-aot-cache/startup_avg_ms",
     ),
 }
 
@@ -121,10 +111,6 @@ def benchmark_key(scenario_id: str, variant: str, metric: str) -> str:
     return f"{scenario_id}/{variant}/{metric}"
 
 
-def resolve_variant(variant: str) -> str:
-    return VARIANT_ALIASES.get(variant, variant)
-
-
 def fmt_ms(value: float | None) -> str:
     if value is None:
         return "-"
@@ -135,12 +121,6 @@ def fmt_mb(value: float | None) -> str:
     if value is None:
         return "-"
     return f"{value:.2f} MB"
-
-
-def fmt_ratio(value: float | None) -> str:
-    if value is None:
-        return "-"
-    return f"~{value:.1f}×"
 
 
 def metric_value(summary: VariantSummary, metric: str) -> float | None:
@@ -177,21 +157,7 @@ def load_reports(project_root: Path) -> tuple[list[ScenarioReport], list[Path]]:
     return reports, missing
 
 
-def build_lookup(reports: list[ScenarioReport]) -> dict[str, VariantSummary]:
-    lookup: dict[str, VariantSummary] = {}
-    for report in reports:
-        for summary in report.summaries:
-            lookup[benchmark_key(report.scenario_id, summary.variant, "summary")] = summary
-    return lookup
-
-
-def find_summary(lookup: dict[str, VariantSummary], scenario_id: str, variant: str) -> VariantSummary | None:
-    resolved = resolve_variant(variant)
-    return lookup.get(benchmark_key(scenario_id, resolved, "summary"))
-
-
 def build_formatted_values(reports: list[ScenarioReport]) -> tuple[dict[str, str], dict[str, float], dict[str, str]]:
-    lookup = build_lookup(reports)
     formatted: dict[str, str] = {}
     numeric: dict[str, float] = {}
     computed: dict[str, str] = {}
@@ -206,17 +172,6 @@ def build_formatted_values(reports: list[ScenarioReport]) -> tuple[dict[str, str
                     continue
                 formatted[key] = format_metric(summary, metric)
                 numeric[key] = value
-
-    without_cache = find_summary(lookup, "02-buildkit-gradle-cache", "without-buildkit-cache")
-    with_cache = find_summary(lookup, "02-buildkit-gradle-cache", "with-buildkit-cache")
-    if (
-        without_cache
-        and with_cache
-        and without_cache.build_avg_ms
-        and with_cache.build_avg_ms
-        and with_cache.build_avg_ms > 0
-    ):
-        computed["02-buildkit-gradle-cache/build_speedup"] = fmt_ratio(without_cache.build_avg_ms / with_cache.build_avg_ms)
 
     return formatted, numeric, computed
 

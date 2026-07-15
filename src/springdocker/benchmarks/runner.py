@@ -143,7 +143,7 @@ def _runtime_flags(cpuset_cpus: str | None, memory_limit: str | None, normalized
 
 
 def _default_runs_for(profile: str, scenario_id: str) -> int:
-    if scenario_id == "04-jep483-aot-cache":
+    if scenario_id == "02-jep483-aot-cache":
         return 8 if profile == "quick" else 15
     return 3 if profile == "quick" else 10
 

@@ -41,7 +41,7 @@ pipx install 'springdocker[benchmark]'   # or editable .[dev] from a clone
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 springdocker benchmark run --project-root samples/java-spring-docker --profile quick
 springdocker benchmark analyze --project-root samples/java-spring-docker \
-  samples/java-spring-docker/benchmarks/03-custom-jre-jlink/results/raw.csv --format table
+  samples/java-spring-docker/benchmarks/01-custom-jre-jlink/results/raw.csv --format table
 ```
 
 ## What to look at first

@@ -170,19 +170,19 @@ class CliIntegrationTests(unittest.TestCase):
 
                 self.assertEqual(main(["benchmark", "generate", "--project-root", str(project)]), 0)
                 self.assertTrue(
-                    (project / "benchmarks" / "03-custom-jre-jlink" / "variants" / "with-jlink-runtime" / "Dockerfile").exists()
+                    (project / "benchmarks" / "01-custom-jre-jlink" / "variants" / "with-jlink-runtime" / "Dockerfile").exists()
                 )
                 distroless = (
                     project
                     / "benchmarks"
-                    / "06-base-image-choice"
+                    / "03-base-image-choice"
                     / "variants"
                     / "distroless"
                     / "Dockerfile"
                 )
                 self.assertTrue(distroless.exists())
                 self.assertIn("gcr.io/distroless", distroless.read_text(encoding="utf-8"))
-                self.assertTrue((project / "benchmarks" / "07-native-benchmark" / "results" / "raw.csv").exists())
+                self.assertTrue((project / "benchmarks" / "04-native-benchmark" / "results" / "raw.csv").exists())
 
 
 if __name__ == "__main__":

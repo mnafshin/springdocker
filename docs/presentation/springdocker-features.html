@@ -289,11 +289,11 @@
           <span class="badge">Image size · Spring Boot 4 · Java 25</span>
           <h3>Scenario evidence → final image size</h3>
           <div style="margin-top: 1em;">
-            <div class="bar-row"><span class="label">temurin‑jre image</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/temurin-jre-image/image_mb_avg" style="width:100%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/temurin-jre-image/image_mb_avg">130.28 MB</span></div>
-            <div class="bar-row"><span class="label">vendor JRE on debian</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:82%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></div>
-            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:66%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/image_mb_avg">85.94 MB</span></div>
-            <div class="bar-row"><span class="label">distroless + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/distroless/image_mb_avg" style="width:52%;"></div></div><span class="val" data-benchmark="06-base-image-choice/distroless/image_mb_avg">67.67 MB</span></div>
-            <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="06-base-image-choice/alpine/image_mb_avg" style="width:48%;"></div></div><span class="val" data-benchmark="06-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
+            <div class="bar-row"><span class="label">temurin‑jre image</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="01-custom-jre-jlink/temurin-jre-image/image_mb_avg" style="width:100%;"></div></div><span class="val" data-benchmark="01-custom-jre-jlink/temurin-jre-image/image_mb_avg">130.28 MB</span></div>
+            <div class="bar-row"><span class="label">vendor JRE on debian</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="01-custom-jre-jlink/without-jlink-runtime/image_mb_avg" style="width:82%;"></div></div><span class="val" data-benchmark="01-custom-jre-jlink/without-jlink-runtime/image_mb_avg">107.35 MB</span></div>
+            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="01-custom-jre-jlink/with-jlink-runtime/image_mb_avg" style="width:66%;"></div></div><span class="val" data-benchmark="01-custom-jre-jlink/with-jlink-runtime/image_mb_avg">85.94 MB</span></div>
+            <div class="bar-row"><span class="label">distroless + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-base-image-choice/distroless/image_mb_avg" style="width:52%;"></div></div><span class="val" data-benchmark="03-base-image-choice/distroless/image_mb_avg">67.67 MB</span></div>
+            <div class="bar-row"><span class="label">alpine + jlink</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="03-base-image-choice/alpine/image_mb_avg" style="width:48%;"></div></div><span class="val" data-benchmark="03-base-image-choice/alpine/image_mb_avg">62.35 MB</span></div>
             <div class="bar-row"><span class="label">native‑aot*</span><div class="bar-wrap"><div class="bar" style="width:39%;"></div></div><span class="val">55.7 MB</span></div>
           </div>
           <p class="muted" style="margin-top: 1em;">Same image-size ladder as <code>docker-steps-evidence.html</code> — each bar is an independent scenario lever, not one Dockerfile. <code>production-balanced</code> profile defaults to distroless + jlink. * native reference only · scaffold recipe today.</p>
@@ -304,28 +304,16 @@
           <span class="badge">Cold start · ready for traffic</span>
           <h3>Time from <code>docker run</code> to actuator readiness</h3>
           <div style="margin-top: 1em;">
-            <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:100%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></div>
-            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:88%;"></div></div><span class="val" data-benchmark="03-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,367 ms</span></div>
-            <div class="bar-row"><span class="label">with AppCDS</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="08-appcds/with-appcds/startup_avg_ms" style="width:81%;"></div></div><span class="val" data-benchmark="08-appcds/with-appcds/startup_avg_ms">1,262 ms</span></div>
-            <div class="bar-row"><span class="label">with‑aot‑cache</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="04-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:62%;"></div></div><span class="val" data-benchmark="04-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
+            <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="01-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:100%;"></div></div><span class="val" data-benchmark="01-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></div>
+            <div class="bar-row"><span class="label">with‑jlink</span><div class="bar-wrap"><div class="bar warn" data-benchmark-bar="01-custom-jre-jlink/with-jlink-runtime/startup_avg_ms" style="width:88%;"></div></div><span class="val" data-benchmark="01-custom-jre-jlink/with-jlink-runtime/startup_avg_ms">1,367 ms</span></div>
+            <div class="bar-row"><span class="label">with AppCDS</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="05-appcds/with-appcds/startup_avg_ms" style="width:81%;"></div></div><span class="val" data-benchmark="05-appcds/with-appcds/startup_avg_ms">1,262 ms</span></div>
+            <div class="bar-row"><span class="label">with‑aot‑cache</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="02-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:62%;"></div></div><span class="val" data-benchmark="02-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
             <div class="bar-row"><span class="label">native‑aot*</span><div class="bar-wrap"><div class="bar" style="width:15%;"></div></div><span class="val">308 ms</span></div>
           </div>
           <p class="muted" style="margin-top: 1em;">Each bar is a different scenario lever — same cross-cutting view as the evidence deck. * native reference only · scaffold recipe today.</p>
         </section>
 
-        <!-- 3.4 Layer cache hit -->
-        <section>
-          <span class="badge">Build cache · the silent productivity killer</span>
-          <h3>Rebuild after touching one Java file</h3>
-          <div class="grid grid-2" style="margin-top: 1em;">
-            <div class="stat bad"><span class="num" data-benchmark="02-buildkit-gradle-cache/without-buildkit-cache/build_avg_ms">940 ms</span><span class="lbl">Without BuildKit cache</span></div>
-            <div class="stat"><span class="num" data-benchmark="02-buildkit-gradle-cache/with-buildkit-cache/build_avg_ms">793 ms</span><span class="lbl">With BuildKit cache</span></div>
-          </div>
-          <p style="margin-top: 0.8em;" class="muted"><span data-benchmark-computed="02-buildkit-gradle-cache/build_speedup">~1.2×</span> faster rebuild after touching one Java file</p>
-          <p style="margin-top: 0.8em;">Build caching and layered outputs reduce rebuild time significantly in repeated CI runs.</p>
-        </section>
-
-        <!-- 3.5 Security -->
+        <!-- 3.4 Security -->
         <section>
           <span class="badge">Security · generated defaults and verify checks</span>
           <h3>Current capabilities include:</h3>
@@ -372,7 +360,7 @@
             <thead><tr><th>Profile</th><th>Best for</th><th>Image trend</th><th>Cold-start trend</th></tr></thead>
             <tbody>
               <tr><td><code>production-balanced</code></td><td>Team default — distroless + jlink + supply chain</td><td>distroless + jlink (~68 MB)</td><td>~1.5 s startup</td></tr>
-              <tr><td><code>fast-cold-start</code></td><td>JEP 483 AOT cache when Java 24+</td><td>similar</td><td>~968 ms (scenario 04)</td></tr>
+              <tr><td><code>fast-cold-start</code></td><td>JEP 483 AOT cache when Java 24+</td><td>similar</td><td>~968 ms (scenario 02)</td></tr>
               <tr><td><code>smallest-image</code></td><td>Registry cost / fleet bandwidth</td><td>alpine + jlink (~62 MB)</td><td>trade-off vs glibc</td></tr>
               <tr><td><code>compliance</code></td><td>SBOM, digest pins, OCI labels, reproducible controls</td><td>similar</td><td>similar</td></tr>
             </tbody>

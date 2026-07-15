@@ -100,7 +100,7 @@ python scripts/update_presentation_benchmarks.py
 
 This updates:
 
-- `docker-steps-evidence.html` — scenario tables (values + `good`/`warn`/`risk` highlights), bar charts, cache stats
+- `docker-steps-evidence.html` — scenario tables (values + `good`/`warn`/`risk` highlights), bar charts
 
 Benchmark scenario tables use a shared column layout when CSV data exists: **Variant · Image · Build avg · Startup avg · Startup p95**. Cells without measured startup data (e.g. failed runs) show `—`. Standalone bar charts remain on cross-cutting summary slides that have no table.
 - `springdocker-features.html` — evidence bar charts in the features deck
@@ -108,17 +108,17 @@ Benchmark scenario tables use a shared column layout when CSV data exists: **Var
 
 Use `--check` to verify deck benchmark values are current without writing files. The `benchmark-updated` HTML comment is refreshed only when values change, so timestamp-only drift does not fail the check.
 
-Use `--profile full` for presentation-grade run counts (10 runs per scenario; 15 for scenario 04). Expect 1–3+ hours depending on host.
+Use `--profile full` for presentation-grade run counts (10 runs per scenario; 15 for scenario 02). Expect 1–3+ hours depending on host.
 
-Scenario **07 (native)** is not measured by the runner (`--skip-native` by default). The deck binds the JVM comparison row to scenario **03** `without-jlink-runtime`; native-aot table and bar rows stay as published reference values (marked with `*`).
+Scenario **04 (native)** is not measured by the runner (`--skip-native` by default). The deck binds the JVM comparison row to scenario **01** `without-jlink-runtime`; native-aot table and bar rows stay as published reference values (marked with `*`).
 
-**Cross-cutting bar charts:** Both decks share the same **image-size** ladder (temurin → vendor JRE → jlink → distroless → alpine). Cold-start bars list startup levers across scenarios 03/04/08 — also independent levers, not one Dockerfile.
+**Cross-cutting bar charts:** Both decks share the same **image-size** ladder (temurin → vendor JRE → jlink → distroless → alpine). Cold-start bars list startup levers across scenarios 01/02/05 — also independent levers, not one Dockerfile.
 
 ## Files
 
 - `java-spring-docker-techniques.html` — **recommended for live talks**: multi-stage, jlink, AppCDS, security — technique + Dockerfile only; springdocker on closing slide
 - `springdocker-features.html` — features & workflow (config-first CLI)
-- `docker-steps-evidence.html` — scenarios 01–08 with benefits and **config key → Dockerfile** ON/OFF blocks per decision slide
+- `docker-steps-evidence.html` — scenarios 01–05 with benefits and **config key → Dockerfile** ON/OFF blocks per decision slide
 - `benchmark-summary.md` — generated markdown summary (gitignored)
 - `assets/evidence-deck.css` — shared styling for `docker-steps-evidence.html`
 

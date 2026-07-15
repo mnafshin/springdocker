@@ -57,9 +57,9 @@ jobs:
 
       - name: Verify generated layout exists
         run: |
-          test -f samples/java-spring-docker/benchmarks/01-multi-stage-build-structure/variants/specialized-multi-stage/Dockerfile
-          test -f samples/java-spring-docker/benchmarks/07-native-benchmark/Dockerfile
-          test -f samples/java-spring-docker/benchmarks/07-native-benchmark/README.md
+          test -f samples/java-spring-docker/benchmarks/01-custom-jre-jlink/variants/with-jlink-runtime/Dockerfile
+          test -f samples/java-spring-docker/benchmarks/04-native-benchmark/Dockerfile
+          test -f samples/java-spring-docker/benchmarks/04-native-benchmark/README.md
 
   typecheck:
     runs-on: ubuntu-latest
@@ -121,7 +121,7 @@ jobs:
         run: |
           springdocker benchmark analyze \
             --project-root samples/java-spring-docker \
-            benchmarks/06-base-image-choice/results/raw.csv \
+            benchmarks/03-base-image-choice/results/raw.csv \
             --format json \
             --output /tmp/current-summary.json
           python - <<'PY'
@@ -129,7 +129,7 @@ jobs:
           import sys
           from pathlib import Path
 
-          results = Path("samples/java-spring-docker/benchmarks/06-base-image-choice/results")
+          results = Path("samples/java-spring-docker/benchmarks/03-base-image-choice/results")
           baseline = json.loads(results.joinpath("baseline.json").read_text(encoding="utf-8"))
           current = json.loads(Path("/tmp/current-summary.json").read_text(encoding="utf-8"))
           if baseline != current:
@@ -142,8 +142,8 @@ jobs:
         run: |
           springdocker benchmark analyze \
             --project-root samples/java-spring-docker \
-            benchmarks/06-base-image-choice/results/raw.csv \
-            --baseline benchmarks/06-base-image-choice/results/baseline.json \
+            benchmarks/03-base-image-choice/results/raw.csv \
+            --baseline benchmarks/03-base-image-choice/results/baseline.json \
             --fail-on-regression-above 20
 
   test:

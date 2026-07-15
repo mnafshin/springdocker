@@ -1,6 +1,6 @@
 [
   {
-    "scenario": "06-base-image-choice",
+    "scenario": "03-base-image-choice",
     "variant": "distroless-nonroot",
     "runs": 5,
     "build_avg_ms": 1280.0,
@@ -15,7 +15,7 @@
     "run_profile": "quick"
   },
   {
-    "scenario": "06-base-image-choice",
+    "scenario": "03-base-image-choice",
     "variant": "temurin-jre",
     "runs": 5,
     "build_avg_ms": 1180.0,

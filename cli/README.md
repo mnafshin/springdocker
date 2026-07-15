@@ -58,21 +58,21 @@ springdocker dockerfile generate --project-root samples/java-spring-docker  # no
 springdocker doctor --project-root samples/java-spring-docker
 springdocker inspect --project-root samples/java-spring-docker --format json
 springdocker explain --project-root samples/java-spring-docker Dockerfile.generated --format json
-springdocker benchmark compare --project-root samples/java-spring-docker benchmarks/03-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime --format json
+springdocker benchmark compare --project-root samples/java-spring-docker benchmarks/01-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime --format json
 springdocker dockerfile generate --project-root samples/java-spring-docker --output Dockerfile.generated --recipe jvm-balanced
 springdocker dockerfile generate --project-root samples/java-spring-docker --recipe spring-aot
 # native-aot emits experimental scaffold output only (not a production workflow)
 springdocker dockerfile generate --project-root samples/java-spring-docker --recipe native-aot
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 springdocker benchmark run --project-root samples/java-spring-docker --profile quick --runner-arg --skip-native
-springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/04-jep483-aot-cache/results/raw.csv --format table
-springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/04-jep483-aot-cache/results/raw.csv --format json --output benchmarks/04-jep483-aot-cache/results/summary.json
-springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/04-jep483-aot-cache/results/raw.csv --fail-on-success-rate-below 95
-springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/04-jep483-aot-cache/results/raw.csv --baseline benchmarks/04-jep483-aot-cache/results/baseline.json --fail-on-regression-above 20
+springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/02-jep483-aot-cache/results/raw.csv --format table
+springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/02-jep483-aot-cache/results/raw.csv --format json --output benchmarks/02-jep483-aot-cache/results/summary.json
+springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/02-jep483-aot-cache/results/raw.csv --fail-on-success-rate-below 95
+springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/02-jep483-aot-cache/results/raw.csv --baseline benchmarks/02-jep483-aot-cache/results/baseline.json --fail-on-regression-above 20
 ```
 
 Benchmark commands are optional evidence workflows and require benchmark extras.
-Use `samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json` as the versioned CI regression baseline example (paired with committed `raw.csv`).
+Use `samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json` as the versioned CI regression baseline example (paired with committed `raw.csv`).
 Scenario index: [README.md](../README.md#benchmark-scenario-index).
 
 ## Dockerfile recipes
@@ -83,7 +83,7 @@ Scenario index: [README.md](../README.md#benchmark-scenario-index).
 | `spring-aot` | Supported | **distroless** + jlink | Spring Boot AOT processing on a JVM runtime. |
 | `native-aot` | Scaffold only | **distroless** base (static binary) | Experimental GraalVM native-image Dockerfile output. Not a production-ready workflow; see `docs/native-image-roadmap.md`. |
 
-The generator sets `runtime_image = "distroless"` internally for JVM recipes. That means `distroless/base-debian*` plus a copied jlink runtime — not the prebuilt `distroless/java*` image and not a full OS layer unless you change generator options (benchmark scenario **06** compares OS bases).
+The generator sets `runtime_image = "distroless"` internally for JVM recipes. That means `distroless/base-debian*` plus a copied jlink runtime — not the prebuilt `distroless/java*` image and not a full OS layer unless you change generator options (benchmark scenario **03** compares OS bases).
 
 ### Runtime bases and HEALTHCHECK
 
@@ -154,7 +154,7 @@ springdocker dockerfile generate \
 
 The `dockerfile generate` `--help` output groups flags under **runtime**, **build**, **supply chain**, and **JVM** sections.
 
-The `07-native-benchmark` scenario is generated with the `native-aot` scaffold recipe. The internal benchmark runner skips native scenarios by default (`--skip-native`).
+The `04-native-benchmark` scenario is generated with the `native-aot` scaffold recipe. The internal benchmark runner skips native scenarios by default (`--skip-native`).
 
 ## Config file (`.springdocker.toml`)
 

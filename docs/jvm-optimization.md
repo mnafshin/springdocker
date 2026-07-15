@@ -34,8 +34,8 @@ Configure explicitly via `[dockerfile].jvm_flags` in `.springdocker.toml`, or us
 
 Benchmark scenarios isolate each optimization:
 
-- `04-jep483-aot-cache`: toggles JEP 483 AOT cache only
-- `08-appcds`: toggles AppCDS only
+- `02-jep483-aot-cache`: toggles JEP 483 AOT cache only
+- `05-appcds`: toggles AppCDS only
 
 GC tuning is not yet a first-class option. The benchmark analyzer can still surface optional
 GC/allocation/startup-phase profiling columns when they are present in `raw.csv`.

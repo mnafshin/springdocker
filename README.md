@@ -161,12 +161,12 @@ springdocker dockerfile generate --project-root tests/fixtures/maven-only
 cd springdocker   # repository root after clone
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 springdocker benchmark run --project-root samples/java-spring-docker --profile quick
-springdocker benchmark analyze --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/03-custom-jre-jlink/results/raw.csv --format table
-springdocker benchmark compare --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/03-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime
-springdocker benchmark analyze --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/06-base-image-choice/results/raw.csv --baseline samples/java-spring-docker/benchmarks/06-base-image-choice/results/baseline.json
+springdocker benchmark analyze --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/01-custom-jre-jlink/results/raw.csv --format table
+springdocker benchmark compare --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/01-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime
+springdocker benchmark analyze --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/03-base-image-choice/results/raw.csv --baseline samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json
 ```
 
-**Default runtime:** `dockerfile generate` with `--recipe jvm-balanced` (the default) uses **`runtime_image = distroless`**: a digest-pinned `gcr.io/distroless/base-*:nonroot` stage plus a jlink-built JVM and layered Spring Boot JAR — not a full OS image. Distroless images have no shell, so generated Dockerfiles **omit `HEALTHCHECK`**; configure readiness probes in Kubernetes or your orchestrator. OS runtime bases are compared in benchmark scenario **06** — see [`cli/README.md`](cli/README.md#dockerfile-recipes).
+**Default runtime:** `dockerfile generate` with `--recipe jvm-balanced` (the default) uses **`runtime_image = distroless`**: a digest-pinned `gcr.io/distroless/base-*:nonroot` stage plus a jlink-built JVM and layered Spring Boot JAR — not a full OS image. Distroless images have no shell, so generated Dockerfiles **omit `HEALTHCHECK`**; configure readiness probes in Kubernetes or your orchestrator. OS runtime bases are compared in benchmark scenario **03** — see [`cli/README.md`](cli/README.md#dockerfile-recipes).
 
 ## CLI workflow
 
@@ -187,34 +187,31 @@ Benchmarks are an optional evidence subsystem and require benchmark extras (`spr
 
 The sample project keeps benchmark scenarios under `samples/java-spring-docker/benchmarks/`.
 Generated variant Dockerfiles and most run output are **gitignored** — regenerate with `springdocker benchmark generate` and `springdocker benchmark run`.
-The scenario 06 CI regression baseline lives under `samples/java-spring-docker/benchmarks/06-base-image-choice/results/`.
+The scenario 03 CI regression baseline lives under `samples/java-spring-docker/benchmarks/03-base-image-choice/results/`.
 See `samples/java-spring-docker/benchmarks/README.md` for the full artifact policy.
 
 ### Benchmark scenario index
 
 Authoritative list of generated scenarios under `samples/java-spring-docker/benchmarks/`.
-Regenerate directories with `springdocker benchmark generate`. Scenario **07** is listed after **06** and before **08** by id, even though the generator emits **08** before the native scaffold.
+Regenerate directories with `springdocker benchmark generate`. Scenario **04** (native scaffold) is listed before **05** (AppCDS) by id; the generator emits AppCDS before the native scaffold.
 
 | ID | Directory | Purpose | Variants | Further reading |
 |---|---|---|---|---|
-| 01 | `01-multi-stage-build-structure` | Multi-stage Dockerfile layout vs a simpler two-stage build | `specialized-multi-stage`, `simple-two-stage` | [`benchmark-methodology.md`](docs/benchmark-methodology.md#current-sample-comparison-snapshot) |
-| 02 | `02-buildkit-gradle-cache` | BuildKit cache mount on dependency rebuilds | `with-buildkit-cache`, `without-buildkit-cache` | [`benchmark-methodology.md`](docs/benchmark-methodology.md#current-sample-comparison-snapshot) |
-| 03 | `03-custom-jre-jlink` | jlink vs vendor JRE on debian-slim vs stock Temurin image | `with-jlink-runtime`, `without-jlink-runtime`, `temurin-jre-image` | [`jvm-optimization.md`](docs/jvm-optimization.md), [`golden-samples.md`](docs/golden-samples.md) |
-| 04 | `04-jep483-aot-cache` | JEP 483 ahead-of-time class-loading cache (Java 24+) | `with-aot-cache`, `without-aot-cache` | [`jvm-optimization.md`](docs/jvm-optimization.md) · extra runs: 8 (`quick`) / 15 (`full`) |
-| 05 | `05-jvm-container-flags` | Tuned vs baseline JVM container flags | `tuned-flags`, `defaults-like` | [`jvm-optimization.md`](docs/jvm-optimization.md) |
-| 06 | `06-base-image-choice` | Runtime base image tradeoffs (jlink on every base) | `alpine`, `debian-slim`, `ubuntu`, `distroless` (configurable) | [`benchmark-methodology.md`](docs/benchmark-methodology.md#configuring-base-image-variants-scenario-06) · CI regression baseline |
-| 07 | `07-native-benchmark` | Native-image scaffold (`native-aot` recipe); skipped by default | _(single Dockerfile at scenario root — no variant dirs)_ | [`native-image-roadmap.md`](docs/native-image-roadmap.md) |
-| 08 | `08-appcds` | AppCDS shared archive at build time | `with-appcds`, `without-appcds` | [`jvm-optimization.md`](docs/jvm-optimization.md) |
+| 01 | `01-custom-jre-jlink` | jlink vs vendor JRE on debian-slim vs stock Temurin image | `with-jlink-runtime`, `without-jlink-runtime`, `temurin-jre-image` | [`jvm-optimization.md`](docs/jvm-optimization.md), [`golden-samples.md`](docs/golden-samples.md) |
+| 02 | `02-jep483-aot-cache` | JEP 483 ahead-of-time class-loading cache (Java 24+) | `with-aot-cache`, `without-aot-cache` | [`jvm-optimization.md`](docs/jvm-optimization.md) · extra runs: 8 (`quick`) / 15 (`full`) |
+| 03 | `03-base-image-choice` | Runtime base image tradeoffs (jlink on every base) | `alpine`, `debian-slim`, `ubuntu`, `distroless` (configurable) | [`benchmark-methodology.md`](docs/benchmark-methodology.md#configuring-base-image-variants-scenario-03) · CI regression baseline |
+| 04 | `04-native-benchmark` | Native-image scaffold (`native-aot` recipe); skipped by default | _(single Dockerfile at scenario root — no variant dirs)_ | [`native-image-roadmap.md`](docs/native-image-roadmap.md) |
+| 05 | `05-appcds` | AppCDS shared archive at build time | `with-appcds`, `without-appcds` | [`jvm-optimization.md`](docs/jvm-optimization.md) |
 
 Example analyze commands (after `benchmark run`):
 
 ```bash
 springdocker benchmark analyze --project-root samples/java-spring-docker \
-  benchmarks/03-custom-jre-jlink/results/raw.csv --format table
+  benchmarks/01-custom-jre-jlink/results/raw.csv --format table
 springdocker benchmark analyze --project-root samples/java-spring-docker \
-  benchmarks/04-jep483-aot-cache/results/raw.csv --format json
+  benchmarks/02-jep483-aot-cache/results/raw.csv --format json
 springdocker benchmark compare --project-root samples/java-spring-docker \
-  benchmarks/03-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime
+  benchmarks/01-custom-jre-jlink/results/raw.csv --baseline-variant with-jlink-runtime
 ```
 
 Current reports focus on:
@@ -278,7 +275,7 @@ Documentation uses three status labels:
 
 ### Experimental
 
-- `docs/native-image-roadmap.md` — `native-aot` recipe and scenario 07 scaffold; runner skips native by default; production native-image workflow remains roadmap
+- `docs/native-image-roadmap.md` — `native-aot` recipe and scenario 04 scaffold; runner skips native by default; production native-image workflow remains roadmap
 
 ### Roadmap
 

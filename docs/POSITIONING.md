@@ -60,7 +60,7 @@ These behaviors are enforced by [`.github/workflows/ci.yml`](../.github/workflow
 | **Package coverage** | ≥80% line coverage on the entire `springdocker` package (same gate as local `pytest`; see `pyproject.toml`) |
 | **Dockerfile generation** | Snapshot and e2e tests on `tests/fixtures/{maven-only,gradle-only}` — output shape, flags, and explain/verify wiring |
 | **Benchmark generator** | `benchmark-hygiene` runs `benchmark generate` and asserts generated assets stay gitignored |
-| **Benchmark analyzer** | `benchmark-regression` verifies committed `06-base-image-choice/results/baseline.json` matches analyze output for the paired `raw.csv`, then runs the 20% regression comparator |
+| **Benchmark analyzer** | `benchmark-regression` verifies committed `03-base-image-choice/results/baseline.json` matches analyze output for the paired `raw.csv`, then runs the 20% regression comparator |
 | **Docker smoke build** | `docker-smoke` generates a Dockerfile for `samples/java-spring-docker`, runs `docker build`, and probes `/actuator/health/readiness` on port 8081 |
 | **Supply chain (repo)** | SPDX SBOM artifact, **blocking** CRITICAL Trivy filesystem scan, and `digest-pins` job verifying registry manifests for `digest_pins.py` |
 

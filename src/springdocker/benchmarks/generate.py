@@ -56,9 +56,9 @@ AppCDS, pinned digests, and so on); only the `recipe` field changes per file.
 | `spring-aot.Dockerfile` | `spring-aot` | Spring AOT processing in the build stage |
 | `native-aot.Dockerfile` | `native-aot` | GraalVM native-image scaffold (experimental) |
 
-## Runtime default (scenario 06 evidence)
+## Runtime default (scenario 03 evidence)
 
-Pinned sample results for jlink on each OS base (`benchmarks/06-base-image-choice/results/baseline.json`):
+Pinned sample results for jlink on each OS base (`benchmarks/03-base-image-choice/results/baseline.json`):
 
 | Base | Image avg | Build avg | Startup avg |
 |---|---:|---:|---:|
@@ -142,32 +142,7 @@ def default_scenarios(
     )
     return [
         StandardScenarioDefinition(
-            id="01-multi-stage-build-structure",
-            variants=(
-                ("specialized-multi-stage", base),
-                (
-                    "simple-two-stage",
-                    DockerfileOptions(
-                        build_tool=build_tool,
-                        java_version=java_version,
-                        must_have_modules=must_have_modules,
-                        use_jlink=False,
-                        use_layered_jar=False,
-                        enable_appcds=False,
-                        enable_jep483_aot_cache=False,
-                    ),
-                ),
-            ),
-        ),
-        StandardScenarioDefinition(
-            id="02-buildkit-gradle-cache",
-            variants=(
-                ("with-buildkit-cache", base),
-                ("without-buildkit-cache", replace(base, use_buildkit_cache=False)),
-            ),
-        ),
-        StandardScenarioDefinition(
-            id="03-custom-jre-jlink",
+            id="01-custom-jre-jlink",
             variants=(
                 (
                     "with-jlink-runtime",
@@ -208,7 +183,7 @@ def default_scenarios(
             ),
         ),
         StandardScenarioDefinition(
-            id="04-jep483-aot-cache",
+            id="02-jep483-aot-cache",
             variants=(
                 (
                     "with-aot-cache",
@@ -225,34 +200,7 @@ def default_scenarios(
             run_overrides={"quick": 8, "full": 15},
         ),
         StandardScenarioDefinition(
-            id="05-jvm-container-flags",
-            variants=(
-                (
-                    "tuned-flags",
-                    DockerfileOptions(
-                        build_tool=build_tool,
-                        java_version=java_version,
-                        must_have_modules=must_have_modules,
-                        tuned_jvm_flags=True,
-                        enable_appcds=False,
-                        enable_jep483_aot_cache=False,
-                    ),
-                ),
-                (
-                    "defaults-like",
-                    DockerfileOptions(
-                        build_tool=build_tool,
-                        java_version=java_version,
-                        must_have_modules=must_have_modules,
-                        tuned_jvm_flags=False,
-                        enable_appcds=False,
-                        enable_jep483_aot_cache=False,
-                    ),
-                ),
-            ),
-        ),
-        StandardScenarioDefinition(
-            id="06-base-image-choice",
+            id="03-base-image-choice",
             variants=tuple(
                 (
                     variant_slug(runtime_image),
@@ -267,7 +215,7 @@ def default_scenarios(
             ),
         ),
         StandardScenarioDefinition(
-            id="08-appcds",
+            id="05-appcds",
             variants=(
                 (
                     "with-appcds",
@@ -282,7 +230,7 @@ def default_scenarios(
                 ("without-appcds", base),
             ),
         ),
-        NativeScenarioDefinition(id="07-native-benchmark"),
+        NativeScenarioDefinition(id="04-native-benchmark"),
     ]
 
 

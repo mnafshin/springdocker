@@ -1,6 +1,6 @@
 # Native image roadmap
 
-> **Status: Experimental** — `springdocker dockerfile generate --recipe native-aot` and benchmark scenario `07-native-benchmark` emit scaffold Dockerfiles; the internal runner skips native execution by default (`--skip-native`).
+> **Status: Experimental** — `springdocker dockerfile generate --recipe native-aot` and benchmark scenario `04-native-benchmark` emit scaffold Dockerfiles; the internal runner skips native execution by default (`--skip-native`).
 >
 > **Production native-image workflow: Roadmap** — build validation, reflection configuration, and benchmark execution are not shipped yet.
 
@@ -11,7 +11,7 @@
 The CLI can generate **experimental scaffold output** for native-image exploration:
 
 - `springdocker dockerfile generate --recipe native-aot` writes a GraalVM native-image Dockerfile.
-- `springdocker benchmark generate` creates the `07-native-benchmark` scenario with that scaffold Dockerfile.
+- `springdocker benchmark generate` creates the `04-native-benchmark` scenario with that scaffold Dockerfile.
 - The internal benchmark runner skips native scenarios by default (`--skip-native`).
 
 This scaffold helps teams preview Dockerfile structure and benchmark layout. It is **not** a production-ready native-image workflow: build validation, reflection configuration, and benchmark execution remain out of scope until this roadmap is implemented.
@@ -37,7 +37,7 @@ This scaffold helps teams preview Dockerfile structure and benchmark layout. It 
 
 ## Benchmark integration
 
-- Reuse the existing `07-native-benchmark` benchmark scenario as the comparison anchor.
+- Reuse the existing `04-native-benchmark` benchmark scenario as the comparison anchor.
 - Capture both the native and JVM outputs in the same reporting format.
 - Gate native adoption on measured startup and footprint improvements.
 

@@ -58,8 +58,8 @@ class InternalFlowTests(unittest.TestCase):
                 use_legacy_scripts=False,
             )
             self.assertEqual(code, 0)
-            self.assertTrue((root / "benchmarks" / "01-multi-stage-build-structure" / "variants").exists())
-            distroless = root / "benchmarks" / "06-base-image-choice" / "variants" / "distroless" / "Dockerfile"
+            self.assertTrue((root / "benchmarks" / "01-custom-jre-jlink" / "variants").exists())
+            distroless = root / "benchmarks" / "03-base-image-choice" / "variants" / "distroless" / "Dockerfile"
             self.assertTrue(distroless.exists())
             self.assertIn("gcr.io/distroless", distroless.read_text(encoding="utf-8"))
 
@@ -91,12 +91,12 @@ class InternalFlowTests(unittest.TestCase):
                         use_legacy_scripts=False,
                     )
             self.assertEqual(code, 0)
-            raw_csv = root / "benchmarks" / "01-multi-stage-build-structure" / "results" / "raw.csv"
+            raw_csv = root / "benchmarks" / "01-custom-jre-jlink" / "results" / "raw.csv"
             self.assertTrue(raw_csv.exists())
-            self.assertIn("01-multi-stage-build-structure", raw_csv.read_text(encoding="utf-8"))
-            self.assertIn("=== Scenario: 01-multi-stage-build-structure", stdout.getvalue())
+            self.assertIn("01-custom-jre-jlink", raw_csv.read_text(encoding="utf-8"))
+            self.assertIn("=== Scenario: 01-custom-jre-jlink", stdout.getvalue())
             self.assertIn("run 1:", stdout.getvalue())
-            self.assertIn("Skipping native scaffold scenario: 07-native-benchmark", stdout.getvalue())
+            self.assertIn("Skipping native scaffold scenario: 04-native-benchmark", stdout.getvalue())
 
     def test_benchmark_generate_warns_when_legacy_scripts_requested(self) -> None:
         with tempfile.TemporaryDirectory() as td:

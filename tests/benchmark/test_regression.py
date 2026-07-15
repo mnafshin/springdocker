@@ -35,7 +35,7 @@ class RegressionTests(unittest.TestCase):
         from springdocker.analyze import format_json, summarize_csv
         from tests.test_support import ROOT
 
-        results = ROOT / "samples" / "java-spring-docker" / "benchmarks" / "06-base-image-choice" / "results"
+        results = ROOT / "samples" / "java-spring-docker" / "benchmarks" / "03-base-image-choice" / "results"
         raw_csv = results / "raw.csv"
         baseline_path = results / "baseline.json"
         self.assertTrue(raw_csv.exists(), "committed raw.csv required for CI regression gate")

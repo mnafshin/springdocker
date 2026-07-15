@@ -174,7 +174,7 @@ class CliParseTests(unittest.TestCase):
             "--format",
             "json",
             "--scenario",
-            "04-jep483-aot-cache",
+            "02-jep483-aot-cache",
             "--variant",
             "with-aot-cache",
             "--output",
@@ -185,7 +185,7 @@ class CliParseTests(unittest.TestCase):
         self.assertEqual(args.command, "benchmark")
         self.assertEqual(args.benchmark_command, "analyze")
         self.assertEqual(args.format, "json")
-        self.assertEqual(args.scenario, "04-jep483-aot-cache")
+        self.assertEqual(args.scenario, "02-jep483-aot-cache")
         self.assertEqual(args.variant, "with-aot-cache")
         self.assertEqual(args.output, "out.json")
         self.assertEqual(args.fail_on_success_rate_below, 99.5)

@@ -10,9 +10,9 @@ AppCDS, pinned digests, and so on); only the `recipe` field changes per file.
 | `spring-aot.Dockerfile` | `spring-aot` | Spring AOT processing in the build stage |
 | `native-aot.Dockerfile` | `native-aot` | GraalVM native-image scaffold (experimental) |
 
-## Runtime default (scenario 06 evidence)
+## Runtime default (scenario 03 evidence)
 
-Pinned sample results for jlink on each OS base (`benchmarks/06-base-image-choice/results/baseline.json`):
+Pinned sample results for jlink on each OS base (`benchmarks/03-base-image-choice/results/baseline.json`):
 
 | Base | Image avg | Build avg | Startup avg |
 |---|---:|---:|---:|
