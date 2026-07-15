@@ -1,0 +1,13 @@
+date,scenario,variant,run,build_ms,image_bytes,startup_ms,status,notes,host,docker_version,run_profile,gc_pause_ms,alloc_mb,startup_phase_boot_ms,startup_phase_context_ms,startup_phase_web_server_ms
+2026-06-18,03-base-image-choice,alpine,1,1229,65378588,1580,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,alpine,2,816,65378588,1585,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,alpine,3,764,65378588,1584,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,debian-slim,1,615,90110432,1582,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,debian-slim,2,660,90110432,1579,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,debian-slim,3,573,90110432,1590,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,distroless,1,1003,70959895,1601,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,distroless,2,928,70959895,1588,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,distroless,3,947,70959895,1343,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,ubuntu,1,1111,90024049,1588,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,ubuntu,2,1080,90024049,1580,ok,,Mac.fritz.box,055a478,quick,,,,,
+2026-06-18,03-base-image-choice,ubuntu,3,762,90024049,1850,ok,,Mac.fritz.box,055a478,quick,,,,,
