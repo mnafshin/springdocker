@@ -20,9 +20,9 @@ Resolved in [#87](https://github.com/mnafshin/springdocker/issues/87) — see [A
 
 **Not primary: lab-only research tooling.** Stress-testing happens in-repo; the shipped CLI is general-purpose for real projects.
 
-### Java 25 / Spring Boot 4 in the reference sample
+### Java 25 / Spring Boot 4 in the reference sample (not CLI default)
 
-The benchmark sample uses bleeding-edge versions to exercise generator output and publish evidence. That is intentional for the **secondary** audience. Production users configure `java_version` and profiles for their own LTS or current JDK — see [team-adoption.md](team-adoption.md). The sample version choice is a **feature for evidence depth**, not a requirement for adoption.
+The benchmark sample uses bleeding-edge versions to exercise generator output and publish evidence. That is intentional for the **secondary** audience. The **CLI** falls back to **Java 17** when the project version is undetected. Production users configure `java_version` and profiles for their own LTS or current JDK — see [team-adoption.md](team-adoption.md). The sample version choice is a **feature for evidence depth**, not a requirement for adoption.
 
 ## Distribution
 
@@ -48,7 +48,7 @@ springdocker is a **general-purpose CLI** for Maven and Gradle Spring Boot proje
 | Optional benchmark asset generation, run, and analyze | Universal JVM tuning prescriptions for every workload |
 | Plugin hooks for recipes, mutators, and verifiers | Full compatibility matrix across all Spring Boot versions |
 
-The CLI defaults and docs use a **reference sample** (Spring Boot 4, Java 25 under `samples/java-spring-docker/`). That sample drives benchmark evidence and presentation numbers. It is not a claim that every user must run Java 25 or Spring Boot 4 — the generator supports Java 17+ and works against minimal Maven/Gradle fixtures in CI.
+The CLI supports **Java 17+** on any Maven/Gradle Spring Boot project. When `java_version` is omitted, springdocker prefers the **detected** project Java, then falls back to **17**. The **reference sample** under `samples/java-spring-docker/` stays on Spring Boot 4 / Java 25 to drive benchmark evidence and presentation numbers — that is not a claim that every user must run Java 25.
 
 ## Shipped guarantees (CI-evidenced)
 
@@ -99,11 +99,13 @@ Resolved in [#95](https://github.com/mnafshin/springdocker/issues/95) — see [`
 
 ## Reference stack vs compatibility
 
-| Layer | Reference (sample/docs) | Broader support |
+| Layer | CLI / production path | Reference sample (evidence) |
 |---|---|---|
-| Spring Boot | 4.0.1 sample app | Maven/Gradle projects with Spring Boot markers; see [`compatibility-matrix.md`](compatibility-matrix.md) for descriptive support ranges |
-| Java (generated Dockerfiles) | 25 in sample config | Generator requires Java ≥17 |
-| Python CLI | 3.12 in CI | Requires Python ≥3.10 |
+| Spring Boot | Maven/Gradle projects with Spring Boot markers | 4.0.1 sample app |
+| Java | Floor **17**; init/undetected fallback **17**; JEP 483 AOT **24+** | **25** in sample `.springdocker.toml` (includes scenario 02) |
+| Python CLI | Requires Python ≥3.10 | 3.12 in CI |
+
+Feature matrix: [jvm-optimization.md](jvm-optimization.md) · support ranges: [compatibility-matrix.md](compatibility-matrix.md).
 
 Production teams set `java_version` in `.springdocker.toml` for their service. The reference sample stays on current JDK/Spring Boot for benchmark and presentation refresh — see [ADR 0008](adr/0008-target-audience.md).
 

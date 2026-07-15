@@ -20,6 +20,8 @@ springdocker dockerfile generate --project-root .
 springdocker verify --project-root . Dockerfile.generated
 ```
 
+Set `java_version` in `.springdocker.toml` to your service (**17+**). Undetected fallback is **17**. JEP 483 AOT requires **24+**.
+
 Team rollout: [team-adoption.md](team-adoption.md).
 
 ## Contributor quickstart (clone)
@@ -33,7 +35,7 @@ Use `tests/fixtures/{maven-only,gradle-only}/` for CLI regression work. Use `sam
 
 ## Benchmark evidence (clone + Docker)
 
-Requires repository clone, `[benchmark]` extra, and Docker:
+Requires repository clone, `[benchmark]` extra, and Docker. The sample pins **Java 25** so scenario 02 (JEP 483) is included:
 
 ```bash
 pipx install 'springdocker[benchmark]'   # or editable .[dev] from a clone
@@ -44,6 +46,7 @@ springdocker benchmark analyze --project-root samples/java-spring-docker \
   samples/java-spring-docker/benchmarks/01-custom-jre-jlink/results/raw.csv --format table
 ```
 
+On your own Java 17–23 service, scenario `02-jep483-aot-cache` is omitted; AppCDS (scenario 05) remains available.
 ## What to look at first
 
 - `README.md` — install paths and when to clone

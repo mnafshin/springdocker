@@ -11,6 +11,8 @@ Browseable recipe preset Dockerfiles are written to [`../example-dockerfiles/rec
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 ```
 
+This sample uses Java **25** so scenario `02-jep483-aot-cache` is included. On Java &lt; 24 that scenario is omitted; AppCDS (`05-appcds`) remains available on Java 17+.
+
 Run benchmarks (native scaffold skipped by default):
 
 ```bash

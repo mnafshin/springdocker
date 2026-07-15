@@ -217,6 +217,23 @@
           </div>
         </section>
 
+        <!-- 2.1b Java version matrix -->
+        <section>
+          <span class="badge">Java support</span>
+          <h2>Java <span class="accent">17+</span> for every service</h2>
+          <table>
+            <thead><tr><th>Capability</th><th>Min Java</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>CLI / Dockerfile generate</td><td class="good">17</td><td>Undetected fallback is <strong>17</strong> (not the sample’s 25)</td></tr>
+              <tr><td>jlink · layered JAR · AppCDS · JVM flags</td><td class="good">17</td><td>Always available on supported JDKs</td></tr>
+              <tr><td>JEP 483 AOT cache</td><td class="warn">24</td><td>Explicit enable hard-fails below 24</td></tr>
+              <tr><td><code>fast-cold-start</code> profile</td><td class="good">17</td><td>AOT on 24+; remaps to AppCDS on 17–23</td></tr>
+              <tr><td>This deck’s benchmark numbers</td><td>25</td><td>Reference sample only — not a requirement for adoption</td></tr>
+            </tbody>
+          </table>
+          <p class="muted" style="margin-top: 0.8em;">Set <code>java_version</code> in <code>.springdocker.toml</code> to your service toolchain.</p>
+        </section>
+
         <!-- 2.2 Config-first commands -->
         <section>
           <span class="badge">Config-first. Four commands.</span>
@@ -286,7 +303,7 @@
 
         <!-- 3.2 Image size -->
         <section>
-          <span class="badge">Image size · Spring Boot 4 · Java 25</span>
+          <span class="badge">Image size · sample evidence · Spring Boot 4 · Java 25</span>
           <h3>Scenario evidence → final image size</h3>
           <div style="margin-top: 1em;">
             <div class="bar-row"><span class="label">temurin‑jre image</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="01-custom-jre-jlink/temurin-jre-image/image_mb_avg" style="width:100%;"></div></div><span class="val" data-benchmark="01-custom-jre-jlink/temurin-jre-image/image_mb_avg">130.28 MB</span></div>
@@ -301,7 +318,7 @@
 
         <!-- 3.3 Cold start -->
         <section>
-          <span class="badge">Cold start · ready for traffic</span>
+          <span class="badge">Cold start · sample evidence · Java 25 (AOT needs 24+)</span>
           <h3>Time from <code>docker run</code> to actuator readiness</h3>
           <div style="margin-top: 1em;">
             <div class="bar-row"><span class="label">JVM baseline</span><div class="bar-wrap"><div class="bar bad" data-benchmark-bar="01-custom-jre-jlink/without-jlink-runtime/startup_avg_ms" style="width:100%;"></div></div><span class="val" data-benchmark="01-custom-jre-jlink/without-jlink-runtime/startup_avg_ms">1,556 ms</span></div>
@@ -310,7 +327,7 @@
             <div class="bar-row"><span class="label">with‑aot‑cache</span><div class="bar-wrap"><div class="bar" data-benchmark-bar="02-jep483-aot-cache/with-aot-cache/startup_avg_ms" style="width:62%;"></div></div><span class="val" data-benchmark="02-jep483-aot-cache/with-aot-cache/startup_avg_ms">968 ms</span></div>
             <div class="bar-row"><span class="label">native‑aot*</span><div class="bar-wrap"><div class="bar" style="width:15%;"></div></div><span class="val">308 ms</span></div>
           </div>
-          <p class="muted" style="margin-top: 1em;">Each bar is a different scenario lever — same cross-cutting view as the evidence deck. * native reference only · scaffold recipe today.</p>
+          <p class="muted" style="margin-top: 1em;">AppCDS is available on Java 17+. AOT (scenario 02) is generated only when project Java ≥ 24 — this sample runs 25. On 17–23 use AppCDS; <code>fast-cold-start</code> remaps automatically. * native reference only · scaffold recipe today.</p>
         </section>
 
         <!-- 3.4 Security -->
@@ -360,7 +377,7 @@
             <thead><tr><th>Profile</th><th>Best for</th><th>Image trend</th><th>Cold-start trend</th></tr></thead>
             <tbody>
               <tr><td><code>production-balanced</code></td><td>Team default — distroless + jlink + supply chain</td><td>distroless + jlink (~68 MB)</td><td>~1.5 s startup</td></tr>
-              <tr><td><code>fast-cold-start</code></td><td>JEP 483 AOT cache when Java 24+</td><td>similar</td><td>~968 ms (scenario 02)</td></tr>
+              <tr><td><code>fast-cold-start</code></td><td>Java 24+: JEP 483 AOT; 17–23: AppCDS fallback</td><td>similar</td><td>~968 ms AOT (sample 25) / AppCDS on LTS</td></tr>
               <tr><td><code>smallest-image</code></td><td>Registry cost / fleet bandwidth</td><td>alpine + jlink (~62 MB)</td><td>trade-off vs glibc</td></tr>
               <tr><td><code>compliance</code></td><td>SBOM, digest pins, OCI labels, reproducible controls</td><td>similar</td><td>similar</td></tr>
             </tbody>
@@ -394,7 +411,7 @@ USER nonroot
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", \
   "-Djava.io.tmpdir=/tmp", "org.springframework.boot.loader.launch.JarLauncher"]</code></pre>
-          <p class="muted" style="margin-top: 0.8em;">Abbreviated from <code>example-dockerfiles/recipes/jvm-balanced.Dockerfile</code>. Probe readiness in Kubernetes — no shell HEALTHCHECK on distroless.</p>
+          <p class="muted" style="margin-top: 0.8em;">Abbreviated from the Java <strong>25</strong> sample recipe. Your service can use Java <strong>17+</strong> — set <code>java_version</code> in config. Probe readiness in Kubernetes — no shell HEALTHCHECK on distroless.</p>
         </section>
 
         <!-- 4.4 Verify -->

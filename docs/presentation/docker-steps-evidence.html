@@ -25,6 +25,7 @@
       <span class="badge">JUG · Spring Boot containers</span>
       <h1 class="hero-title">Docker steps<br><em>with evidence</em></h1>
       <p class="muted">Why each Dockerfile decision exists — and what you gain from scenarios 01–05</p>
+      <p class="tiny" style="margin-top: 0.6em;">Sample evidence: Spring Boot 4 · <strong>Java 25</strong> · CLI supports Java <strong>17+</strong> (AOT / scenario 02 need 24+)</p>
       <p class="tiny" style="margin-top: 1.2em;">STEPS &amp; BENEFITS · Press → · Speaker notes: <kbd>S</kbd></p>
       <aside class="notes">Frame the talk: most teams can build a container; fewer can explain why each line is there.</aside>
     </section>
@@ -98,10 +99,10 @@ springdocker benchmark analyze benchmarks/01-custom-jre-jlink/results/raw.csv</c
         <thead><tr><th>Scenario</th><th>Default</th><th>Why</th></tr></thead>
         <tbody>
           <tr><td>01 JLink + jdeps</td><td class="good">ON (+ must-have modules)</td><td>Major size win, stable startup</td></tr>
-          <tr><td>02 JEP 483 AOT cache</td><td class="warn">Conditional</td><td>Tail latency improvement varies</td></tr>
+          <tr><td>02 JEP 483 AOT cache</td><td class="warn">Java 24+ only</td><td>Generated when project Java ≥ 24; sample runs 25</td></tr>
           <tr><td>03 Base image</td><td class="good">Distroless + jlink</td><td><code>production-balanced</code> profile default; scenario 03 compares OS bases</td></tr>
           <tr><td>04 Native vs JVM</td><td class="warn">Scaffold / selective</td><td>Cold start vs build time tradeoff</td></tr>
-          <tr><td>05 AppCDS</td><td class="good">ON when layered JAR</td><td>Faster startup from shared archive</td></tr>
+          <tr><td>05 AppCDS</td><td class="good">ON when layered JAR (Java 17+)</td><td>Faster startup from shared archive</td></tr>
         </tbody>
       </table>
     </section>
@@ -176,7 +177,7 @@ ENV JAVA_HOME=/opt/java
           <tr><td>without-aot-cache</td><td class="good"><span data-benchmark="02-jep483-aot-cache/without-aot-cache/image_mb_avg">167.82 MB</span></td><td class="good"><span data-benchmark="02-jep483-aot-cache/without-aot-cache/build_avg_ms">626 ms</span></td><td class="risk"><span data-benchmark="02-jep483-aot-cache/without-aot-cache/startup_avg_ms">1,248 ms</span></td><td class="good"><span data-benchmark="02-jep483-aot-cache/without-aot-cache/startup_p95_ms">1,350 ms</span></td></tr>
         </tbody>
       </table>
-      <p class="scenario-foot">Java 24+ · requires jlink runtime · mutually exclusive with AppCDS in generator</p>
+      <p class="scenario-foot">Java 24+ only (hard-fail below 24) · requires jlink · mutually exclusive with AppCDS · sample harness uses Java 25</p>
     </section>
     <section>
       <span class="badge warn">Decision 02</span>
@@ -204,7 +205,7 @@ ENTRYPOINT ["java", "-XX:AOTCache=/app/app.aot", …]</code></pre>
 ENTRYPOINT ["java", …, "JarLauncher"]</code></pre>
           </div>
         </div>
-        <div class="config-map-foot">Mutually exclusive with <code>enable_appcds</code> · Java 24+ only</div>
+        <div class="config-map-foot">Mutually exclusive with <code>enable_appcds</code> · Java 24+ only (generator omits this scenario when Java &lt; 24)</div>
       </div>
     </section>
   </section>
@@ -321,6 +322,7 @@ RUN ./mvnw package -DskipTests
           <tr><td>without-appcds</td><td class="good"><span data-benchmark="05-appcds/without-appcds/image_mb_avg">167.82 MB</span></td><td class="warn"><span data-benchmark="05-appcds/without-appcds/build_avg_ms">622 ms</span></td><td class="warn"><span data-benchmark="05-appcds/without-appcds/startup_avg_ms">1,281 ms</span></td><td class="good"><span data-benchmark="05-appcds/without-appcds/startup_p95_ms">1,337 ms</span></td></tr>
         </tbody>
       </table>
+      <p class="scenario-foot">Java 17+ · works with layered JAR · mutually exclusive with JEP 483 AOT in the same image</p>
       <pre><code data-trim data-noescape># Train at build
 java -XX:ArchiveClassesAtExit=app.jsa -jar app.jar
 # Load at runtime
@@ -354,7 +356,7 @@ ENTRYPOINT ["java", "-XX:SharedArchiveFile=/app/app.jsa", …]</code></pre>
 ENTRYPOINT ["java", …, "JarLauncher"]</code></pre>
           </div>
         </div>
-        <div class="config-map-foot">Requires <code>use_layered_jar = true</code> · mutually exclusive with JEP 483 AOT cache</div>
+        <div class="config-map-foot">Requires <code>use_layered_jar = true</code> · Java 17+ · mutually exclusive with JEP 483 AOT cache</div>
       </div>
     </section>
   </section>
@@ -509,8 +511,8 @@ USER root</code></pre>
         <tbody>
           <tr><td>Security baseline</td><td class="good">Always ON</td><td>Never in production</td></tr>
           <tr><td>JLink / jdeps</td><td class="good">ON</td><td>Proven module compatibility blocker</td></tr>
-          <tr><td>AppCDS</td><td class="good">ON</td><td>Build stage cannot train archive</td></tr>
-          <tr><td>JEP 483 AOT cache</td><td class="warn">Conditional</td><td>No repeatable p95 gain</td></tr>
+          <tr><td>AppCDS</td><td class="good">ON (Java 17+)</td><td>Build stage cannot train archive</td></tr>
+          <tr><td>JEP 483 AOT cache</td><td class="warn">Java 24+ only</td><td>No repeatable p95 gain · or still on Java 17–23</td></tr>
           <tr><td>Base image</td><td class="good">Distroless + jlink</td><td>Need shell tooling or musl-only footprint</td></tr>
           <tr><td>Native image</td><td class="warn">Selective</td><td>Throughput or build-time priority</td></tr>
         </tbody>

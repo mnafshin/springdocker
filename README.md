@@ -18,8 +18,8 @@ Resolved in [#87](https://github.com/mnafshin/springdocker/issues/87) — see [`
 
 | Audience | Fit |
 |---|---|
-| **Production teams** (primary) | Adopt via PyPI on **your** Maven/Gradle service — config-first Dockerfile workflow, explain/verify in CI, Java **17+** on your project |
-| **Conference / storytelling** (secondary) | Clone for presentations and benchmark evidence under `samples/java-spring-docker/` — numbers are sample-specific, not universal guarantees |
+| **Production teams** (primary) | Adopt via PyPI on **your** Maven/Gradle service — config-first Dockerfile workflow, explain/verify in CI, Java **17+** (undetected fallback **17**; JEP 483 AOT **24+**) |
+| **Conference / storytelling** (secondary) | Clone for presentations and benchmark evidence under `samples/java-spring-docker/` (**Java 25** sample) — numbers are sample-specific, not universal guarantees |
 | **Personal lab only** (not primary) | Bleeding-edge sample (Boot 4 / Java 25) stress-tests the generator inside the repo; you do not need to match those versions to use the CLI |
 
 **Not** a black-box image builder like Jib or Buildpacks — you own the Dockerfile. **Not** a research-only toy — CI gates the installable CLI; benchmarks and decks are optional depth.
@@ -265,11 +265,11 @@ Documentation uses three status labels:
 - `docs/team-adoption.md`
 - `docs/troubleshooting.md`
 - `docs/typing-roadmap.md` — gradual mypy strictness and module rollout plan
-- `docs/jvm-optimization.md`
+- `docs/jvm-optimization.md` — Java feature matrix (17+ floor; JEP 483 from 24+)
 - `docs/distribution.md`
-- `docs/presentation/README.md` — Reveal.js decks: ownership, update cadence, commit/publish policy
+- `docs/presentation/README.md` — Reveal.js decks: ownership, update cadence, commit/publish policy; sample evidence is Java 25
 - `docs/example-gallery.md` — index of committed Dockerfile and benchmark JSON examples under `docs/examples/`
-- `docs/compatibility-matrix.md` — descriptive support ranges (Java 17+, Python 3.10+, etc.)
+- `docs/compatibility-matrix.md` — descriptive support ranges (Java 17+, AOT 24+, Python 3.10+, etc.)
 - `SECURITY.md`
 - `CONTRIBUTING.md`
 

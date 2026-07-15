@@ -1,6 +1,8 @@
 # java-spring-docker sample project
 
-This sample Spring Boot 4 / Java 25 project is used to exercise `springdocker` CLI workflows.
+This sample Spring Boot 4 / **Java 25** project is the **reference evidence harness** for `springdocker` CLI workflows, benchmarks, and presentation numbers.
+
+It is intentionally ahead of the CLI’s production default: when your service omits `java_version`, springdocker falls back to **Java 17**, and JEP 483 AOT requires **24+**. You do not need to match this sample’s JDK to adopt the CLI — set `java_version` in `.springdocker.toml` to your toolchain.
 
 ## Config-first team workflow
 

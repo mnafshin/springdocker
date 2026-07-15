@@ -23,7 +23,7 @@ Slide **content** (wording, structure, new sections) and bound **numbers** (from
 |---|---|
 | **Before a conference or meetup talk** | Run `update_presentation_benchmarks.py --check`; refresh with `--profile full` if numbers are stale; commit HTML if bindings changed. |
 | **After benchmark scenario or sample-app changes** | Regenerate bindings and commit updated `*.html` in the same PR when feasible. |
-| **After CLI/product changes** (configure, verify, profiles) | Manually update narrative slides in `springdocker-features.html`; numbers may be unchanged. |
+| **After CLI/product changes** (configure, verify, profiles, **Java feature matrix**) | Manually update narrative slides in `springdocker-features.html` and techniques/evidence decks; numbers may be unchanged. |
 | **Routine maintenance** | No fixed schedule — refresh when presenting or when pinned CI baseline CSVs (`samples/.../results/`) change materially. |
 | **Ephemeral helper output** | Regenerate `benchmark-summary.md` locally anytime; never commit (gitignored). |
 
@@ -125,4 +125,6 @@ Scenario **04 (native)** is not measured by the runner (`--skip-native` by defau
 ## Notes
 
 - Reveal.js loads from CDN (no local npm setup required).
-- Numbers are sample evidence from `samples/java-spring-docker/` — reproduce on your machine before citing absolutes in a live talk.
+- Numbers are sample evidence from `samples/java-spring-docker/` (**Spring Boot 4 / Java 25**) — reproduce on your machine before citing absolutes in a live talk.
+- **Product vs sample Java:** the CLI supports **Java 17+** (undetected fallback **17**). JEP 483 AOT and scenario `02-jep483-aot-cache` require **Java 24+** and appear in these decks because the sample runs 25. On Java 17–23, prefer AppCDS; profile `fast-cold-start` remaps to AppCDS automatically.
+- After CLI Java-matrix or profile changes, update narrative slides (not only CSV bindings) — see cadence table above.

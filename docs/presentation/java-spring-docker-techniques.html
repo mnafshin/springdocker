@@ -24,6 +24,7 @@
       <span class="badge">JUG · Spring Boot containers</span>
       <h1 class="hero-title">Spring Boot<br>in <em>Docker</em></h1>
       <p class="muted" style="margin-top: 0.6em; max-width: 36ch;">Techniques for production images — what to do, why it matters, and how to write it in a Dockerfile.</p>
+      <p class="tiny" style="margin-top: 0.8em;">Techniques apply from <strong>Java 17+</strong> · JEP&nbsp;483 AOT needs <strong>24+</strong> · snippets often show Temurin 25 tags</p>
       <p class="tiny" style="margin-top: 1.2em;">Press → · Speaker notes: <kbd>S</kbd></p>
       <aside class="notes">Frame: this is a Java/Spring engineering talk, not a product demo. Goal is transferable Dockerfile craft.</aside>
     </section>
@@ -169,7 +170,7 @@ ENTRYPOINT ["java", "-jar", "org.springframework.boot.loader.launch.JarLauncher"
       <h2>Faster startup without native image</h2>
       <p>Spring Boot on the JVM can still improve time-to-readiness. Pick one primary lever and measure on <em>your</em> service.</p>
       <div class="grid grid-3" style="margin-top: 0.8em;">
-        <div class="card"><h4>AppCDS</h4><p>Shared class archive trained at build, loaded at runtime.</p></div>
+        <div class="card"><h4>AppCDS</h4><p>Java 17+ shared class archive trained at build, loaded at runtime.</p></div>
         <div class="card"><h4>JEP 483 AOT cache</h4><p>Java 24+ class-loading cache — needs custom jlink runtime.</p></div>
         <div class="card warn"><h4>Native image</h4><p>Coldest start — longer builds and compatibility work.</p></div>
       </div>
@@ -187,7 +188,7 @@ RUN cd /layers && java -XX:ArchiveClassesAtExit=/layers/app.jsa \
 # Runtime stage
 COPY --from=build /layers/app.jsa /app/app.jsa
 ENTRYPOINT ["java", "-XX:SharedArchiveFile=/app/app.jsa", …, "JarLauncher"]</code></pre>
-      <p class="muted" style="margin-top: 0.6em;">Mutually exclusive with JEP 483 AOT cache in the same image — choose one path.</p>
+      <p class="muted" style="margin-top: 0.6em;">Available on Java 17+. Mutually exclusive with JEP 483 AOT cache in the same image — choose one path.</p>
     </section>
 
     <section>
@@ -289,7 +290,7 @@ ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
         <li>Enforce security baseline — non-root, digest pins, SBOM</li>
         <li>Multi-stage + layered JAR; use cache mounts if CI rebuilds are slow</li>
         <li>Trim runtime with jlink; pick base image for your constraints</li>
-        <li>Add one startup lever (AppCDS or JEP 483) only if you measure a win</li>
+        <li>Add one startup lever (AppCDS on 17+, or JEP 483 on 24+) only if you measure a win</li>
         <li>Consider native image only when cold start truly dominates</li>
       </ol>
     </section>
@@ -304,8 +305,8 @@ ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
           <tr><td>Layered JAR + multi-stage</td><td class="good">ON</td><td>Throwaway prototype only</td></tr>
           <tr><td>JLink / jdeps</td><td class="good">ON</td><td>Proven module compatibility blocker</td></tr>
           <tr><td>Base image</td><td class="good">Distroless + jlink</td><td>Need shell tooling or musl-only footprint</td></tr>
-          <tr><td>AppCDS</td><td class="good">ON with layered JAR</td><td>Build cannot train archive</td></tr>
-          <tr><td>JEP 483 AOT cache</td><td class="warn">Try on Java 24+</td><td>No measurable startup gain</td></tr>
+          <tr><td>AppCDS</td><td class="good">ON with layered JAR (Java 17+)</td><td>Build cannot train archive</td></tr>
+          <tr><td>JEP 483 AOT cache</td><td class="warn">Try on Java 24+</td><td>Still on Java 17–23, or no measurable startup gain</td></tr>
           <tr><td>Native image</td><td class="warn">Selective</td><td>Throughput or build time priority</td></tr>
         </tbody>
       </table>
@@ -316,7 +317,7 @@ ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
   <section data-background-gradient="radial-gradient(circle at 50% 40%,#1d3c34 0%,#0a0d12 60%)">
     <span class="badge">Side project</span>
     <h2>I built a tool for this</h2>
-    <p style="font-size: 0.95em; max-width: 42ch; margin-top: 0.6em;">After applying these techniques by hand on several services, I open-sourced <strong>springdocker</strong> — a CLI that encodes the patterns from this talk into generated Dockerfiles and CI checks.</p>
+    <p style="font-size: 0.95em; max-width: 42ch; margin-top: 0.6em;">After applying these techniques by hand on several services, I open-sourced <strong>springdocker</strong> — a CLI that encodes the patterns from this talk into generated Dockerfiles and CI checks (Java 17+ floor; AOT gated to 24+).</p>
     <p class="muted" style="margin-top: 0.8em;">Optional if you want automation — everything in this deck works without it.</p>
     <div class="pill-row" style="margin-top: 1.2em;">
       <span class="pill">github.com/mnafshin/springdocker</span>

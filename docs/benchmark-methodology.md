@@ -98,8 +98,10 @@ The CLI supports two profiles:
 
 Default run counts are scenario-aware:
 
-- `02-jep483-aot-cache`: 8 runs for `quick`, 15 for `full`
-- all other standard scenarios: 3 runs for `quick`, 10 for `full`
+- `02-jep483-aot-cache`: 8 runs for `quick`, 15 for `full` — **generated and run only when `java_version >= 24`**
+- all other standard scenarios: 3 runs for `quick`, 10 for `full` (including `05-appcds` on Java 17+)
+
+The reference sample pins Java 25 so the full scenario set (including JEP 483) is present for presentations and local full runs. On a Java 17–23 service, regenerate and runner omit scenario 02.
 
 You can override the number of runs with `benchmark run --runner-arg --runs --runner-arg N`.
 

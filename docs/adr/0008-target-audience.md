@@ -39,17 +39,18 @@ Research and stress-testing happen **inside the repo** (reference sample, benchm
 CI baselines). Users install from PyPI and point the CLI at **their own** Spring Boot project; they
 do not need to match Java 25 or Spring Boot 4.
 
-### How this resolves Java 25 / Boot 4 defaults
+### How this resolves Java version defaults
 
 | Surface | Role |
 |---|---|
-| User's service + `springdocker init` / `configure` | Production path — pick Java version and profile for **your** stack |
-| `samples/java-spring-docker/` | Reference / evidence anchor — stress-test generator and publish benchmark numbers |
-| Presentations under `docs/presentation/` | Storytelling — sample evidence, not fleet guarantees |
+| User's service + `springdocker init` / `configure` | Production path — **Java 17** floor; undetected fallback **17**; pick profile for **your** stack |
+| Feature gates | AppCDS / jlink / layered JAR on **17+**; JEP 483 AOT hard-requires **24+**; `fast-cold-start` remaps to AppCDS on 17–23 |
+| `samples/java-spring-docker/` | Reference / evidence anchor — Java **25** for stress-test + AOT scenario numbers |
+| Presentations under `docs/presentation/` | Storytelling — sample evidence (often Java 25), not fleet guarantees |
 
 Bleeding-edge versions in the sample are a **feature for evidence depth**, not a **liability** for
-production users. LTS-first rollout is supported via config (`java_version`, profiles) on real
-projects; the sample stays ahead of the curve for benchmark and talk refresh.
+production users. LTS-first rollout is the default CLI path; the sample stays ahead of the curve for
+benchmark and talk refresh.
 
 ## Consequences
 
@@ -57,9 +58,8 @@ projects; the sample stays ahead of the curve for benchmark and talk refresh.
 - PyPI-first distribution ([ADR 0006](0006-pypi-first-distribution.md)) aligns with the primary audience.
 - Benchmark/presentation assets remain in the main repo ([ADR 0004](0004-sample-project-strategy.md),
   [#91](https://github.com/mnafshin/springdocker/issues/91)) as secondary-audience support.
-- [#69](https://github.com/mnafshin/springdocker/issues/69) (Java 25 / Boot 4 defaults for general
-  audience) is addressed by separating reference sample from user defaults — not by forcing LTS on
-  the evidence harness.
+- [#69](https://github.com/mnafshin/springdocker/issues/69) (Java 25 / Boot 4 as *user* defaults) is
+  addressed by CLI fallback **17** and keeping Java 25 only on the evidence harness.
 
 ## References
 
