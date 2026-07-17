@@ -6,4 +6,4 @@ __all__ = ["__version__"]
 try:
     __version__ = version("springdocker")
 except PackageNotFoundError:  # pragma: no cover - local source tree fallback
-    __version__ = "1.1.1"
+    __version__ = "1.2.0"
