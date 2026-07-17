@@ -81,7 +81,7 @@ Then open:
 
 | Deck | File | Audience |
 |---|---|---|
-| **Java/Spring Docker techniques** | [`java-spring-docker-techniques.html`](java-spring-docker-techniques.html) | JUG/meetup talks — Dockerfile craft, no benchmarks; brief springdocker mention at the end |
+| **Java/Spring Docker techniques** | [`java-spring-docker-techniques.html`](java-spring-docker-techniques.html) | JUG/meetup talks — Dockerfile craft; one impact slide with sample deltas; brief springdocker mention at the end |
 | **Features & workflow** | [`springdocker-features.html`](springdocker-features.html) | Teams evaluating the CLI: configure, generate, explain, verify, plugins |
 | **Docker steps & evidence** | [`docker-steps-evidence.html`](docker-steps-evidence.html) | Engineers choosing build/runtime/JVM options with benchmark evidence |
 
@@ -116,7 +116,7 @@ Scenario **04 (native)** is not measured by the runner (`--skip-native` by defau
 
 ## Files
 
-- `java-spring-docker-techniques.html` — **recommended for live talks**: multi-stage, layered JAR, jlink, AppCDS, security — technique + Dockerfile only; springdocker on closing slide
+- `java-spring-docker-techniques.html` — **recommended for live talks**: multi-stage, layered JAR, jlink, AppCDS, security; wrap-up = impact → cost → bridges (drift → config/generate/verify) → short springdocker close
 - `springdocker-features.html` — features & workflow (config-first CLI)
 - `docker-steps-evidence.html` — scenarios 01–05 with benefits and **config key → Dockerfile** ON/OFF blocks per decision slide
 - `benchmark-summary.md` — generated markdown summary (gitignored)

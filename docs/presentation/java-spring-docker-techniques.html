@@ -311,19 +311,125 @@ ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
         </tbody>
       </table>
     </section>
+
+    <section>
+      <span class="badge pink">Impact</span>
+      <h2>Looks like polish. Ships like a rewrite.</h2>
+      <div class="grid grid-3" style="margin-top: 1.2em;">
+        <div class="stat"><span class="num">~48%</span><span class="lbl">Smaller image<br>130 MB → 68 MB</span></div>
+        <div class="stat"><span class="num">~38%</span><span class="lbl">Faster cold start<br>1.6 s → 0.97 s (AOT)</span></div>
+        <div class="stat"><span class="num">Baseline</span><span class="lbl">Non-root · digests · SBOM<br>without a second hardening pass</span></div>
+      </div>
+      <p class="tiny" style="margin-top: 1.2em;">Sample evidence: Spring Boot 4 / Java 25. Measure on your service before citing fleet absolutes.</p>
+      <aside class="notes">Lead with the three numbers. Next slide reframes the “nice polish” assumption.</aside>
+    </section>
+
+    <section>
+      <span class="badge pink">Impact</span>
+      <h2>Why teams still skip it</h2>
+      <div class="grid grid-2" style="margin-top: 1.2em;">
+        <div class="card danger"><h4>What people assume</h4><p>“A few MB, a second here or there — we’ll harden later.”</p></div>
+        <div class="card"><h4>What you actually get</h4><p>Distroless + jlink, layered multi-stage, security controls as the default path — not optional extras.</p></div>
+      </div>
+      <p class="muted" style="margin-top: 1.2em;">The pain is delayed and diffuse. The effort looks optional — until security, cost, or cold start force the conversation.</p>
+      <aside class="notes">Punch the underestimation, then move to cost: registry storage isn’t the ROI.</aside>
+    </section>
+
+    <section>
+      <span class="badge pink">Cost</span>
+      <h2>Smaller image ≠ big registry bill</h2>
+      <p style="font-size: 0.95em; margin-top: 0.4em;">Sample Δ ≈ <strong>~62 MB</strong> per full pull (130 → 68 MB). Storage is cheap; <span class="accent">pulls × network path × services</span> is where money shows up.</p>
+      <pre style="margin-top: 0.9em;"><code class="language-text" data-trim>GB/month ≈ 0.06 × pulls × (1 − cache_hit)
+$/month  ≈ GB/month × effective_$/GB</code></pre>
+      <table style="margin-top: 1.0em;">
+        <thead><tr><th>Situation</th><th>Rough monthly save</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>1 service, same-region free pulls</td><td class="warn">≈ $0 direct</td><td>ECR→EKS same region often free</td></tr>
+          <tr><td>1 service, NAT / cross-region / egress</td><td class="good">tens of $</td><td>~$0.05–0.09/GB on the path</td></tr>
+          <tr><td>20 services × frequent deploy + scale-out</td><td class="good">low hundreds $</td><td>Δ × pull volume</td></tr>
+          <tr><td>Large fleet / cold CI / multi-region</td><td class="good">$1k+/mo possible</td><td>cache misses + egress compound</td></tr>
+        </tbody>
+      </table>
+      <aside class="notes">Do not claim fake millions. Registry storage is not the ROI — offer the formula and let them fill in pull count and $/GB.</aside>
+    </section>
+
+    <section>
+      <span class="badge pink">Cost</span>
+      <h2>When the Δ pays off</h2>
+      <div class="grid grid-2" style="margin-top: 1.0em;">
+        <div class="card"><h4>Saves more when</h4>
+          <ul style="margin: 0.3em 0 0 0; padding-left: 1.1em;">
+            <li>Many services share the fat-image pattern</li>
+            <li>High pull rate — deploys, CI, scale-out</li>
+            <li>NAT, cross-region, or internet egress</li>
+            <li>Cold runners / spot churn / new regions</li>
+            <li>Long tag retention without lifecycle cleanup</li>
+          </ul>
+        </div>
+        <div class="card warn"><h4>Saves less when</h4>
+          <ul style="margin: 0.3em 0 0 0; padding-left: 1.1em;">
+            <li>One service, rare deploys</li>
+            <li>Same-region free registry pulls</li>
+            <li>Warm node / layer caches</li>
+            <li>Tags already pruned aggressively</li>
+          </ul>
+        </div>
+      </div>
+      <p class="muted" style="margin-top: 1.2em;">Order-of-magnitude only — plug in your pull count and $/GB. Security baseline and cold start still ride along on the same Dockerfile.</p>
+      <aside class="notes">Close the money arc. Next: even with a clear ROI, hand-maintained craft still drifts at fleet scale.</aside>
+    </section>
+
+    <section>
+      <span class="badge warn">The hard part</span>
+      <h2>Writing it once is easy. Keeping it true is not.</h2>
+      <div class="grid grid-2" style="margin-top: 1.0em;">
+        <div class="card danger"><h4>Hand-maintained craft</h4>
+          <ul style="margin: 0.3em 0 0 0; padding-left: 1.1em;">
+            <li>Copy the talk into one service</li>
+            <li>“We’ll harden in the next sprint”</li>
+            <li>Hero Dockerfile in a single repo</li>
+          </ul>
+        </div>
+        <div class="card warn"><h4>What actually happens</h4>
+          <ul style="margin: 0.3em 0 0 0; padding-left: 1.1em;">
+            <li>Next service ships Temurin + root again</li>
+            <li>Digests, SBOM, jlink never become habit</li>
+            <li>N services × silent drift</li>
+          </ul>
+        </div>
+      </div>
+      <p class="muted" style="margin-top: 1.1em;">The checklist and decision map only stick if they become a <span class="accent">default path you regenerate and gate in CI</span> — not tribal knowledge.</p>
+      <aside class="notes">20–30s. After impact/cost: craft alone still fails at scale. Next slide is the durable path.</aside>
+    </section>
+
+    <section>
+      <span class="badge">Durable baseline</span>
+      <h2>Strategy in git. Dockerfile as output. Drift fails CI.</h2>
+      <div class="grid grid-3" style="margin-top: 1.0em;">
+        <div class="card"><h4>1 · Strategy</h4><p><code>.springdocker.toml</code> — reviewable decisions (runtime, jlink, SBOM, pins…). The decision map as config.</p></div>
+        <div class="card"><h4>2 · Artifact</h4><p>Generated Dockerfile — multi-stage, layered JAR, jlink/distroless, hygiene. Owned, editable, in the PR.</p></div>
+        <div class="card"><h4>3 · Gate</h4><p><code>verify</code> (+ config-drift) — merges fail when the Dockerfile stops matching the strategy.</p></div>
+      </div>
+      <p style="font-size: 0.95em; margin-top: 1.0em;">That is what <strong>springdocker</strong> encodes from this talk — not a black-box image builder; a Dockerfile you still own.</p>
+      <div class="pill-row" style="margin-top: 0.8em;">
+        <span class="pill">Jib / Buildpacks → opaque</span>
+        <span class="pill">Hand-written → drifts</span>
+        <span class="pill">Generated + verify → defaults that stay true</span>
+      </div>
+      <aside class="notes">30–40s. Answer to the hard part. Close slide is just install links.</aside>
+    </section>
   </section>
 
   <!-- CLOSE -->
   <section data-background-gradient="radial-gradient(circle at 50% 40%,#1d3c34 0%,#0a0d12 60%)">
-    <span class="badge">Side project</span>
-    <h2>I built a tool for this</h2>
-    <p style="font-size: 0.95em; max-width: 42ch; margin-top: 0.6em;">After applying these techniques by hand on several services, I open-sourced <strong>springdocker</strong> — a CLI that encodes the patterns from this talk into generated Dockerfiles and CI checks (Java 17+ floor; AOT gated to 24+).</p>
-    <p class="muted" style="margin-top: 0.8em;">Optional if you want automation — everything in this deck works without it.</p>
+    <span class="badge">Try it</span>
+    <h2>springdocker</h2>
+    <p style="font-size: 0.95em; max-width: 42ch; margin-top: 0.6em;">Open-sourced path for the durable baseline: config in git, generated Dockerfile you own, verify in CI. Everything in this deck still works by hand.</p>
     <div class="pill-row" style="margin-top: 1.2em;">
       <span class="pill">github.com/mnafshin/springdocker</span>
       <span class="pill">pip install springdocker</span>
     </div>
-    <aside class="notes">Keep this to 30 seconds. Offer to chat after Q&amp;A — do not demo unless asked.</aside>
+    <aside class="notes">Keep under 20 seconds — the bridge already introduced the idea. Offer Q&amp;A; no demo unless asked.</aside>
   </section>
 
   <section data-background-gradient="radial-gradient(circle at 50% 40%,#1d3c34 0%,#0a0d12 60%)">
