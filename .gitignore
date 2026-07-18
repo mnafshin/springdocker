@@ -49,3 +49,6 @@ samples/java-spring-docker/
 docs/presentation/benchmark-summary.md
 
 *.egg-info/
+
+### Maven plugin ###
+integrations/maven-plugin/target/
