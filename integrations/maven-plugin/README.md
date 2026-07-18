@@ -64,12 +64,15 @@ Canonical type: `io.github.mnafshin.springdocker.maven.PluginDockerfileOptions`.
 | Goal | Status |
 |---|---|
 | `generate` | Implemented (pure Java; no Python) |
-| `verify` | [#144](https://github.com/mnafshin/springdocker/issues/144) |
+| `verify` | Implemented — fails on drift vs POM config |
 | `export-config` (optional toml) | [#143](https://github.com/mnafshin/springdocker/issues/143) |
 
 ```bash
 mvn springdocker:generate
+mvn springdocker:verify
 ```
+
+Unlike the Python CLI (`verify --check-config-drift` against `.springdocker.toml`), this Mojo checks the Dockerfile against **plugin `<configuration>` only**.
 
 ## Develop
 
