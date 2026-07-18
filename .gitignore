@@ -52,3 +52,5 @@ docs/presentation/benchmark-summary.md
 
 ### Maven plugin ###
 integrations/maven-plugin/target/
+integrations/gradle-plugin/build/
+integrations/gradle-plugin/.gradle/

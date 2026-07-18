@@ -46,7 +46,7 @@ public final class DockerfileDriftChecker {
         return text.lines().anyMatch(line -> line.trim().startsWith("HEALTHCHECK"));
     }
 
-    static String normalize(String text) {
+    public static String normalize(String text) {
         return text.replace("\r\n", "\n").strip() + "\n";
     }
 }
