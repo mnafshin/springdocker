@@ -16,6 +16,19 @@
   </description>
   <url>https://github.com/mnafshin/springdocker</url>
 
+  <scm>
+    <connection>scm:git:https://github.com/mnafshin/springdocker.git</connection>
+    <developerConnection>scm:git:https://github.com/mnafshin/springdocker.git</developerConnection>
+    <url>https://github.com/mnafshin/springdocker</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>springdocker contributors</name>
+      <organizationUrl>https://github.com/mnafshin/springdocker</organizationUrl>
+    </developer>
+  </developers>
+
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -91,4 +104,66 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>central-publish</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.3.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.6.3</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <skip>${gpg.skip}</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <distributionManagement>
+        <repository>
+          <id>central</id>
+          <url>https://central.sonatype.com/api/v1/publisher</url>
+        </repository>
+      </distributionManagement>
+      <properties>
+        <gpg.skip>true</gpg.skip>
+      </properties>
+    </profile>
+  </profiles>
 </project>

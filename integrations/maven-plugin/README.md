@@ -85,3 +85,5 @@ Unlike the Python CLI (`verify --check-config-drift` against `.springdocker.toml
 cd integrations/maven-plugin
 mvn test
 ```
+
+Maven Central publishing: see [PUBLISHING.md](PUBLISHING.md) ([#145](https://github.com/mnafshin/springdocker/issues/145)).
