@@ -10,6 +10,8 @@ Developer toolkit for **production teams** containerizing Spring Boot — with o
 
 ## Quick start
 
+### Python CLI (full toolkit — `.springdocker.toml` SSOT)
+
 ```bash
 pipx install springdocker
 cd /path/to/your-spring-boot-app
@@ -18,9 +20,30 @@ springdocker setup --ci
 
 That detects your Maven/Gradle project, writes `.springdocker.toml` (`production-balanced`), generates `Dockerfile.generated`, and adds `.github/workflows/dockerfile.yml` using the [springdocker GitHub Action](action/README.md).
 
-Already onboarded? `springdocker setup --ci-only`. Interactive profiles: `springdocker setup --interactive`. Team rollout: [`docs/adopt.md`](docs/adopt.md).
+Already onboarded? `springdocker setup --ci-only`. Interactive profiles: `springdocker setup --interactive`.
 
-`springdocker` is a Python CLI that helps teams inspect a Spring Boot project, commit Dockerfile strategy in `.springdocker.toml`, generate and verify Dockerfiles in CI, and (optionally) run benchmark suites for evidence-backed tuning.
+### Java builder plugin (Dockerfile only — POM SSOT, no Python)
+
+```xml
+<plugin>
+  <groupId>io.github.mnafshin</groupId>
+  <artifactId>springdocker-maven-plugin</artifactId>
+  <version>1.3.0-SNAPSHOT</version>
+</plugin>
+```
+
+```bash
+cd integrations/maven-plugin && mvn clean install   # until Maven Central (#145)
+cd your-spring-boot-app
+mvn springdocker:generate
+mvn springdocker:verify
+```
+
+No `.springdocker.toml` required. Optional later: `mvn springdocker:export-config` to bridge to the CLI. Details: [`integrations/maven-plugin/README.md`](integrations/maven-plugin/README.md) · [ADR 0010](docs/adr/0010-pom-gradle-ssot-java-builder.md).
+
+Team rollout for both surfaces: [`docs/adopt.md`](docs/adopt.md).
+
+`springdocker` is a Python CLI that helps teams inspect a Spring Boot project, commit Dockerfile strategy in `.springdocker.toml`, generate and verify Dockerfiles in CI, and (optionally) run benchmark suites for evidence-backed tuning. The **Maven plugin** is a separate Java-only builder surface for teams that only need generate/verify from `pom.xml`.
 
 See [`docs/POSITIONING.md`](docs/POSITIONING.md) for **who it is for**, CI-evidenced guarantees, and how the sample projects relate to shipped behavior.
 
@@ -220,6 +243,8 @@ Details: [`docs/jvm.md`](docs/jvm.md).
 | Doc | For |
 |---|---|
 | [`cli/README.md`](cli/README.md) | Commands, config schema, recipes |
+| [`integrations/maven-plugin/README.md`](integrations/maven-plugin/README.md) | Java builder plugin (POM SSOT) |
+| [`action/README.md`](action/README.md) | GitHub Action (Dockerfile SSOT gate) |
 | [`action/README.md`](action/README.md) | GitHub Action (Dockerfile SSOT gate) |
 | [`docs/adopt.md`](docs/adopt.md) | Team rollout, CI pipeline, FAQ |
 | [`docs/POSITIONING.md`](docs/POSITIONING.md) | Who it's for, CI guarantees, sample vs fixtures |
