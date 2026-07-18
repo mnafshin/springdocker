@@ -1,8 +1,0 @@
-{
-  "scenario": "03-base-image-choice",
-  "source_csv": "raw.csv",
-  "generated_by": "springdocker benchmark analyze",
-  "purpose": "Expected analyzer summary for the pinned sample CSV; used by the CI regression gate.",
-  "ci_job": "benchmark-regression",
-  "regenerate": "springdocker benchmark analyze --project-root samples/java-spring-docker benchmarks/03-base-image-choice/results/raw.csv --format json --output benchmarks/03-base-image-choice/results/baseline.json"
-}
