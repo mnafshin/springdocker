@@ -63,9 +63,13 @@ Canonical type: `io.github.mnafshin.springdocker.maven.PluginDockerfileOptions`.
 
 | Goal | Status |
 |---|---|
-| `generate` | [#142](https://github.com/mnafshin/springdocker/issues/142) |
+| `generate` | Implemented (pure Java; no Python) |
 | `verify` | [#144](https://github.com/mnafshin/springdocker/issues/144) |
 | `export-config` (optional toml) | [#143](https://github.com/mnafshin/springdocker/issues/143) |
+
+```bash
+mvn springdocker:generate
+```
 
 ## Develop
 
