@@ -244,6 +244,7 @@ Details: [`docs/jvm.md`](docs/jvm.md).
 |---|---|
 | [`cli/README.md`](cli/README.md) | Commands, config schema, recipes |
 | [`integrations/maven-plugin/README.md`](integrations/maven-plugin/README.md) | Java builder plugin (POM SSOT) |
+| [`integrations/gradle-plugin/README.md`](integrations/gradle-plugin/README.md) | Gradle builder plugin (build.gradle SSOT) |
 | [`action/README.md`](action/README.md) | GitHub Action (Dockerfile SSOT gate) |
 | [`action/README.md`](action/README.md) | GitHub Action (Dockerfile SSOT gate) |
 | [`docs/adopt.md`](docs/adopt.md) | Team rollout, CI pipeline, FAQ |

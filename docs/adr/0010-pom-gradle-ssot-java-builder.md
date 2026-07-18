@@ -18,7 +18,7 @@ Options considered:
 
 [ADR 0005](0005-config-first-dockerfile-generation.md) remains correct for the **Python CLI** surface (`.springdocker.toml` SSOT). This ADR defines a **second surface** for Java build tools.
 
-A transitional CLI-wrapper plugin was prototyped locally; it is **not** the long-term Java UX and will be retired or quarantined once the pure-Java generator ships ([#148](https://github.com/mnafshin/springdocker/issues/148)).
+A transitional **CLI-wrapper** Maven plugin (Mojo → `springdocker` subprocess) was prototyped during exploration and kept only in a local git stash. It is **not** shipped on this branch and **must not** be published. The supported Java UX is the **pure-Java** builder under `integrations/maven-plugin` (and the Gradle twin). Anyone who installed an experimental `1.2.0-SNAPSHOT` wrapper locally should remove it from `~/.m2` and switch to the pure-Java plugin coordinates on this branch ([#148](https://github.com/mnafshin/springdocker/issues/148)).
 
 ## Decision
 
