@@ -1,10 +1,15 @@
 # Adopt springdocker (config-first)
 
-Install from PyPI and run against **your** Spring Boot service. Clone this repo only for benchmarks, presentations, or contributions.
+Two surfaces — pick one (or start with the plugin and optionally export to the CLI later):
 
-Related: [ADR 0005](adr/0005-config-first-dockerfile-generation.md) · [CLI config-first](../cli/README.md#config-first-workflow) · [POSITIONING](POSITIONING.md)
+| Need | Use | SSOT |
+|---|---|---|
+| Dockerfile from Maven config (JDK only) | [Maven builder plugin](../integrations/maven-plugin/README.md) | `pom.xml` plugin configuration ([ADR 0010](adr/0010-pom-gradle-ssot-java-builder.md)) |
+| Full toolkit (setup, profiles, benchmarks, Action) | Python CLI (`pipx install springdocker`) | `.springdocker.toml` ([ADR 0005](adr/0005-config-first-dockerfile-generation.md)) |
 
-## Mental model
+Related: [CLI config-first](../cli/README.md#config-first-workflow) · [POSITIONING](POSITIONING.md)
+
+## Mental model (Python CLI)
 
 | Artifact | Role |
 |---|---|
@@ -19,7 +24,7 @@ Precedence: `CLI flags > .springdocker.toml > built-in defaults`.
 
 Set `java_version` to your toolchain (**17+**). Undetected fallback is **17**. JEP 483 AOT requires **24+** — see [jvm.md](jvm.md).
 
-## Quickstart
+## Quickstart (Python CLI)
 
 ```bash
 pipx install springdocker
@@ -42,7 +47,44 @@ springdocker setup --ci-only
 
 Or: `springdocker setup --interactive` / `springdocker init --project-root . --build-tool maven --interactive`.
 
-Platform teams can seed config from the sample’s [`.springdocker.toml`](https://github.com/mnafshin/java-spring-docker-sample/blob/main/.springdocker.toml).
+## Quickstart (Maven builder plugin)
+
+No Python. POM `<configuration>` is SSOT — the plugin does **not** read `.springdocker.toml`.
+
+```bash
+cd integrations/maven-plugin && mvn clean install   # until Central publish
+```
+
+```xml
+<plugin>
+  <groupId>io.github.mnafshin</groupId>
+  <artifactId>springdocker-maven-plugin</artifactId>
+  <version>1.3.0-SNAPSHOT</version>
+  <configuration>
+    <javaVersion>21</javaVersion>
+    <runtimeImage>temurin</runtimeImage>
+    <useJlink>false</useJlink>
+  </configuration>
+  <executions>
+    <execution>
+      <goals>
+        <goal>verify</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+```
+
+```bash
+mvn springdocker:generate
+mvn springdocker:verify
+# optional bridge to CLI:
+mvn springdocker:export-config -Dspringdocker.force=true
+```
+
+Details: [`integrations/maven-plugin/README.md`](../integrations/maven-plugin/README.md).
+
+Platform teams can seed CLI config from the sample’s [`.springdocker.toml`](https://github.com/mnafshin/java-spring-docker-sample/blob/main/.springdocker.toml).
 
 ### Contributor / evidence (clone)
 

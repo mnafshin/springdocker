@@ -39,9 +39,11 @@ without interactive prompts.
 - CI runs `dockerfile generate` deterministically.
 - The generator surface in config matches `DockerfileOptions` for explainability and testing.
 - Legacy `tools/dockerfile_wizard.py` delegation is removed; use `configure` + `dockerfile generate`.
+- The **Java builder plugin** is a separate surface with POM/Gradle SSOT — see [ADR 0010](0010-pom-gradle-ssot-java-builder.md). This ADR continues to govern the Python CLI / toml path only.
 
 ## References
 
 - Epic #113
 - ADR 0003 (Dockerfile generation philosophy)
+- ADR 0010 (Java builder plugin; POM/Gradle SSOT)
 - `docs/jvm.md`

@@ -26,15 +26,18 @@ The benchmark sample uses bleeding-edge versions to exercise generator output an
 
 ## Distribution
 
-**PyPI-first:** install `springdocker` and run it on your Spring Boot project. Cloning the repository is optional — only needed for benchmark evidence on the sample app, presentations, or contributing.
+**Two install surfaces:**
 
 | Path | Use when |
 |---|---|
-| `pip install springdocker` / `pipx` / `uv tool` | Default — Dockerfile, explain, verify on your service |
+| `pip install springdocker` / `pipx` / `uv tool` | Full toolkit — Dockerfile, explain, verify, benchmarks; `.springdocker.toml` SSOT ([ADR 0005](adr/0005-config-first-dockerfile-generation.md)) |
+| Maven plugin `io.github.mnafshin:springdocker-maven-plugin` | Java-only builder — generate/verify from `pom.xml`; no Python ([ADR 0010](adr/0010-pom-gradle-ssot-java-builder.md)) |
 | Clone + `python scripts/checkout_sample.py` | Reproduce benchmark scenarios, reference CSVs, presentation numbers ([`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample)) |
 | Clone + editable install | CLI development ([CONTRIBUTING.md](../CONTRIBUTING.md)) |
 
-The reference sample is a separate repository, pinned from this one. See [ADR 0006](adr/0006-pypi-first-distribution.md) and [ADR 0009](adr/0009-external-sample-repository.md).
+**PyPI-first** remains the distribution model for the CLI ([ADR 0006](adr/0006-pypi-first-distribution.md)). The Maven plugin is a separate artifact (local `mvn install` today; Maven Central tracked in [#145](https://github.com/mnafshin/springdocker/issues/145)).
+
+The reference sample is a separate repository, pinned from this one. See [ADR 0009](adr/0009-external-sample-repository.md).
 
 ## Product scope
 
