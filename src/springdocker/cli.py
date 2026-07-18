@@ -98,6 +98,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Run verify --check-config-drift after generate (writes a placeholder SBOM if missing)",
     )
+    setup.add_argument(
+        "--ci",
+        action="store_true",
+        help="Also write .github/workflows/dockerfile.yml using the springdocker GitHub Action",
+    )
+    setup.add_argument(
+        "--ci-only",
+        action="store_true",
+        help="Only write the GitHub Actions workflow (skip config/Dockerfile generation)",
+    )
 
     init = sub.add_parser("init", help="Generate starter .springdocker.toml for this project")
     add_common_options(init)
@@ -368,6 +378,8 @@ def _handle_setup(args: argparse.Namespace, project_root: Path) -> int:
         interactive=args.interactive,
         verify=args.verify,
         output=args.output,
+        ci=args.ci,
+        ci_only=args.ci_only,
     )
 
 

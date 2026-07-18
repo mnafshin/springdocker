@@ -36,7 +36,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-springdocker = ["templates/*.j2"]
+springdocker = ["templates/*.j2", "templates/*.yml.j2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

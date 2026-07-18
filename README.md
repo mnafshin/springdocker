@@ -13,12 +13,12 @@ Developer toolkit for **production teams** containerizing Spring Boot — with o
 ```bash
 pipx install springdocker
 cd /path/to/your-spring-boot-app
-springdocker setup
+springdocker setup --ci
 ```
 
-That one command detects your Maven/Gradle project, writes `.springdocker.toml` with the `production-balanced` profile, and generates `Dockerfile.generated`.
+That detects your Maven/Gradle project, writes `.springdocker.toml` (`production-balanced`), generates `Dockerfile.generated`, and adds `.github/workflows/dockerfile.yml` using the [springdocker GitHub Action](action/README.md).
 
-Then review the files, optionally run `springdocker verify --dockerfile Dockerfile.generated --check-config-drift`, and commit both. For interactive profile selection: `springdocker setup --interactive`. Full team rollout: [`docs/adopt.md`](docs/adopt.md).
+Already onboarded? `springdocker setup --ci-only`. Interactive profiles: `springdocker setup --interactive`. Team rollout: [`docs/adopt.md`](docs/adopt.md).
 
 `springdocker` is a Python CLI that helps teams inspect a Spring Boot project, commit Dockerfile strategy in `.springdocker.toml`, generate and verify Dockerfiles in CI, and (optionally) run benchmark suites for evidence-backed tuning.
 
@@ -147,8 +147,9 @@ Install from PyPI first (see [Install](#install)). Then run against **your** Spr
 
 ```bash
 cd /path/to/your-spring-boot-app
-springdocker setup
+springdocker setup --ci
 # optional: springdocker setup --verify
+# existing project: springdocker setup --ci-only
 # interactive profiles: springdocker setup --interactive
 ```
 
@@ -219,6 +220,7 @@ Details: [`docs/jvm.md`](docs/jvm.md).
 | Doc | For |
 |---|---|
 | [`cli/README.md`](cli/README.md) | Commands, config schema, recipes |
+| [`action/README.md`](action/README.md) | GitHub Action (Dockerfile SSOT gate) |
 | [`docs/adopt.md`](docs/adopt.md) | Team rollout, CI pipeline, FAQ |
 | [`docs/POSITIONING.md`](docs/POSITIONING.md) | Who it's for, CI guarantees, sample vs fixtures |
 | [`docs/benchmarks.md`](docs/benchmarks.md) | Scenario index & methodology |

@@ -1,0 +1,85 @@
+name: springdocker Dockerfile SSOT
+description: Generate and verify Spring Boot Dockerfiles; fail on config drift.
+author: springdocker contributors
+branding:
+  icon: box
+  color: blue
+
+inputs:
+  project-root:
+    description: Path to the Spring Boot project root
+    required: false
+    default: "."
+  dockerfile:
+    description: Dockerfile path relative to project-root
+    required: false
+    default: "Dockerfile.generated"
+  build-tool:
+    description: Override build tool (maven or gradle); empty = auto-detect
+    required: false
+    default: ""
+  springdocker-version:
+    description: PyPI version of springdocker to install (empty = latest)
+    required: false
+    default: ""
+  python-version:
+    description: Python version for the runner
+    required: false
+    default: "3.11"
+  generate:
+    description: Run springdocker dockerfile generate before verify
+    required: false
+    default: "true"
+  check-config-drift:
+    description: Run springdocker verify --check-config-drift
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install springdocker
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -n "${{ inputs.springdocker-version }}" ]; then
+          python3 -m pip install --upgrade "springdocker==${{ inputs.springdocker-version }}"
+        else
+          python3 -m pip install --upgrade springdocker
+        fi
+        springdocker --help >/dev/null
+
+    - name: Generate Dockerfile
+      if: ${{ inputs.generate == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        EXTRA=()
+        if [ -n "${{ inputs.build-tool }}" ]; then
+          EXTRA+=(--build-tool "${{ inputs.build-tool }}")
+        fi
+        springdocker dockerfile generate \
+          --project-root "${{ inputs.project-root }}" \
+          --output "${{ inputs.dockerfile }}" \
+          "${EXTRA[@]}"
+
+    - name: Verify Dockerfile (config drift)
+      if: ${{ inputs.check-config-drift == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        EXTRA=()
+        if [ -n "${{ inputs.build-tool }}" ]; then
+          EXTRA+=(--build-tool "${{ inputs.build-tool }}")
+        fi
+        springdocker verify \
+          --project-root "${{ inputs.project-root }}" \
+          --dockerfile "${{ inputs.dockerfile }}" \
+          --check-config-drift \
+          --format json \
+          "${EXTRA[@]}"

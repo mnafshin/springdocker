@@ -10,6 +10,7 @@ from typing import cast
 
 from .benchmarks.generate import generate_benchmark_assets
 from .benchmarks.runner import run_benchmarks
+from .ci_workflow import write_dockerfile_ssot_workflow
 from .config import DockerfileGenerateConfig, load_config, resolve_dockerfile_generate_config
 from .configure_wizard import apply_profile_to_config, run_configure_wizard
 from .errors import EXIT_FAILURE, EXIT_OK, EXIT_USAGE, print_error, print_warning
@@ -287,18 +288,30 @@ def cmd_init(
     return EXIT_OK
 
 
-def _print_setup_next_steps(config_path: Path, dockerfile_output: str, *, verified: bool) -> None:
+def _print_setup_next_steps(
+    config_path: Path,
+    dockerfile_output: str,
+    *,
+    verified: bool,
+    ci_workflow: Path | None = None,
+) -> None:
     print()
     print("next:")
-    print(f"  1. Review {config_path.name} and {dockerfile_output}")
-    if not verified:
-        print(
-            "  2. springdocker verify --dockerfile "
-            f"{dockerfile_output} --check-config-drift"
-        )
-        print("  3. Commit both files, then add the CI snippet from docs/adopt.md")
+    if ci_workflow is not None:
+        print(f"  1. Review {config_path.name}, {dockerfile_output}, and {ci_workflow}")
+        print("  2. Commit and push — the Dockerfile SSOT workflow gates PRs")
     else:
-        print("  2. Commit both files, then add the CI snippet from docs/adopt.md")
+        print(f"  1. Review {config_path.name} and {dockerfile_output}")
+        if not verified:
+            print(
+                "  2. springdocker verify --dockerfile "
+                f"{dockerfile_output} --check-config-drift"
+            )
+            print("  3. springdocker setup --ci-only   # write GitHub Actions workflow")
+            print("  4. Commit the files")
+        else:
+            print("  2. springdocker setup --ci-only   # write GitHub Actions workflow")
+            print("  3. Commit the files")
     print("  Tip: springdocker configure --force   # change strategy interactively")
 
 
@@ -316,6 +329,28 @@ def _ensure_placeholder_sbom(project_root: Path) -> None:
     print_warning(f"wrote placeholder SBOM for verify: {sbom_path}")
 
 
+def _write_setup_ci_workflow(
+    project_root: Path,
+    *,
+    dockerfile_output: str,
+    build_tool: str | None,
+    force: bool,
+) -> Path | None:
+    try:
+        path = write_dockerfile_ssot_workflow(
+            project_root,
+            dockerfile=dockerfile_output,
+            build_tool=build_tool,
+            force=force,
+        )
+    except FileExistsError as exc:
+        print_error(str(exc))
+        print("hint: rerun with --force to overwrite the workflow", file=sys.stderr)
+        return None
+    print(f"wrote workflow: {path}")
+    return path
+
+
 def cmd_setup(
     project_root: Path,
     build_tool: str | None,
@@ -326,13 +361,29 @@ def cmd_setup(
     interactive: bool = False,
     verify: bool = False,
     output: str | None = None,
+    ci: bool = False,
+    ci_only: bool = False,
 ) -> int:
     """One-shot onboarding: detect project, write config, generate Dockerfile."""
+    dockerfile_output = output or "Dockerfile.generated"
+    ci_workflow: Path | None = None
+
+    if ci_only:
+        ci_workflow = _write_setup_ci_workflow(
+            project_root,
+            dockerfile_output=dockerfile_output,
+            build_tool=build_tool,
+            force=force,
+        )
+        if ci_workflow is None:
+            return EXIT_USAGE
+        print()
+        print("next: commit the workflow, then open a PR to confirm the SSOT gate")
+        return EXIT_OK
+
     doctor_code = cmd_doctor(project_root, build_tool)
     if doctor_code != EXIT_OK:
         return doctor_code
-
-    dockerfile_output = output or "Dockerfile.generated"
 
     if interactive:
         if config_path.exists() and not force:
@@ -361,6 +412,7 @@ def cmd_setup(
         except FileExistsError as exc:
             print_error(str(exc))
             print("hint: rerun with --force to overwrite the [dockerfile] section", file=sys.stderr)
+            print("hint: or springdocker setup --ci-only to write only the GitHub workflow", file=sys.stderr)
             return EXIT_USAGE
         except ValueError as exc:
             print_error(str(exc))
@@ -394,7 +446,22 @@ def cmd_setup(
             return verify_code
         verified = True
 
-    _print_setup_next_steps(config_path, dockerfile_output, verified=verified)
+    if ci:
+        ci_workflow = _write_setup_ci_workflow(
+            project_root,
+            dockerfile_output=dockerfile_output,
+            build_tool=build_tool,
+            force=force,
+        )
+        if ci_workflow is None:
+            return EXIT_USAGE
+
+    _print_setup_next_steps(
+        config_path,
+        dockerfile_output,
+        verified=verified,
+        ci_workflow=ci_workflow,
+    )
     return EXIT_OK
 
 

@@ -53,11 +53,12 @@ python3 -m pip install -e ".[dev]"
 
 ```bash
 cd /path/to/your-spring-boot-app   # or: export PROJECT=.
-springdocker setup
+springdocker setup --ci
 # optional: springdocker setup --verify
+# existing project: springdocker setup --ci-only
 # interactive: springdocker setup --interactive
 
-# power-user / CI steps (same result as setup)
+# power-user / CI steps (same result as setup without --ci)
 springdocker doctor --project-root .
 springdocker init --project-root . --build-tool maven
 springdocker configure --project-root . --force
@@ -112,7 +113,8 @@ Supported runtime names: `distroless`, `debian-slim`, `alpine`, `ubuntu`, `temur
 
 | Command | Interactive? | Writes config? | Writes Dockerfile? | Typical user |
 |---|---|---|---|---|
-| `springdocker setup` | No (optional `--interactive`) | Yes (`production-balanced` by default) | Yes | First-time onboarding |
+| `springdocker setup` | No (optional `--interactive`) | Yes (`production-balanced` by default) | Yes | First-time onboarding (`--ci` writes GitHub workflow) |
+| `springdocker setup --ci-only` | No | No | No (writes workflow) | Add SSOT gate to an existing service |
 | `springdocker init` | No | Yes (skeleton) | No | Platform / first checkout |
 | `springdocker init --interactive` | Yes (via configure) | Yes | No | New service bootstrap |
 | `springdocker configure` | Yes | Yes (`[dockerfile]`) | Optional (`--generate`) | Strategy changes |
@@ -132,7 +134,8 @@ Org policy (`SPRINGDOCKER_POLICY`) is planned ([#123](https://github.com/mnafshi
 
 | Command | Purpose |
 |---|---|
-| `springdocker setup` | One-shot detect → write config → generate Dockerfile |
+| `springdocker setup` | One-shot detect → write config → generate Dockerfile (`--ci` adds GitHub Action workflow) |
+| `springdocker setup --ci-only` | Write `.github/workflows/dockerfile.yml` only |
 | `springdocker configure` | Interactive wizard that writes/updates `[dockerfile]` in config |
 | `springdocker init --interactive` | Create config skeleton, then run configure |
 | `springdocker dockerfile generate` | Deterministic generate from config (CI-safe, no prompts) |
