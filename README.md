@@ -8,6 +8,18 @@
 
 Developer toolkit for **production teams** containerizing Spring Boot — with optional benchmark evidence for tuning and conference demos.
 
+## Quick start
+
+```bash
+pipx install springdocker
+cd /path/to/your-spring-boot-app
+springdocker setup
+```
+
+That one command detects your Maven/Gradle project, writes `.springdocker.toml` with the `production-balanced` profile, and generates `Dockerfile.generated`.
+
+Then review the files, optionally run `springdocker verify --dockerfile Dockerfile.generated --check-config-drift`, and commit both. For interactive profile selection: `springdocker setup --interactive`. Full team rollout: [`docs/adopt.md`](docs/adopt.md).
+
 `springdocker` is a Python CLI that helps teams inspect a Spring Boot project, commit Dockerfile strategy in `.springdocker.toml`, generate and verify Dockerfiles in CI, and (optionally) run benchmark suites for evidence-backed tuning.
 
 See [`docs/POSITIONING.md`](docs/POSITIONING.md) for **who it is for**, CI-evidenced guarantees, and how the sample projects relate to shipped behavior.
@@ -135,12 +147,19 @@ Install from PyPI first (see [Install](#install)). Then run against **your** Spr
 
 ```bash
 cd /path/to/your-spring-boot-app
-springdocker doctor --project-root .
-springdocker init --project-root . --build-tool maven
-springdocker configure --project-root . --force
-springdocker dockerfile generate --project-root .
-springdocker explain --project-root . Dockerfile.generated --config-aware   # advisory review
-springdocker verify --project-root . Dockerfile.generated --check-config-drift   # CI gate
+springdocker setup
+# optional: springdocker setup --verify
+# interactive profiles: springdocker setup --interactive
+```
+
+Step-by-step equivalent (same result as `setup`):
+
+```bash
+springdocker doctor
+springdocker init --build-tool maven          # if you only want a starter config
+springdocker configure --force                # interactive strategy
+springdocker dockerfile generate
+springdocker verify --dockerfile Dockerfile.generated --check-config-drift
 ```
 
 To try the CLI without your own app, clone this repo and use the minimal fixtures (see [Sample project map](#sample-project-map)):
@@ -150,10 +169,7 @@ git clone https://github.com/mnafshin/springdocker.git
 cd springdocker
 pipx install 'springdocker[benchmark]'   # or: pip install -e '.[dev]' for contributing
 
-springdocker doctor --project-root tests/fixtures/maven-only
-springdocker init --project-root tests/fixtures/maven-only --build-tool maven
-springdocker configure --project-root tests/fixtures/maven-only --force
-springdocker dockerfile generate --project-root tests/fixtures/maven-only
+springdocker setup --project-root tests/fixtures/maven-only
 ```
 
 **Benchmark workflow** (optional; requires Docker + `[benchmark]` extra) — check out the reference sample first:
@@ -172,12 +188,13 @@ springdocker benchmark analyze --project-root samples/java-spring-docker samples
 
 ## CLI workflow
 
-1. `doctor` checks the project root and build tool.
-2. `init` writes a starter config file.
-3. `dockerfile generate` writes a Dockerfile to the requested path (default recipe: distroless + jlink layered JAR).
-4. `benchmark generate` creates benchmark scenarios.
-5. `benchmark run` executes the benchmark runner.
-6. `benchmark analyze` turns `raw.csv` into a table or JSON summary.
+1. `setup` — one-shot onboarding (detect → write `.springdocker.toml` → generate Dockerfile).
+2. `doctor` checks the project root and build tool.
+3. `init` / `configure` write or refine config (use when you need more control than `setup`).
+4. `dockerfile generate` writes a Dockerfile to the requested path (default recipe: distroless + jlink layered JAR).
+5. `benchmark generate` creates benchmark scenarios.
+6. `benchmark run` executes the benchmark runner.
+7. `benchmark analyze` turns `raw.csv` into a table or JSON summary.
 
 See `cli/README.md` for the command reference and config precedence rules.
 

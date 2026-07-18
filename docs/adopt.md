@@ -10,7 +10,8 @@ Related: [ADR 0005](adr/0005-config-first-dockerfile-generation.md) · [CLI conf
 |---|---|
 | `.springdocker.toml` | **Strategy** — reviewable decisions (runtime, jlink, JVM flags, SBOM, …) |
 | `Dockerfile.generated` | **Output** — deterministic artifact from config |
-| `springdocker configure` | Interactive onboarding that **writes config** |
+| `springdocker setup` | **One-shot onboarding** — detect, write config (`production-balanced`), generate |
+| `springdocker configure` | Interactive wizard that **writes config** |
 | `springdocker dockerfile generate` | Non-interactive generation for local use and CI |
 
 Precedence: `CLI flags > .springdocker.toml > built-in defaults`.
@@ -22,6 +23,13 @@ Set `java_version` to your toolchain (**17+**). Undetected fallback is **17**. J
 ```bash
 pipx install springdocker
 cd /path/to/your-spring-boot-app
+springdocker setup
+# optional: springdocker setup --verify
+```
+
+Or step-by-step:
+
+```bash
 springdocker doctor --project-root .
 springdocker init --project-root . --build-tool maven
 springdocker configure --project-root . --force
@@ -29,7 +37,7 @@ springdocker dockerfile generate --project-root .
 springdocker verify --project-root . --dockerfile Dockerfile.generated --check-config-drift
 ```
 
-Or: `springdocker init --project-root . --build-tool maven --interactive`.
+Or: `springdocker setup --interactive` / `springdocker init --project-root . --build-tool maven --interactive`.
 
 Platform teams can seed config from the sample’s [`.springdocker.toml`](https://github.com/mnafshin/java-spring-docker-sample/blob/main/.springdocker.toml).
 

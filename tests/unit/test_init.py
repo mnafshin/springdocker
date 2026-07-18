@@ -36,7 +36,7 @@ class InitCommandTests(unittest.TestCase):
             with redirect_stdout(stdout):
                 code = cmd_init(root, None, cfg, profile="quick", force=False, print_only=False)
             self.assertEqual(code, 0)
-            self.assertIn("next: springdocker dockerfile generate", stdout.getvalue())
+            self.assertIn("next: springdocker setup   # or: springdocker dockerfile generate", stdout.getvalue())
 
     def test_init_requires_force_when_exists(self) -> None:
         with tempfile.TemporaryDirectory() as td:

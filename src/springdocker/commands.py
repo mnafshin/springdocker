@@ -11,7 +11,7 @@ from typing import cast
 from .benchmarks.generate import generate_benchmark_assets
 from .benchmarks.runner import run_benchmarks
 from .config import DockerfileGenerateConfig, load_config, resolve_dockerfile_generate_config
-from .configure_wizard import run_configure_wizard
+from .configure_wizard import apply_profile_to_config, run_configure_wizard
 from .errors import EXIT_FAILURE, EXIT_OK, EXIT_USAGE, print_error, print_warning
 from .plugins import render_verify_with_plugins
 from .project_detect import inspect_project
@@ -283,7 +283,118 @@ def cmd_init(
         return EXIT_OK
 
     print(f"wrote config: {config_path}")
-    print("next: springdocker dockerfile generate")
+    print("next: springdocker setup   # or: springdocker dockerfile generate")
+    return EXIT_OK
+
+
+def _print_setup_next_steps(config_path: Path, dockerfile_output: str, *, verified: bool) -> None:
+    print()
+    print("next:")
+    print(f"  1. Review {config_path.name} and {dockerfile_output}")
+    if not verified:
+        print(
+            "  2. springdocker verify --dockerfile "
+            f"{dockerfile_output} --check-config-drift"
+        )
+        print("  3. Commit both files, then add the CI snippet from docs/adopt.md")
+    else:
+        print("  2. Commit both files, then add the CI snippet from docs/adopt.md")
+    print("  Tip: springdocker configure --force   # change strategy interactively")
+
+
+def _ensure_placeholder_sbom(project_root: Path) -> None:
+    """Write a minimal SPDX stub so verify can pass after first-time setup."""
+    sbom_path = project_root / "sbom.spdx.json"
+    if sbom_path.exists():
+        return
+    payload = {
+        "spdxVersion": "SPDX-2.3",
+        "name": "springdocker-setup-placeholder",
+        "comment": "Placeholder SPDX document created by springdocker setup --verify; replace with a real SBOM.",
+    }
+    sbom_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    print_warning(f"wrote placeholder SBOM for verify: {sbom_path}")
+
+
+def cmd_setup(
+    project_root: Path,
+    build_tool: str | None,
+    config_path: Path,
+    *,
+    profile: str = "production-balanced",
+    force: bool = False,
+    interactive: bool = False,
+    verify: bool = False,
+    output: str | None = None,
+) -> int:
+    """One-shot onboarding: detect project, write config, generate Dockerfile."""
+    doctor_code = cmd_doctor(project_root, build_tool)
+    if doctor_code != EXIT_OK:
+        return doctor_code
+
+    dockerfile_output = output or "Dockerfile.generated"
+
+    if interactive:
+        if config_path.exists() and not force:
+            print_error(f"Config already exists: {config_path}")
+            print("hint: rerun with --force to overwrite the [dockerfile] section", file=sys.stderr)
+            return EXIT_USAGE
+        configure_code = cmd_configure(
+            project_root=project_root,
+            build_tool=build_tool,
+            config_path=config_path,
+            force=True,
+            generate_after=True,
+        )
+        if configure_code != EXIT_OK:
+            return configure_code
+    else:
+        try:
+            resolved, remap_warning = apply_profile_to_config(
+                project_root,
+                config_path,
+                profile=profile,
+                build_tool=build_tool,
+                force=force,
+                output=dockerfile_output,
+            )
+        except FileExistsError as exc:
+            print_error(str(exc))
+            print("hint: rerun with --force to overwrite the [dockerfile] section", file=sys.stderr)
+            return EXIT_USAGE
+        except ValueError as exc:
+            print_error(str(exc))
+            return EXIT_USAGE
+
+        if remap_warning:
+            print_warning(remap_warning)
+        print(f"wrote config: {config_path} (profile={profile})")
+
+        if output is not None:
+            resolved = replace(resolved, output=output)
+        generate_code = cmd_dockerfile_generate(project_root, resolved)
+        if generate_code != EXIT_OK:
+            return generate_code
+
+    verified = False
+    if verify:
+        _ensure_placeholder_sbom(project_root)
+        verify_code = cmd_verify(
+            project_root=project_root,
+            dockerfile_path=dockerfile_output,
+            image=None,
+            smoke_url=None,
+            output_format="table",
+            output_path=None,
+            check_config_drift=True,
+            build_tool=build_tool,
+            trivy_scan_project_root=False,
+        )
+        if verify_code != EXIT_OK:
+            return verify_code
+        verified = True
+
+    _print_setup_next_steps(config_path, dockerfile_output, verified=verified)
     return EXIT_OK
 
 

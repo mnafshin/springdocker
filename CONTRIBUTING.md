@@ -70,12 +70,11 @@ python scripts/docker_smoke_build.py
 
 The `consumer-smoke-petclinic` workflow runs `python scripts/consumer_smoke_petclinic.py` against a **pinned**
 [`spring-projects/spring-petclinic`](https://github.com/spring-projects/spring-petclinic) commit. It exercises
-the documented onboarding path (`doctor` → `init` → `configure` → `dockerfile generate` →
-`verify --check-config-drift`) and then performs a real `docker build` plus actuator readiness on port 8080.
+the documented onboarding path (`springdocker setup` → `verify --check-config-drift`) and then performs a real `docker build` plus actuator readiness on port 8080.
 
 Pinned upstream revision: `scripts/consumer_smoke_petclinic.manifest.json`.
 
-The smoke run selects the **`build-speed`** configure profile (debian-slim, no jlink) because jlink module
+The smoke run selects the **`build-speed`** setup profile (debian-slim, no jlink) because jlink module
 sets are application-specific; `production-balanced` + jlink is validated separately by the
 `docker-smoke` job on the pinned [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) checkout.
 

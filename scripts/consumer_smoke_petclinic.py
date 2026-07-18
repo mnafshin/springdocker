@@ -3,7 +3,7 @@
 
 Runs the documented first-time workflow against a pinned upstream Spring Boot sample:
 
-  doctor → init → configure → dockerfile generate → verify --check-config-drift → docker build
+  setup (--profile build-speed) → verify --check-config-drift → docker build
 
 Clone spring-projects/spring-petclinic at the commit in consumer_smoke_petclinic.manifest.json.
 """
@@ -142,39 +142,26 @@ def run_onboarding_workflow(
     *,
     springdocker_cmd: list[str],
 ) -> int:
-    steps: list[tuple[str, list[str], str | None]] = [
-        ("doctor", ["doctor", "--build-tool", manifest.build_tool], None),
-        ("init", ["init", "--build-tool", manifest.build_tool, "--force"], None),
-        (
-            "configure",
-            ["configure", "--force", "--build-tool", manifest.build_tool],
-            manifest.configure_wizard_input,
-        ),
-    ]
-    for name, args, stdin in steps:
-        print(f"\n== onboarding: {name}")
-        code = _run_springdocker(springdocker_cmd, args, project_root=project_root, input_text=stdin)
-        if code != 0:
-            print(f"onboarding step failed: {name} (exit {code})", file=sys.stderr)
-            return code
-
-    ensure_sbom_placeholder(project_root)
-
-    print("\n== onboarding: dockerfile generate")
+    print("\n== onboarding: setup")
     code = _run_springdocker(
         springdocker_cmd,
         [
-            "dockerfile",
-            "generate",
-            "--output",
-            manifest.dockerfile,
+            "setup",
+            "--force",
+            "--profile",
+            "build-speed",
             "--build-tool",
             manifest.build_tool,
+            "--output",
+            manifest.dockerfile,
         ],
         project_root=project_root,
     )
     if code != 0:
+        print(f"onboarding step failed: setup (exit {code})", file=sys.stderr)
         return code
+
+    ensure_sbom_placeholder(project_root)
 
     dockerfile_path = project_root / manifest.dockerfile
     if not dockerfile_path.is_file():

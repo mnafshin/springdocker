@@ -1,4 +1,4 @@
-"""Interactive wizard that writes .springdocker.toml (config SSOT)."""
+"""Interactive and non-interactive writers for .springdocker.toml (config SSOT)."""
 
 from __future__ import annotations
 
@@ -15,6 +15,9 @@ from springdocker.dockerfile_profiles import (
 )
 from springdocker.java_features import JEP483_MIN_JAVA, MIN_JAVA_VERSION, jep483_supported
 from springdocker.project_detect import inspect_project_details
+
+# Profiles safe for non-interactive setup (excludes "custom", which needs the wizard).
+NONINTERACTIVE_PROFILES: tuple[str, ...] = tuple(name for name in PROFILE_NAMES if name != "custom")
 
 
 def ask_choice(prompt: str, options: list[str], default_index: int) -> str:
@@ -75,6 +78,82 @@ def _edit_jvm_flags(defaults: tuple[str, ...]) -> tuple[str, ...]:
             flags.append(line)
         return tuple(flags)
     return defaults
+
+
+def _write_dockerfile_config(
+    config_path: Path,
+    options: DockerfileOptions,
+    *,
+    profile: str,
+    build_tool: str,
+    output: str = "Dockerfile.generated",
+) -> DockerfileGenerateConfig:
+    if not config_path.exists():
+        write_default_config(config_path, build_tool=build_tool, profile="quick", force=False)
+
+    table = dockerfile_options_to_table(options, profile=profile)
+    table["output"] = output
+    merge_dockerfile_section(config_path, table)
+
+    return DockerfileGenerateConfig(
+        build_tool=build_tool,
+        output=output,
+        java_version=options.java_version,
+        recipe=options.recipe,
+        profile=profile,
+        must_have_modules_file=None,
+        jlink_baseline_modules=options.jlink_baseline_modules,
+        runtime_image=options.runtime_image,
+        use_buildkit_cache=options.use_buildkit_cache,
+        use_jlink=options.use_jlink,
+        use_layered_jar=options.use_layered_jar,
+        non_root=options.non_root,
+        platform_aware=options.platform_aware,
+        enable_appcds=options.enable_appcds,
+        enable_jep483_aot_cache=options.enable_jep483_aot_cache,
+        include_oci_labels=options.include_oci_labels,
+        include_stopsignal=options.include_stopsignal,
+        include_embedded_sbom=options.include_embedded_sbom,
+        include_reproducible_controls=options.include_reproducible_controls,
+        pin_digests=options.pin_digests,
+        tuned_jvm_flags=options.tuned_jvm_flags,
+        jvm_flags=options.jvm_flags,
+        healthcheck_path=HEALTHCHECK_AUTO,
+    )
+
+
+def apply_profile_to_config(
+    project_root: Path,
+    config_path: Path,
+    *,
+    profile: str = "production-balanced",
+    build_tool: str | None = None,
+    force: bool = False,
+    output: str = "Dockerfile.generated",
+) -> tuple[DockerfileGenerateConfig, str | None]:
+    """Apply a named Dockerfile profile without prompting (used by ``setup``)."""
+    if profile not in NONINTERACTIVE_PROFILES:
+        supported = ", ".join(NONINTERACTIVE_PROFILES)
+        raise ValueError(
+            f"profile {profile!r} requires interactive configure "
+            f"(use one of: {supported}, or pass --interactive)"
+        )
+
+    info = inspect_project_details(project_root, explicit_build_tool=build_tool)
+    if config_path.exists() and not force:
+        raise FileExistsError(f"Config already exists: {config_path}")
+
+    java_version = info.java_version or MIN_JAVA_VERSION
+    base = DockerfileOptions(build_tool=info.build_tool, java_version=java_version)
+    options, remap_warning = apply_profile_for_java(base, profile, java_version)
+    resolved = _write_dockerfile_config(
+        config_path,
+        options,
+        profile=profile,
+        build_tool=info.build_tool,
+        output=output,
+    )
+    return resolved, remap_warning
 
 
 def run_configure_wizard(
@@ -156,42 +235,13 @@ def run_configure_wizard(
     if not ask_bool("\nWrite .springdocker.toml?", True):
         raise SystemExit("configure cancelled")
 
-    if not config_path.exists():
-        write_default_config(config_path, build_tool=info.build_tool, profile="quick", force=False)
-
-    table = dockerfile_options_to_table(options, profile=profile)
-    table["output"] = "Dockerfile.generated"
-    merge_dockerfile_section(config_path, table)
-
-    resolved = DockerfileGenerateConfig(
-        build_tool=info.build_tool,
-        output="Dockerfile.generated",
-        java_version=options.java_version,
-        recipe=options.recipe,
+    resolved = _write_dockerfile_config(
+        config_path,
+        options,
         profile=profile,
-        must_have_modules_file=None,
-        jlink_baseline_modules=options.jlink_baseline_modules,
-        runtime_image=options.runtime_image,
-        use_buildkit_cache=options.use_buildkit_cache,
-        use_jlink=options.use_jlink,
-        use_layered_jar=options.use_layered_jar,
-        non_root=options.non_root,
-        platform_aware=options.platform_aware,
-        enable_appcds=options.enable_appcds,
-        enable_jep483_aot_cache=options.enable_jep483_aot_cache,
-        include_oci_labels=options.include_oci_labels,
-        include_stopsignal=options.include_stopsignal,
-        include_embedded_sbom=options.include_embedded_sbom,
-        include_reproducible_controls=options.include_reproducible_controls,
-        pin_digests=options.pin_digests,
-        tuned_jvm_flags=options.tuned_jvm_flags,
-        jvm_flags=options.jvm_flags,
-        healthcheck_path=HEALTHCHECK_AUTO,
+        build_tool=info.build_tool,
     )
 
     print(f"\nwrote config: {config_path}")
-    if generate_after:
-        print("next: springdocker dockerfile generate")
-    else:
-        print("next: springdocker dockerfile generate")
+    print("next: springdocker dockerfile generate")
     return resolved

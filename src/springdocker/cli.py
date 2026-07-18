@@ -16,6 +16,7 @@ from .commands import (
     cmd_explain,
     cmd_init,
     cmd_inspect,
+    cmd_setup,
     cmd_verify,
 )
 from .config import (
@@ -26,6 +27,7 @@ from .config import (
     resolve_dockerfile_generate_config,
     resolve_doctor_config,
 )
+from .configure_wizard import NONINTERACTIVE_PROFILES
 from .errors import print_warning
 from .plugins import register_command_plugins
 from .project_detect import inspect_project_details
@@ -67,6 +69,35 @@ def build_parser() -> argparse.ArgumentParser:
         if with_build_tool:
             p.add_argument("--build-tool", choices=["maven", "gradle"], default=None,
                            help="Override auto-detected build tool")
+
+    setup = sub.add_parser(
+        "setup",
+        help="One-shot onboarding: detect project, write config, generate Dockerfile",
+        description=(
+            "Collapse doctor → config → dockerfile generate into a single non-interactive command. "
+            "Writes .springdocker.toml with the production-balanced profile by default."
+        ),
+    )
+    add_common_options(setup)
+    setup.add_argument("--config", default=".springdocker.toml", help="Config file path to create or update")
+    setup.add_argument(
+        "--profile",
+        choices=list(NONINTERACTIVE_PROFILES),
+        default="production-balanced",
+        help="Dockerfile profile to apply (default: production-balanced)",
+    )
+    setup.add_argument("--output", default=None, help="Output Dockerfile path (default: Dockerfile.generated)")
+    setup.add_argument("--force", action="store_true", help="Overwrite existing [dockerfile] config section")
+    setup.add_argument(
+        "--interactive",
+        action="store_true",
+        help="Run configure wizard instead of applying --profile silently",
+    )
+    setup.add_argument(
+        "--verify",
+        action="store_true",
+        help="Run verify --check-config-drift after generate (writes a placeholder SBOM if missing)",
+    )
 
     init = sub.add_parser("init", help="Generate starter .springdocker.toml for this project")
     add_common_options(init)
@@ -324,6 +355,22 @@ def _resolve_dockerfile_config(
     )
 
 
+def _handle_setup(args: argparse.Namespace, project_root: Path) -> int:
+    config_path = Path(args.config)
+    if not config_path.is_absolute():
+        config_path = project_root / config_path
+    return cmd_setup(
+        project_root=project_root,
+        build_tool=args.build_tool,
+        config_path=config_path,
+        profile=args.profile,
+        force=args.force,
+        interactive=args.interactive,
+        verify=args.verify,
+        output=args.output,
+    )
+
+
 def _handle_init(args: argparse.Namespace, project_root: Path) -> int:
     config_path = Path(args.config)
     if not config_path.is_absolute():
@@ -483,6 +530,7 @@ def _handle_benchmark_compare(args: argparse.Namespace, project_root: Path) -> i
 # Top-level commands use a one-element key; nested commands use (parent, subcommand).
 # To add a new command: register a parser in build_parser() and add an entry here.
 _DISPATCH: dict[_DispatchKey, _Handler] = {
+    ("setup",): _handle_setup,
     ("init",): _handle_init,
     ("configure",): _handle_configure,
     ("doctor",): _handle_doctor,
