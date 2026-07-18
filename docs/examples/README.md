@@ -1,6 +1,6 @@
 # Examples
 
-Committed reference artifacts for review (not a third “sample product”). Fixtures and the benchmark sample stay under `tests/fixtures/` and `samples/java-spring-docker/` — see [POSITIONING](../POSITIONING.md#sample-project-strategy-two-trees).
+Committed reference artifacts for review (not a third “sample product”). Fixtures stay under `tests/fixtures/`; the benchmark sample is [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) — see [POSITIONING](../POSITIONING.md#sample-project-strategy-two-trees).
 
 ## Dockerfiles
 

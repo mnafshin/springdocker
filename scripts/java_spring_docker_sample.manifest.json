@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/mnafshin/java-spring-docker-sample.git",
+  "ref": "cd89845a8e1fd44f88c20cd5746c88c31dccbe7e",
+  "ref_note": "Initial import extracted from springdocker samples/java-spring-docker. Bump after sample repo changes that affect CI baselines or docker-smoke.",
+  "checkout_path": "samples/java-spring-docker",
+  "java_version": 25,
+  "sibling_dirname": "java-spring-docker-sample"
+}

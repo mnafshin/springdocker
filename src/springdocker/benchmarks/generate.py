@@ -36,7 +36,7 @@ Recipe files inherit `[dockerfile]` settings from `.springdocker.toml` (only `re
 Regenerate together with benchmark assets:
 
 ```bash
-springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
+springdocker benchmark generate --project-root . --java-version 25
 ```
 
 Scenario variant Dockerfiles live under `benchmarks/<scenario>/variants/` (gitignored, same command).
@@ -75,13 +75,13 @@ speed matters most.
 Regenerate with:
 
 ```bash
-springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
+springdocker benchmark generate --project-root . --java-version 25
 ```
 
 Select a recipe when generating ad hoc output:
 
 ```bash
-springdocker generate --project-root samples/java-spring-docker --recipe spring-aot
+springdocker generate --project-root . --recipe spring-aot
 ```
 
 Source: https://github.com/mnafshin/springdocker

@@ -4,7 +4,7 @@ Thanks for helping improve `springdocker`.
 
 ## Project naming
 
-The installable CLI, GitHub repository, and PyPI package are all **springdocker**. The benchmark sample under `samples/java-spring-docker/` uses the Maven/Gradle artifact `io.github.mnafshin:java-spring-docker` for historical reasons — it is not the CLI package name. See the [naming table in README.md](README.md#project-naming).
+The installable CLI, GitHub repository, and PyPI package are all **springdocker**. The benchmark sample lives in [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) and uses the Maven/Gradle artifact `io.github.mnafshin:java-spring-docker` for historical reasons — it is not the CLI package name. See the [naming table in README.md](README.md#project-naming).
 
 ## Local setup
 
@@ -43,14 +43,26 @@ Local `pytest` and the CI `coverage` job enforce the same gate: **≥80% line co
   counts toward the gate.
 - Add or extend tests when your change touches untested paths — do not lower the threshold to land code.
 
+## Reference sample checkout
+
+Before docker-smoke or full benchmark workflows, check out the pinned sample:
+
+```bash
+python scripts/checkout_sample.py
+# → samples/java-spring-docker/  (gitignored)
+```
+
+Pin: [`scripts/java_spring_docker_sample.manifest.json`](scripts/java_spring_docker_sample.manifest.json). Local tip: keep a sibling clone at `../java-spring-docker-sample`. See [`samples/README.md`](samples/README.md) and [ADR 0009](docs/adr/0009-external-sample-repository.md).
+
 ## Docker smoke build (CI)
 
 The `docker-smoke` job runs `python scripts/docker_smoke_build.py` on Ubuntu with a real Docker daemon.
-It generates a Dockerfile for `samples/java-spring-docker`, builds the image, and probes actuator readiness
+It checks out the pinned sample, generates a Dockerfile, builds the image, and probes actuator readiness
 on port 8081. Integration/e2e tests keep mocking Docker for fast PR feedback; use the smoke script locally
 when you change Dockerfile generation or runtime startup behavior:
 
 ```bash
+python scripts/checkout_sample.py
 python scripts/docker_smoke_build.py
 ```
 
@@ -64,8 +76,8 @@ the documented onboarding path (`doctor` → `init` → `configure` → `dockerf
 Pinned upstream revision: `scripts/consumer_smoke_petclinic.manifest.json`.
 
 The smoke run selects the **`build-speed`** configure profile (debian-slim, no jlink) because jlink module
-sets are application-specific; `production-balanced` + jlink is validated separately by the in-repo
-`docker-smoke` job on `samples/java-spring-docker/`.
+sets are application-specific; `production-balanced` + jlink is validated separately by the
+`docker-smoke` job on the pinned [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) checkout.
 
 **Local run** (requires Docker, git, and `springdocker` on `PATH`):
 
@@ -131,7 +143,7 @@ If a CRITICAL finding is a false positive or has no fix upstream, document the e
 - `tests/benchmark/` for benchmark and snapshot coverage
 - `tests/fixtures/maven-only/` and `tests/fixtures/gradle-only/` for README quick-start Dockerfile workflows
 - `tests/fixtures/` for minimal CI/e2e walkthroughs ([POSITIONING](docs/POSITIONING.md#sample-project-strategy-two-trees))
-- `samples/java-spring-docker/` for the full benchmark sample app and evidence assets
+- [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) (checkout via `scripts/checkout_sample.py`) for the full benchmark sample app and evidence assets
 
 ## Releases
 

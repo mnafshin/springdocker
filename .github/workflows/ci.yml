@@ -41,17 +41,20 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
 
+      - name: Checkout pinned java-spring-docker-sample
+        run: python scripts/checkout_sample.py --force-remote
+
       - name: Generate benchmark assets
         run: |
           springdocker benchmark generate \
             --project-root samples/java-spring-docker \
             --java-version 25
 
-      - name: Assert generated assets stay untracked
+      - name: Assert generated assets stay untracked in sample repo
         run: |
-          if [ -n "$(git status --porcelain samples/java-spring-docker/benchmarks/)" ]; then
-            echo "Generated benchmark files would be committed; update .gitignore or stop tracking them:"
-            git status --porcelain samples/java-spring-docker/benchmarks/
+          if [ -n "$(git -C samples/java-spring-docker status --porcelain benchmarks/)" ]; then
+            echo "Generated benchmark files would be committed; update sample .gitignore or stop tracking them:"
+            git -C samples/java-spring-docker status --porcelain benchmarks/
             exit 1
           fi
 
@@ -115,7 +118,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
 
-      # Source of truth: committed raw.csv + baseline.json (see baseline.manifest.json).
+      - name: Checkout pinned java-spring-docker-sample
+        run: python scripts/checkout_sample.py --force-remote
+
+      # Source of truth: sample repo raw.csv + baseline.json (see baseline.manifest.json).
       # CI does not run Docker benchmarks here — it checks analyzer output stays aligned.
       - name: Verify baseline.json matches pinned raw.csv
         run: |
@@ -134,7 +140,7 @@ jobs:
           current = json.loads(Path("/tmp/current-summary.json").read_text(encoding="utf-8"))
           if baseline != current:
               print("baseline.json is out of sync with raw.csv.")
-              print("Regenerate with the command in baseline.manifest.json, then commit both files.")
+              print("Regenerate in java-spring-docker-sample with the command in baseline.manifest.json, then bump the sample pin.")
               sys.exit(1)
           PY
 
@@ -196,6 +202,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
 
+      - name: Checkout pinned java-spring-docker-sample
+        if: matrix.suite == 'benchmark'
+        run: python scripts/checkout_sample.py --force-remote
+
       # Partial suites cannot satisfy the global coverage gate; coverage is enforced in the coverage job.
       - name: Test ${{ matrix.suite }}
         run: pytest tests/${{ matrix.suite }} --cov-fail-under=0
@@ -215,6 +225,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
+
+      - name: Checkout pinned java-spring-docker-sample
+        run: python scripts/checkout_sample.py --force-remote
 
       # Same gate as local `pytest` (see pyproject.toml addopts: 80% on springdocker).
       - name: Enforce package coverage gate
@@ -236,6 +249,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
+
+      - name: Checkout pinned java-spring-docker-sample
+        run: python scripts/checkout_sample.py --force-remote
 
       # Real Docker daemon proof: generate Dockerfile for the reference sample, build, and probe readiness.
       # Mocked integration/e2e tests stay fast; this job aligns CI with runtime evidence.

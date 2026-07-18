@@ -40,21 +40,10 @@ out/
 __pycache__/
 *.py[cod]
 
-### springdocker generated benchmark artifacts ###
-# Regenerate with:
-#   springdocker benchmark generate --project-root samples/java-spring-docker
-samples/java-spring-docker/benchmarks/*/variants/
-samples/java-spring-docker/benchmarks/*/results/
-samples/java-spring-docker/benchmarks/04-native-benchmark/Dockerfile
-samples/java-spring-docker/benchmarks/04-native-benchmark/README.md
-# CI regression gate (intentionally versioned)
-!samples/java-spring-docker/benchmarks/03-base-image-choice/results/
-!samples/java-spring-docker/benchmarks/03-base-image-choice/results/raw.csv
-!samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json
-!samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.manifest.json
-samples/java-spring-docker/report.md
-samples/java-spring-docker/steps.adoc
-samples/java-spring-docker/Dockerfile.ci-smoke
+### External reference sample checkout ###
+# Populated by: python scripts/checkout_sample.py
+# Source: https://github.com/mnafshin/java-spring-docker-sample
+samples/java-spring-docker/
 
 ### generated presentation summaries ###
 docs/presentation/benchmark-summary.md

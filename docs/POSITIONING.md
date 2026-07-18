@@ -31,10 +31,10 @@ The benchmark sample uses bleeding-edge versions to exercise generator output an
 | Path | Use when |
 |---|---|
 | `pip install springdocker` / `pipx` / `uv tool` | Default — Dockerfile, explain, verify on your service |
-| Clone + `samples/java-spring-docker/` | Reproduce benchmark scenarios, reference CSVs, presentation numbers |
+| Clone + `python scripts/checkout_sample.py` | Reproduce benchmark scenarios, reference CSVs, presentation numbers ([`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample)) |
 | Clone + editable install | CLI development ([CONTRIBUTING.md](../CONTRIBUTING.md)) |
 
-Benchmark assets stay in the main repository; they are not a separate distribution product. See [ADR 0006](adr/0006-pypi-first-distribution.md) (closes [#97](https://github.com/mnafshin/springdocker/issues/97)).
+The reference sample is a separate repository, pinned from this one. See [ADR 0006](adr/0006-pypi-first-distribution.md) and [ADR 0009](adr/0009-external-sample-repository.md).
 
 ## Product scope
 
@@ -48,7 +48,7 @@ springdocker is a **general-purpose CLI** for Maven and Gradle Spring Boot proje
 | Optional benchmark asset generation, run, and analyze | Universal JVM tuning prescriptions for every workload |
 | Plugin hooks for recipes, mutators, and verifiers | Full compatibility matrix across all Spring Boot versions |
 
-The CLI supports **Java 17+** on any Maven/Gradle Spring Boot project. When `java_version` is omitted, springdocker prefers the **detected** project Java, then falls back to **17**. The **reference sample** under `samples/java-spring-docker/` stays on Spring Boot 4 / Java 25 to drive benchmark evidence and presentation numbers — that is not a claim that every user must run Java 25.
+The CLI supports **Java 17+** on any Maven/Gradle Spring Boot project. When `java_version` is omitted, springdocker prefers the **detected** project Java, then falls back to **17**. The **reference sample** ([`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample)) stays on Spring Boot 4 / Java 25 to drive benchmark evidence and presentation numbers — that is not a claim that every user must run Java 25.
 
 ## Shipped guarantees (CI-evidenced)
 
@@ -59,9 +59,9 @@ These behaviors are enforced by [`.github/workflows/ci.yml`](../.github/workflow
 | **CLI quality** | `ruff` lint, `mypy` on `src/`, pytest suites (`unit`, `integration`, `e2e`, `benchmark`) on Ubuntu/macOS/Windows and Python 3.10–3.12 |
 | **Package coverage** | ≥80% line coverage on the entire `springdocker` package (same gate as local `pytest`; see `pyproject.toml`) |
 | **Dockerfile generation** | Snapshot and e2e tests on `tests/fixtures/{maven-only,gradle-only}` — output shape, flags, and explain/verify wiring |
-| **Benchmark generator** | `benchmark-hygiene` runs `benchmark generate` and asserts generated assets stay gitignored |
-| **Benchmark analyzer** | `benchmark-regression` verifies committed `03-base-image-choice/results/baseline.json` matches analyze output for the paired `raw.csv`, then runs the 20% regression comparator |
-| **Docker smoke build** | `docker-smoke` generates a Dockerfile for `samples/java-spring-docker`, runs `docker build`, and probes `/actuator/health/readiness` on port 8081 |
+| **Benchmark generator** | `benchmark-hygiene` checks out the pinned sample, runs `benchmark generate`, and asserts generated assets stay gitignored in the sample repo |
+| **Benchmark analyzer** | `benchmark-regression` verifies sample `03-base-image-choice/results/baseline.json` matches analyze output for the paired `raw.csv`, then runs the 20% regression comparator |
+| **Docker smoke build** | `docker-smoke` generates a Dockerfile for the pinned sample checkout, runs `docker build`, and probes `/actuator/health/readiness` on port 8081 |
 | **Supply chain (repo)** | SPDX SBOM artifact, **blocking** CRITICAL Trivy filesystem scan, and `digest-pins` job verifying registry manifests for `digest_pins.py` |
 
 What CI **does not** prove today:
@@ -82,20 +82,20 @@ Benchmarks are an **opt-in extra** (`pip install springdocker[benchmark]`):
 
 Use benchmarks to **inform** Dockerfile and JVM decisions on your service. They do not replace policy choices (non-root, digest pins, SBOM) or service-specific profiling.
 
-See [`benchmarks.md`](benchmarks.md) and [`samples/java-spring-docker/benchmarks/README.md`](../samples/java-spring-docker/benchmarks/README.md) for artifact policy.
+See [`benchmarks.md`](benchmarks.md) and the sample’s [`benchmarks/README.md`](https://github.com/mnafshin/java-spring-docker-sample/blob/main/benchmarks/README.md) for artifact policy.
 
 ## Sample project strategy (two trees)
 
-The repository keeps two Spring Boot paths. They are not two products — they split **CLI onboarding/regression** from **evidence depth**:
+CLI onboarding/regression stays in this repository; evidence depth lives in an external sample:
 
 | Path | Audience | Validated in CI |
 |---|---|---|
 | `tests/fixtures/{maven-only,gradle-only}/` | Humans learning the CLI and automated regression | unit, integration, e2e, benchmark tests |
-| `samples/java-spring-docker/` | Benchmark harness and reference evidence | generator hygiene + analyzer regression on pinned CSV + `docker-smoke` build/readiness |
+| [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) → `samples/java-spring-docker/` | Benchmark harness and reference evidence | generator hygiene + analyzer regression on pinned CSV + `docker-smoke` build/readiness |
 
-Fixtures are minimal (CLI/output shape only). Full Docker builds and presentation numbers use **`samples/`**. Do not copy the full benchmark tree into every consumer repo.
+Fixtures are minimal (CLI/output shape only). Full Docker builds and presentation numbers use the external sample (checked out under `samples/`). Do not copy the full benchmark tree into every consumer repo.
 
-Resolved in [#95](https://github.com/mnafshin/springdocker/issues/95) — see [`adr/0004-sample-project-strategy.md`](adr/0004-sample-project-strategy.md).
+Resolved in [#95](https://github.com/mnafshin/springdocker/issues/95) / ADR 0004; externalization in [ADR 0009](adr/0009-external-sample-repository.md).
 
 ## Reference stack vs compatibility
 

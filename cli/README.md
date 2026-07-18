@@ -67,9 +67,10 @@ springdocker dockerfile generate --project-root . --recipe spring-aot
 springdocker dockerfile generate --project-root . --recipe native-aot
 ```
 
-**Evidence on the sample app** (clone + `springdocker[benchmark]`; sample is Java 25):
+**Evidence on the sample app** ([`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample); Java 25) — from a springdocker clone:
 
 ```bash
+python scripts/checkout_sample.py
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 springdocker benchmark run --project-root samples/java-spring-docker --profile quick --runner-arg --skip-native
 springdocker benchmark analyze --project-root samples/java-spring-docker \
@@ -77,7 +78,7 @@ springdocker benchmark analyze --project-root samples/java-spring-docker \
 ```
 
 Scenario index and methodology: [docs/benchmarks.md](../docs/benchmarks.md#scenario-index).
-CI regression baseline example: `samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json`.
+CI regression baseline example: sample `benchmarks/03-base-image-choice/results/baseline.json` (pinned via `scripts/java_spring_docker_sample.manifest.json`).
 
 ## Dockerfile recipes
 

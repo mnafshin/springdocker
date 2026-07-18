@@ -1,11 +1,13 @@
 # Benchmark methodology
 
-This repository uses scenario-based Docker benchmarks against the sample Spring Boot project in `samples/java-spring-docker/`.
+This repository uses scenario-based Docker benchmarks against the pinned
+[`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample)
+checkout (`python scripts/checkout_sample.py` → `samples/java-spring-docker/`).
 Benchmark commands are optional evidence workflows and require `springdocker[benchmark]`.
 
 ## Scenario index
 
-Authoritative list under `samples/java-spring-docker/benchmarks/`. Regenerate with `springdocker benchmark generate`. Scenario **04** (native) is listed before **05** (AppCDS) by id; the generator emits AppCDS before the native scaffold.
+Authoritative list under the sample’s `benchmarks/` directory. Regenerate with `springdocker benchmark generate`. Scenario **04** (native) is listed before **05** (AppCDS) by id; the generator emits AppCDS before the native scaffold.
 
 | ID | Directory | Purpose | Variants | Further reading |
 |---|---|---|---|---|
@@ -55,12 +57,12 @@ Generated benchmark assets are **not committed** except where CI or docs explici
 | `benchmarks/03-base-image-choice/results/baseline.json` | Yes | Expected `benchmark analyze` output for that CSV. |
 | `benchmarks/03-base-image-choice/results/baseline.manifest.json` | Yes | Documents how the baseline pair is regenerated. |
 
-After `benchmark generate`, `git status` under `samples/java-spring-docker/benchmarks/` should be clean.
-CI enforces this in the `benchmark-hygiene` job.
+After `benchmark generate`, `git status` under the sample checkout’s `benchmarks/` should be clean.
+CI enforces this in the `benchmark-hygiene` job (against the pinned sample repo).
 
 CI does **not** run full Docker benchmark builds on every push — the regression gate validates analyzer output against a pinned baseline only. See [`POSITIONING.md`](POSITIONING.md#shipped-guarantees-ci-evidenced).
 
-See `samples/java-spring-docker/benchmarks/README.md` for the maintainer checklist.
+See the sample’s [`benchmarks/README.md`](https://github.com/mnafshin/java-spring-docker-sample/blob/main/benchmarks/README.md) for the maintainer checklist.
 
 ## CI regression baseline (scenario 03)
 
@@ -84,9 +86,11 @@ CI does **not** execute Docker builds for this gate. The pinned CSV is sample ev
 
 ### How to refresh the baseline
 
-After an intentional benchmark run or analyzer change:
+After an intentional benchmark run or analyzer change (in the sample checkout or clone):
 
 ```bash
+python scripts/checkout_sample.py   # from springdocker root, if needed
+
 # 1. Update raw.csv (typically from a local benchmark run)
 springdocker benchmark run --project-root samples/java-spring-docker --profile quick
 
@@ -97,9 +101,11 @@ springdocker benchmark analyze \
   --format json \
   --output benchmarks/03-base-image-choice/results/baseline.json
 
-# 3. Commit both files together
-git add samples/java-spring-docker/benchmarks/03-base-image-choice/results/raw.csv \
-        samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json
+# 3. Commit both files in java-spring-docker-sample, then bump the pin here
+cd samples/java-spring-docker   # or the sample clone
+git add benchmarks/03-base-image-choice/results/raw.csv \
+        benchmarks/03-base-image-choice/results/baseline.json
+# after push: update scripts/java_spring_docker_sample.manifest.json ref in springdocker
 ```
 
 Do not commit `baseline.json` without the matching `raw.csv`. Other scenarios keep `results/` gitignored; scenario 03 is the sole CI regression anchor today.
@@ -177,10 +183,11 @@ For the current checked-in reference snapshot, the high-level decision matrix is
 | 04 Native vs JVM | scaffold only | `native-aot` Dockerfile is generated for future comparison; the internal runner skips native scenarios |
 | 05 AppCDS | with-appcds | faster startup from shared class archive |
 
-Pinned CI regression evidence (scenario 03 base-image choice):
+Pinned CI regression evidence (scenario 03 base-image choice) lives in
+[`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample):
 
-- `samples/java-spring-docker/benchmarks/03-base-image-choice/results/raw.csv`
-- `samples/java-spring-docker/benchmarks/03-base-image-choice/results/baseline.json`
+- `benchmarks/03-base-image-choice/results/raw.csv`
+- `benchmarks/03-base-image-choice/results/baseline.json`
 
 ## Reproducibility controls
 

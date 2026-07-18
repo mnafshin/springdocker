@@ -31,13 +31,13 @@ springdocker verify --project-root . --dockerfile Dockerfile.generated --check-c
 
 Or: `springdocker init --project-root . --build-tool maven --interactive`.
 
-Platform teams can seed config from [samples/java-spring-docker/.springdocker.toml](../samples/java-spring-docker/.springdocker.toml).
+Platform teams can seed config from the sample’s [`.springdocker.toml`](https://github.com/mnafshin/java-spring-docker-sample/blob/main/.springdocker.toml).
 
 ### Contributor / evidence (clone)
 
 ```bash
 python3 -m pip install -e ".[dev]"   # or springdocker[benchmark] for evidence runs
-# fixtures → CLI regression; samples/java-spring-docker/ → benchmarks (Java 25 sample)
+python scripts/checkout_sample.py    # fixtures → CLI regression; sample → benchmarks (Java 25)
 ```
 
 ## Daily workflow
@@ -53,7 +53,7 @@ CI gate: `springdocker verify --check-config-drift` (below).
 
 - `[dockerfile]` diffs explain **why**
 - Regenerated Dockerfile matches config intent
-- Distroless: orchestrator readiness probe (no Dockerfile `HEALTHCHECK`) — see [cli README](../cli/README.md#runtime-bases-and-healthcheck) and [k8s sample](../samples/java-spring-docker/k8s/)
+- Distroless: orchestrator readiness probe (no Dockerfile `HEALTHCHECK`) — see [cli README](../cli/README.md#runtime-bases-and-healthcheck) and [sample k8s](https://github.com/mnafshin/java-spring-docker-sample/tree/main/k8s)
 
 ## CI pipeline
 
@@ -102,7 +102,7 @@ Overlays: `src/springdocker/dockerfile_profiles.py`. JVM flags: [jvm.md](jvm.md)
 
 **Java upgrades:** bump `java_version` → generate → review digests → re-test. Scenario 02 (AOT) only when Java ≥ 24.
 
-**No HEALTHCHECK on distroless?** No shell — use Kubernetes probes ([sample k8s](../samples/java-spring-docker/k8s/)).
+**No HEALTHCHECK on distroless?** No shell — use Kubernetes probes ([sample k8s](https://github.com/mnafshin/java-spring-docker-sample/tree/main/k8s)).
 
 **Hand-edit Dockerfile?** Temporary only; drift checks will fail until config catches up.
 

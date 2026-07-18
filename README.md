@@ -19,8 +19,8 @@ Resolved in [#87](https://github.com/mnafshin/springdocker/issues/87) — see [`
 | Audience | Fit |
 |---|---|
 | **Production teams** (primary) | Adopt via PyPI on **your** Maven/Gradle service — config-first Dockerfile workflow, explain/verify in CI, Java **17+** (undetected fallback **17**; JEP 483 AOT **24+**) |
-| **Conference / storytelling** (secondary) | Clone for presentations and benchmark evidence under `samples/java-spring-docker/` (**Java 25** sample) — numbers are sample-specific, not universal guarantees |
-| **Personal lab only** (not primary) | Bleeding-edge sample (Boot 4 / Java 25) stress-tests the generator inside the repo; you do not need to match those versions to use the CLI |
+| **Conference / storytelling** (secondary) | Clone [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) (or `python scripts/checkout_sample.py` from this repo) for presentations and benchmark evidence (**Java 25**) — numbers are sample-specific, not universal guarantees |
+| **Personal lab only** (not primary) | Bleeding-edge sample (Boot 4 / Java 25) stress-tests the generator; you do not need to match those versions to use the CLI |
 
 **Not** a black-box image builder like Jib or Buildpacks — you own the Dockerfile. **Not** a research-only toy — CI gates the installable CLI; benchmarks and decks are optional depth.
 
@@ -46,7 +46,7 @@ See [`cli/README.md`](cli/README.md#install) for pip/editable options and upgrad
 | Goal | What to do |
 |---|---|
 | Generate/explain/verify Dockerfiles for **your** service | Install from PyPI only |
-| Reproduce benchmark evidence, presentations, or pinned CI baselines | Clone; work under `samples/java-spring-docker/` — see [`docs/presentation/README.md`](docs/presentation/README.md) for deck ownership and update policy |
+| Reproduce benchmark evidence, presentations, or pinned CI baselines | Checkout the pinned sample (`python scripts/checkout_sample.py`) or clone [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) — see [`docs/presentation/README.md`](docs/presentation/README.md) |
 | Contribute to the CLI | Clone; editable install — see [Contributing](#contributing) |
 
 Resolved in [#97](https://github.com/mnafshin/springdocker/issues/97) — see [`docs/adr/0006-pypi-first-distribution.md`](docs/adr/0006-pypi-first-distribution.md).
@@ -62,14 +62,15 @@ Resolved in [#97](https://github.com/mnafshin/springdocker/issues/97) — see [`
 | CLI command | `springdocker` |
 | Config file | `.springdocker.toml` |
 
-The string **`java-spring-docker`** appears only in the benchmark sample app, not in the CLI package:
+The string **`java-spring-docker`** appears in the separate benchmark sample app, not in the CLI package:
 
 | Surface | Path or coordinates | Role |
 |---|---|---|
-| Sample app directory | `samples/java-spring-docker/` | Full Spring Boot app for benchmark scenarios and evidence |
+| Sample repository | [`mnafshin/java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) | Full Spring Boot app for benchmark scenarios and evidence |
+| Local checkout path | `samples/java-spring-docker/` (gitignored; via `scripts/checkout_sample.py`) | Where CI and docs expect the sample after checkout |
 | Sample Maven/Gradle artifact | `io.github.mnafshin:java-spring-docker` | Demo application identity inside that sample |
 
-Those sample names predate the **springdocker** product name. They do not affect installation (`pip install springdocker`) or CLI usage. Your local clone directory can be named anything.
+Those sample names predate the **springdocker** product name. They do not affect installation (`pip install springdocker`) or CLI usage.
 
 ## Why springdocker instead of Jib or Buildpacks?
 
@@ -105,7 +106,7 @@ See [Sample project map](#sample-project-map) for which Spring Boot path to use.
 
 **Shipped and CI-validated:** project detection, config, Dockerfile generation, explain/verify commands, and benchmark asset/analyzer plumbing (see [`docs/POSITIONING.md`](docs/POSITIONING.md#shipped-guarantees-ci-evidenced)).
 
-**Optional / sample-anchored:** full benchmark runs, performance comparison tables, and reference evidence under `samples/java-spring-docker/`.
+**Optional / sample-anchored:** full benchmark runs, performance comparison tables, and reference evidence from [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) (checked out to `samples/java-spring-docker/`).
 
 - Detects Maven or Gradle projects.
 - Writes a starter `.springdocker.toml` config.
@@ -122,11 +123,11 @@ Runbook: [`docs/security.md`](docs/security.md#digest-pins) · Renovate template
 | Path | Role | Use when |
 |---|---|---|
 | `tests/fixtures/{maven-only,gradle-only}/` | Minimal Spring Boot apps for CLI walkthroughs and CI | Learning the CLI, Dockerfile generation, or extending tests |
-| `samples/java-spring-docker/` | Benchmark harness + evidence (Java 25) | Reproducing scenarios / presentation numbers · [k8s](samples/java-spring-docker/k8s/) |
+| [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) → `samples/java-spring-docker/` | Benchmark harness + evidence (Java 25) | Reproducing scenarios / presentation numbers · [samples/README.md](samples/README.md) |
 
 Gradle walkthroughs use `tests/fixtures/gradle-only/` with the same commands below (Maven: `tests/fixtures/maven-only/`).
 
-See [`docs/adr/0004-sample-project-strategy.md`](docs/adr/0004-sample-project-strategy.md) for why the former `examples/` walkthrough tree was removed.
+See [`docs/adr/0009-external-sample-repository.md`](docs/adr/0009-external-sample-repository.md) for why the full sample lives in its own repository.
 
 ## Quick start
 
@@ -155,10 +156,11 @@ springdocker configure --project-root tests/fixtures/maven-only --force
 springdocker dockerfile generate --project-root tests/fixtures/maven-only
 ```
 
-**Benchmark workflow** (optional; requires clone + Docker + `[benchmark]` extra) — use the full sample app under `samples/`:
+**Benchmark workflow** (optional; requires Docker + `[benchmark]` extra) — check out the reference sample first:
 
 ```bash
 cd springdocker   # repository root after clone
+python scripts/checkout_sample.py
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 springdocker benchmark run --project-root samples/java-spring-docker --profile quick
 springdocker benchmark analyze --project-root samples/java-spring-docker samples/java-spring-docker/benchmarks/01-custom-jre-jlink/results/raw.csv --format table
@@ -183,7 +185,7 @@ See `cli/README.md` for the command reference and config precedence rules.
 
 Optional evidence subsystem — see [`docs/benchmarks.md`](docs/benchmarks.md) for the measurement model, **scenario index**, run profiles, and artifact policy.
 
-Requires `springdocker[benchmark]`. Sample scenarios live under `samples/java-spring-docker/benchmarks/` (most output gitignored). Scenario 03 CI baseline: `samples/java-spring-docker/benchmarks/03-base-image-choice/results/`.
+Requires `springdocker[benchmark]`. Sample scenarios live in [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) under `benchmarks/` (most output gitignored). Scenario 03 CI baseline: `benchmarks/03-base-image-choice/results/` in that repo (pinned via `scripts/java_spring_docker_sample.manifest.json`).
 
 ## Supported stack
 
@@ -214,7 +216,7 @@ Details: [`docs/jvm.md`](docs/jvm.md).
 | [`docs/examples/`](docs/examples/) | Committed Dockerfile / report stubs |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Dev setup (incl. typing) |
 
-Experimental: [`docs/native-aot.md`](docs/native-aot.md). Sample app: [`samples/java-spring-docker/README.md`](samples/java-spring-docker/README.md).
+Experimental: [`docs/native-aot.md`](docs/native-aot.md). Sample app: [`mnafshin/java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample).
 
 ## Comparison with adjacent tools
 

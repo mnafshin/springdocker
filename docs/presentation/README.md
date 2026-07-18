@@ -10,7 +10,7 @@ Policy: [#83](https://github.com/mnafshin/springdocker/issues/83) (ownership & c
 
 | Question | Answer |
 |---|---|
-| **Who owns these files?** | Repository maintainers — same ownership model as `docs/` and `samples/java-spring-docker/benchmarks/`. |
+| **Who owns these files?** | Repository maintainers — same ownership model as `docs/` and the pinned [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) benchmarks. |
 | **Who may edit?** | Anyone via pull request; reviewers check factual alignment with CLI behavior and benchmark methodology. |
 | **Who publishes GitHub Pages?** | A repo admin, optionally — see [Publish policy](#commit-and-publish-policy) below. Not required for CLI users. |
 | **Who refreshes benchmark numbers?** | Whoever changes benchmark scenarios or presents with current evidence — typically a maintainer before a talk or after a `--profile full` sample run. |
@@ -92,6 +92,7 @@ Presentation decks use `data-benchmark="scenario/variant/metric"` bindings. Afte
 ```bash
 export DOCKER_BUILDKIT=1
 
+python scripts/checkout_sample.py
 springdocker benchmark generate --project-root samples/java-spring-docker --java-version 25
 springdocker benchmark run --project-root samples/java-spring-docker --profile full
 
@@ -125,6 +126,6 @@ Scenario **04 (native)** is not measured by the runner (`--skip-native` by defau
 ## Notes
 
 - Reveal.js loads from CDN (no local npm setup required).
-- Numbers are sample evidence from `samples/java-spring-docker/` (**Spring Boot 4 / Java 25**) — reproduce on your machine before citing absolutes in a live talk.
+- Numbers are sample evidence from [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) (**Spring Boot 4 / Java 25**) — reproduce on your machine before citing absolutes in a live talk.
 - **Product vs sample Java:** see [jvm.md](../jvm.md). Scenario index: [benchmarks.md](../benchmarks.md#scenario-index). Team rollout: [adopt.md](../adopt.md).
 - After CLI Java-matrix or profile changes, update narrative slides (not only CSV bindings) — see cadence table above.

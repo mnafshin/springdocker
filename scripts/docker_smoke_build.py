@@ -100,7 +100,7 @@ def main(argv: list[str] | None = None) -> int:
         "--project-root",
         type=Path,
         default=DEFAULT_PROJECT_ROOT,
-        help="Spring Boot project used for smoke build (default: samples/java-spring-docker)",
+        help="Spring Boot project used for smoke build (default: samples/java-spring-docker after checkout_sample.py)",
     )
     parser.add_argument(
         "--dockerfile",

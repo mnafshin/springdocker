@@ -16,7 +16,7 @@ flowchart TD
   commands --> analyze[analyze.py]
   commands --> benchgen[benchmarks/generate.py]
   commands --> benchr[benchmarks/runner.py]
-  benchgen --> sample[samples/java-spring-docker]
+  benchgen --> sample[java-spring-docker-sample checkout]
   benchr --> sample
 ```
 

@@ -10,7 +10,7 @@
 | JEP 483 AOT cache | **24+** | Hard-fails below 24; benchmark scenario 02 only when ≥ 24 |
 | Python CLI | 3.10+ | CI tests 3.10–3.12 |
 | Architectures | amd64, arm64 | Buildx-friendly `TARGETPLATFORM` / `BUILDPLATFORM` |
-| Sample evidence | Java **25** | `samples/java-spring-docker/` — not a CLI requirement |
+| Sample evidence | Java **25** | [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) — not a CLI requirement |
 
 ## Current defaults
 

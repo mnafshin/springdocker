@@ -22,7 +22,7 @@
 ## Benchmark commands fail
 
 - Verify Docker is available locally (`docker --version`).
-- Use the sample project path used in docs (`samples/java-spring-docker/`) when reproducing examples.
+- Check out the reference sample (`python scripts/checkout_sample.py`) when reproducing examples that use `samples/java-spring-docker/`.
 - Start with quick profile:
   `springdocker benchmark run --project-root samples/java-spring-docker --profile quick`
 

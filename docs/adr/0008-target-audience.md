@@ -28,14 +28,14 @@ springdocker is a **production-oriented CLI** for Maven/Gradle services that nee
 
 **Secondary audience: conference storytelling and evidence-backed demos.**
 
-The repository intentionally keeps presentations, benchmark scenarios, and a bleeding-edge reference
-sample (`samples/java-spring-docker/` on Spring Boot 4 / Java 25). Those assets support talks and
+The repository intentionally keeps presentations and pins a bleeding-edge reference
+sample ([`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) on Spring Boot 4 / Java 25). Those assets support talks and
 reproducible evidence — they are **not** the product identity and **not** required for production
 adoption.
 
 **Not the primary audience: personal lab-only tooling.**
 
-Research and stress-testing happen **inside the repo** (reference sample, benchmark harness, pinned
+Research and stress-testing happen via the external sample (benchmark harness, pinned
 CI baselines). Users install from PyPI and point the CLI at **their own** Spring Boot project; they
 do not need to match Java 25 or Spring Boot 4.
 
@@ -45,7 +45,7 @@ do not need to match Java 25 or Spring Boot 4.
 |---|---|
 | User's service + `springdocker init` / `configure` | Production path — **Java 17** floor; undetected fallback **17**; pick profile for **your** stack |
 | Feature gates | AppCDS / jlink / layered JAR on **17+**; JEP 483 AOT hard-requires **24+**; `fast-cold-start` remaps to AppCDS on 17–23 |
-| `samples/java-spring-docker/` | Reference / evidence anchor — Java **25** for stress-test + AOT scenario numbers |
+| [`java-spring-docker-sample`](https://github.com/mnafshin/java-spring-docker-sample) | Reference / evidence anchor — Java **25** for stress-test + AOT scenario numbers |
 | Presentations under `docs/presentation/` | Storytelling — sample evidence (often Java 25), not fleet guarantees |
 
 Bleeding-edge versions in the sample are a **feature for evidence depth**, not a **liability** for
