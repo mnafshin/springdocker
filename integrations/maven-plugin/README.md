@@ -65,14 +65,19 @@ Canonical type: `io.github.mnafshin.springdocker.maven.PluginDockerfileOptions`.
 |---|---|
 | `generate` | Implemented (pure Java; no Python) |
 | `verify` | Implemented — fails on drift vs POM config |
-| `export-config` (optional toml) | [#143](https://github.com/mnafshin/springdocker/issues/143) |
+| `export-config` | Implemented — optional one-way POM → `.springdocker.toml` |
 
 ```bash
 mvn springdocker:generate
 mvn springdocker:verify
+mvn springdocker:export-config -Dspringdocker.force=true   # optional CLI bridge
 ```
 
 Unlike the Python CLI (`verify --check-config-drift` against `.springdocker.toml`), this Mojo checks the Dockerfile against **plugin `<configuration>` only**.
+
+### Optional toml export
+
+`export-config` writes `.springdocker.toml` from plugin options so teams can later adopt the Python CLI. Re-export overwrites only with `-Dspringdocker.force=true`. Plugin configuration remains SSOT for the builder path.
 
 ## Develop
 
